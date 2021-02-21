@@ -98,6 +98,30 @@ class Gamma(_QuantileDistributionOptimizer):
     def optim(self, *args, **kw):
         super().optim(*args, **kw)
         return [p.item() for p in self.parameters]
+
+class Probit(_QuantileDistributionOptimizer):
+    def __init__(self, quantiles):
+        raise NotImplementedError
+        # parameters
+        parameters = [torch.tensor(1.0, requires_grad=True) for _ in range(3)]
+        def _cdf(x):
+            with torch.no_grad():
+                xx = x.numpy()
+                cdf = gamma.cdf(xx, *parameters)
+            return torch.tensor(cdf, requires_grad=True)
+        # init parents
+        super().__init__(
+            quantiles = quantiles,
+            parameters = parameters,
+            cdf = _cdf,
+            optimizer = Adam(parameters, lr = .01))
+        # a,loc,scale
+        self.parameters = parameters
+        self.a,self.loc,self.scale = self.parameters
+    
+    def optim(self, *args, **kw):
+        super().optim(*args, **kw)
+        return [p.item() for p in self.parameters]
     
 if __name__ == "__main__":
     # quantiles
