@@ -37,9 +37,9 @@ def write_distributions():
     """Write distributions."""
     # featch and save
     incubation()\
-        .to_csv('data/incubation.csv', index = False, header = False)
+        .to_csv('data/distr/incubation.csv', index = False, header = False)
     symptoms()\
-        .to_csv('data/symptoms.csv', index = False, header = False)
+        .to_csv('data/distr/symptoms.csv', index = False, header = False)
 
 
 

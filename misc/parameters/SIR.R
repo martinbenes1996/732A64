@@ -33,37 +33,41 @@ covid_tests <- read.csv('data/tests.csv', header=T) %>%
   dplyr::filter(country == 'CZE')
 
 # distributions
-incub_d <- read.csv('data/incubation.csv', header = F, col.names = c('Day','Prob','Trans'))
-symp_d <- read.csv('data/symptoms.csv', header = F, col.names = c('Day','Prob','Trans'))
+incub_d <- read.csv('data/distr/incubation.csv', header = F, col.names = c('Day','Prob','Trans'))
+symp_d <- read.csv('data/distr/symptoms.csv', header = F, col.names = c('Day','Prob','Trans'))
 
 DAYS <- nrow(covid_stats)
-POP <- 10629928
+#downC <- 100
+POP <- as.integer(10629928)
 stan_data <- list(
-  DAYS = DAYS, POP = POP,
+  DAYS = DAYS, #POP = POP,
   TS = 1:DAYS,
   #INCUB = nrow(incub_d), SYMP = nrow(symp_d),
-  prior_a = c(a=0.9,b=1),
+  prior_a = c(a=1,b=1),
   prior_c = c(a=2.927733,b=14737.430269,loc=0.0454624,scale=768.263174),
-  #prior_b = c(a=1.632731,b=1836.076787,loc=-0.017817,scale=82.54667),
-  #prior_d = c(a=1e-7,b=1e-1),
+  prior_b = c(a=1.632731,b=1836.076787,loc=0,scale=82.54667), # loc=-0.017817
+  prior_d = c(a=1.632731,b=1836.076787,loc=0,scale=82.54667),
   #prior_d = c(a = 1.5, b = 1.5),
-  ifr = 0.064, 
   prior_test = c(.02,.8),
   tests = covid_tests$T / POP,
   confirmed = covid_stats$I / POP,
-  #recovered = covid_stats$R / POP,
-  #deaths = covid_stats$D / POP,
-  init_solution = c(S = (POP - 1) / POP, E = 0, I = 1 / POP) #, R = 0)#, D = 0)
+  recovered = covid_stats$R / POP,
+  deaths = covid_stats$D / POP,
+  init_solution = c(S = (POP - 1) / POP, E = 0, I = 1 / POP, R = 0, D = 0)
 )
 
-MAXITER <- 500
+MAXITER <- 200
 model <- stan_model("model/quotient.stan", verbose = TRUE)
 fit_sir_negbin <- sampling(model,
                            data = stan_data,
                            iter = MAXITER*2,
                            chains = 2,
-                           seed = 0)
+                           seed = 0,
+                           init = 1)
 
+r0 <- extract(fit_sir_negbin, pars = c('R0'))$R0 #/ POP
+
+plot(r0 / POP)
 plot(fit_sir_negbin, pars = c("R0"))
 
 
@@ -72,20 +76,25 @@ y <- extract(fit_sir_negbin, pars = c('y'))
 susceptible <- matrix(nrow=DAYS, ncol=MAXITER)
 exposed <- matrix(nrow=DAYS, ncol=MAXITER)
 infected <- matrix(nrow=DAYS, ncol=MAXITER)
+deaths <- matrix(nrow=DAYS, ncol=MAXITER)
+recovered <- matrix(nrow=DAYS, ncol=MAXITER)
 for(i in 1:MAXITER) {
   for(d in 1:DAYS) {
-    susceptible[d,i] <- y$y[i,d,1]
-    exposed[d,i] <- y$y[i,d,2]
-    infected[d,i] <- y$y[i,d,3]
+    susceptible[d,i] <- round(abs(y$y[i,d,1]) * POP)
+    exposed[d,i] <- round(abs(y$y[i,d,2]) * POP)
+    infected[d,i] <- round(abs(y$y[i,d,3]) * POP)
+    deaths[d,i] <- round(abs(y$y[i,d,4]) * POP)
+    recovered[d,i] <- round(abs(y$y[i,d,5]) * POP)
   }
 }
 
 # plot infected
-plot(1:DAYS, covid_stats$I, type="l", col="blue")
+plot(1:DAYS, covid_stats$R, type="l", col="blue")
+plot(1:DAYS, apply(recovered, 1, mean), col="gray")
 for(i in 1:MAXITER) {
-  lines(1:DAYS, POP * infected[,i], col="red", type="l")
+  lines(1:DAYS, recovered[,i], col="red", type="l")
 }
-lines(1:DAYS, apply(infected * POP, 1, mean))
+lines(1:DAYS, apply(recovered, 1, mean))
 
 
 plot(fit_sir_negbin, pars = c("R0", 'recovery_time'))
