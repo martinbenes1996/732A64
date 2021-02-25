@@ -7,34 +7,39 @@ library(patchwork)
 library(EpiEstim)
 library(COVID19)
 
+#serial.pars <- c(11.39,2.504)
+serial.pars <- c(1.901,0.41781)
 #'
 #'
-plot_gamma <- function(lim.max = 20) {
+plot_serial_interval <- function(lim.max = 20, show.hist = TRUE) {
   # continuous distribution
   xgrid <- seq(0.01,lim.max,length.out = 1000)
   gamma.continuous <- data.frame(
     x = xgrid,
-    y = dgamma(xgrid,11.39,2.504)
+    y = dgamma(xgrid,serial.pars[1],serial.pars[2])
   )
   # discrete distribution
-  y.discrete <- pgamma(1:(lim.max+1),11.39,2.504) - pgamma(0:lim.max,11.39,2.504)
+  y.discrete <- pgamma(1:(lim.max+1),serial.pars[1],serial.pars[2]) -
+                pgamma(0:lim.max,serial.pars[1],serial.pars[2])
   gamma.discrete <- data.frame(
-    x = c(0, sapply(1:lim.max, rep, 2), lim.max+1),
-    y = c(sapply(y.discrete, rep, 2))
+    x = c(0,0,sapply(1:lim.max, rep, 2), lim.max+1),
+    y = c(0,sapply(y.discrete, rep, 2))
   )
-  
   # plot
-  gamma.discrete %>%
-    ggplot(mapping = aes(x = x, y = y)) +
-    geom_polygon(alpha = .8) +
-    geom_line(data = gamma.continuous) +
+  p <- gamma.discrete %>%
+    ggplot(mapping = aes(x = x, y = y))
+  if(show.hist)
+    p <- p + geom_polygon(alpha = .7)
+  p <- p +
+    geom_line(data = gamma.continuous, size = 1) +
     labs(x = 'Serial interval (days)', y = 'Density')
+  plot(p)
 }
 
 #'
 #'
 get_restrictions <- function(country) {
-  restrictions <- read.csv('data/restrictions.csv')
+  restrictions <- read.csv('data/calendar/restrictions.csv')
   restrictions <- restrictions %>%
     dplyr::filter(Country == country) %>%
     dplyr::mutate(Date = as.Date(Date), y = 1)
@@ -135,7 +140,8 @@ get_tests <- function(covid_data, country, date.min) {
 #'
 estimate_reproduction <- function(incid, date.min) {
   lim.max <- 20
-  y.discrete <- pgamma(1:(lim.max+1),11.39,2.504) - pgamma(0:lim.max,11.39,2.504)
+  y.discrete <- pgamma(1:(lim.max+1),serial.pars[1],serial.pars[2]) -
+                pgamma(0:lim.max,serial.pars[1],serial.pars[2])
   y.discrete[1] <- 0
   y.discrete <- y.discrete / sum(y.discrete)
   res <- estimate_R(incid = incid, method = "non_parametric_si",
@@ -314,35 +320,7 @@ plot_trace_R0_box <- function(country = NA, date.min = '2020-03-08', date.max = 
   Rs <- Rs %>%
     dplyr::mutate(Month = format(Date,'%Y-%m'))
   Rs %>%
-    ggplot(mapping = aes(x = Month, y = R0)) +
-    geom_boxplot(outlier.colour="red") +
-    facet_wrap(~Country)
+    ggplot(mapping = aes(x = Month, y = R0, color = Country)) +
+    geom_boxplot(width=0.5) #+
+    #facet_wrap(~Country)
 }
-
-#plot_gamma()
-#plot_R0_series('CZ','2020-03-10')
-#plot_R0_series('PL','2020-03-10')
-#plot_R0_series('SE','2020-03-01')
-#plot_R0_series('IT','2020-03-01')
-
-#plot_tests_R0_series('CZ','2020-03-10')
-#plot_tests_R0_series('PL','2020-03-10')
-#plot_tests_R0_series('SE','2020-03-01')
-#plot_tests_R0_series('IT','2020-03-01')
-
-# R0 box plots
-#plot_R0_box(c('CZ','IT','PL','SE'), '2020-03-25','2021-02-01')
-#plot_R0_box(c('CZ','IT','PL','SE'), '2020-03-01','2020-03-31') # March - initial period
-#plot_R0_box(c('CZ','IT','PL','SE'), '2020-04-01','2020-04-30') # April - first wave
-#plot_R0_box(c('CZ','IT','PL','SE'), '2020-05-01','2020-05-31') # May - easing
-#plot_R0_box(c('CZ','IT','PL','SE'), '2020-06-01','2020-06-30') # June
-#plot_R0_box(c('CZ','IT','PL','SE'), '2020-07-01','2020-07-31') # July
-#plot_R0_box(c('CZ','IT','PL','SE'), '2020-08-01','2020-08-31') # August
-#plot_R0_box(c('CZ','IT','PL','SE'), '2020-09-01','2020-09-30') # September - second wave
-#plot_R0_box(c('CZ','IT','PL','SE'), '2020-10-01','2020-10-31') # October
-#plot_R0_box(c('CZ','IT','PL','SE'), '2020-11-01','2020-11-30') # November - easing
-#plot_R0_box(c('CZ','IT','PL','SE'), '2020-12-01','2020-12-31') # December - third wave
-#plot_R0_box(c('CZ','IT','PL','SE'), '2021-01-01','2021-01-31') # January
-
-plot_trace_R0_box(c('CZ','IT','PL','SE'), '2020-03-20')
-#plot_trace_tests_R0_box(c('CZ','IT','PL','SE'), '2020-03-20')
