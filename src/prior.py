@@ -12,6 +12,7 @@ plt.rcParams.update({'font.size': 18})
 sys.path.append('src')
 
 import _incubation
+import _src
 import _symptoms
 import _testing
 import population
@@ -144,6 +145,35 @@ def test_prior(save = False, name = 'data/distr/testratio.csv'):
     if save: tests.to_csv(name, index = False)
     return tests
 
+def confirmed_prior(save = False, name = 'data/distr/confirmedratio.csv'):
+    """"""
+    # get data
+    pop = population.countries()
+    df = _src.get_data()
+    tests = _testing.tests()
+    # group
+    iso3_iso2 = {'CZE':'CZ','SWE':'SE','POL':'PL','ITA':'IT'}
+    for country3 in df.iso_alpha_3.unique():
+        # get country population
+        country2 = iso3_iso2[country3]
+        country_pop = float(pop.population[pop.region == country2])
+        # normalize confirmed by tests
+        country_confirmed = df[df.iso_alpha_3 == country3].confirmed.apply(lambda c: c if c > 0 else 1)
+        country_tests = tests[tests.country == country3].tests.apply(lambda t: t if t > 0 else 1)
+        df.loc[df.iso_alpha_3 == country3,'ratio'] = (country_confirmed / country_tests).fillna(0)
+        df['ratio'] = df.ratio.apply(lambda r: r if r < 1 else 1 - 1e-6)
+        df['ratio'] = df.ratio.apply(lambda r: r if r > 0 else 1e-6)
+        df[df.iso_alpha_3 == country3]['tests'] = country_tests
+        df[df.iso_alpha_3 == country3]['confirmed'] = country_confirmed
+        print(df[df.iso_alpha_3 == country3])
+    df = df[['iso_alpha_3','date','confirmed','tests','ratio']]
+    print(df[(df.ratio <= 0) | (df.ratio >= 1)])
+    confirmed_fit = beta.fit(df.ratio, floc = 0, fscale = 1)
+    print(confirmed_fit)
+    # save
+    if save: df.to_csv(name, index = False)
+    return df
+
 def plot_test_prior(cmap = {}):
     # get ratio
     x = test_prior()
@@ -183,6 +213,8 @@ def plot_test_ratio_all(save = False, name = 'img/parameters/test_ratio.png'):
 
 #plot_SI()
 #plt.show()
-priors(save = True)
+#priors(save = True)
 #test_prior(save = True)
+
+confirmed_prior(save = True)
 

@@ -292,7 +292,8 @@ plot_R0_box <- function(country = NA, date.min = '2020-03-08', date.max = '2021-
 
 #'
 #'
-plot_trace_R0_box <- function(country = NA, date.min = '2020-03-08', date.max = '2021-01-31') {
+plot_trace_R0_box <- function(country = c('CZ','IT','SE','PL'),
+                              date.min = '2020-03-15', date.max = '2021-01-31') {
   # daily incidence
   covid_data <- covid19(country, level = 1)
   covid_stats <- covid_data %>%
@@ -324,3 +325,43 @@ plot_trace_R0_box <- function(country = NA, date.min = '2020-03-08', date.max = 
     geom_boxplot(width=0.5) #+
     #facet_wrap(~Country)
 }
+
+plot_trace_test_R0_box <- function(countries = c('CZE','ITA','SWE','POL'),
+                              date.min = '2020-03-15', date.max = '2021-01-31') {
+  # daily incidence
+  covid_data <- covid19(countries, level = 1)
+  covid_tests <- read.csv('data/tests.csv', header=T) %>%
+    dplyr::transmute(country, dates = as.Date(date), I = tests) %>%
+    dplyr::mutate(I = ifelse(is.na(I), 0, I)) %>%
+    dplyr::mutate(I = as.integer(I)) %>%
+    dplyr::mutate(I = ifelse(I < 0, 0, I)) %>% # remove corrections
+    dplyr::filter(dates <= as.Date(date.max), dates > as.Date(date.min)) %>%
+    dplyr::filter(country %in% countries)
+  # tests
+  Rs <- NA
+  Rs.empty <- T
+  for(country in unique(covid_tests$country)) {
+    country_stats <- covid_tests[covid_tests$country == country,] %>%
+      dplyr::transmute(dates,I)
+    R <- estimate_reproduction(country_stats, date.min)
+    R <- cbind(R, data.frame(Country = country))
+    if(Rs.empty) {
+      Rs <- R
+      Rs.empty <- F
+    }
+    else Rs <- rbind(Rs,R)
+  }
+  Rs <- Rs %>%
+    dplyr::mutate(Month = format(Date,'%Y-%m')) %>%
+    dplyr::mutate(R0 = ifelse(R0 < 2.5, R0, 2.5)) %>%
+    dplyr::mutate(R0 = ifelse(R0 > .7, R0, .7))
+  Rs %>%
+    dplyr::mutate(Test_R0 = R0) %>%
+    ggplot(mapping = aes(x = Month, y = Test_R0, color = Country)) +
+    geom_boxplot(width=0.5) #+
+  #facet_wrap(~Country)
+}
+
+
+plot_trace_test_R0_box()
+

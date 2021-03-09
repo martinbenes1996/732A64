@@ -15,15 +15,16 @@ def continuous():
     x = df['duration of symptoms in days']\
         .apply(int)\
         .to_numpy()
+    x[x == 0] = 1
     # fit distributions
     return {
         'x': x,
         'norm': norm.fit(x),
-        'lognorm': lognorm.fit(x, scale = 20),
-        'gamma': gamma.fit(x)
+        'lognorm': lognorm.fit(x, floc=0),
+        'gamma': gamma.fit(x, floc=0)
     }
 
-def continuous_plot():
+def continuous_plot(save = False, name = 'img/parameters/symptoms.png'):
     """"""
     # get distribution
     fit = continuous()
@@ -40,6 +41,7 @@ def continuous_plot():
     plt.xlabel('Days from symptom onset')
     plt.ylabel('Density')
     plt.legend()
+    if save: plt.savefig(name)
 
 def distribution_aic():
     """"""
@@ -67,9 +69,10 @@ def discrete(N = 40):
         probs.append(P)
     distribution = pd.DataFrame({'x': range(N), 'Px': probs})
     return distribution
-def discrete_plot(N = 40):
+def discrete_plot(N = 40, save = False, name = 'img/parameters/symptoms_discrete.png'):
     """"""
     # get disribution
+    fit = continuous()
     distribution = discrete(N = N)
     xgrid = np.linspace(0, N - 2, 1000)
     def find_X(i):
@@ -82,4 +85,9 @@ def discrete_plot(N = 40):
     plt.xlabel('Days from symptom onset')
     plt.ylabel('Density')
     plt.legend()
+    if save: plt.savefig(name)
 
+continuous_plot(save=True)
+discrete_plot(save = True)
+print(continuous())
+print(distribution_aic())

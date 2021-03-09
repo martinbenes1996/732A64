@@ -1,5 +1,9 @@
 
+import matplotlib.pyplot as plt
 import pandas as pd
+import re
+from scipy.stats import multinomial
+import seaborn as sns
 import eurostat_deaths
 
 def _get_populations(agg = True):
@@ -19,6 +23,37 @@ def _filter_country(regional = False):
             res = s in ['CZ','IT','PL','SE']
         return res
     return _filter_f
+
+def _populations_data():
+    # get data
+    x = _get_populations()
+    # filter everything but countries 2020
+    x = x[x['geo\\time'].apply(_filter_country(regional = False)) &
+          x.sex.isin(['M','F']) & ~x.age.isin(['TOTAL','UNK'])]
+    x = x[['sex','age','geo\\time','2020']]\
+        .reset_index(drop = True)\
+        .rename({'geo\\time': 'region', '2020': 'population'}, axis = 1)
+    x['age'] = x.age.apply(str)
+    def get_age_start(i):
+        x = re.match(r'(90)|(85)|(\d+)_\d+', i)
+        for i in range(1,4):
+            if x[i] is not None:
+                return int(x[i])
+        else:
+            raise RuntimeError(f'invalid format of age: {i}')
+    x['age_start'] = x.age.apply(get_age_start)
+    def get_age_end(i):
+        x = re.match(r'(90)|(85)|\d+_(\d+)', i)
+        for i in range(1,4):
+            if x[i] is not None:
+                if i == 1: return 99
+                elif i == 2: return 89
+                else: return int(x[i])
+        else:
+            raise RuntimeError(f'invalid format of age: {i}')
+    x['age_end'] = x.age.apply(get_age_end)
+    return x
+
 
 def countries():
     # get data
@@ -56,5 +91,35 @@ def population(save = False, name = 'data/population.csv'):
     if save: x.to_csv(name, index = False)
     return x
 
+def plot_population_violin(df = None, save = False, name = 'img/demographic/population.png'):
+
+    # fetch data
+    df = _populations_data() if df is None else df
+    print(df)
+    #return
+    # upsample
+    cases = {'sex': [], 'age': [], 'country': []}
+    for row in df.itertuples():
+        age_cat = row.age_end - row.age_start + 1
+        random_pops = multinomial.rvs(int(row.population / 100), [1/age_cat]*age_cat)#, random_state = 12345)
+        ages = list(range(row.age_start, row.age_end + 1))
+        for age,deaths in zip(ages, random_pops):
+            for _ in range(deaths):
+                cases['country'].append(row.region)
+                cases['sex'].append(row.sex)
+                cases['age'].append(age)
+    cases = pd.DataFrame(cases)\
+        .sort_values(by = 'sex', ascending = False)
+    cases['date'] = None
+    
+    print(cases)
+    # plot
+    plt.rcParams.update({'font.size': 20})
+    sns.violinplot(x="country", y="age", hue="sex", data = cases)
+    if save: plt.savefig(name)
+
 if __name__ == '__main__':
-    x = population(save = True)
+    plot_population_violin()
+    plt.show()
+    #x = population(save = True)
+    #print(x)
