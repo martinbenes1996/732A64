@@ -91,12 +91,13 @@ parameters {
   real<lower=0,upper=1> d_sir[DAYS_W];
   
   // latent states
-  
 }
 
 transformed parameters {
   // latent
-  real y[DAYS, 5];
+  real y_[DAYS, 5];
+  real<lower=0> y[DAYS, 5];
+  
   //real<lower=0> theta[4];
   //theta[1] = a_sir;
   //theta[2] = c_sir;
@@ -115,7 +116,11 @@ transformed parameters {
   //print(4*DAYS_W);
 
   // integration step
-  y = integrate_ode_rk45(sir, init_solution, 0, TS, theta, x_r, x_i);
+  y_ = integrate_ode_rk45(sir, init_solution, 0, TS, theta, x_r, x_i);
+  y = fabs(y_);
+  //for(d in 1:DAYS)
+  //  for(i in 1:5)
+  //    y = fabs(y);
   // saturation arithmetics
   //for(d in 1:DAYS)
   //  for(i in 1:5)
@@ -144,8 +149,8 @@ model {
     
     // testing
     //print(t, "/", DAYS, ") ", y[t,2:3], " - ", tests[t]);
-    confirmed[t] ~ beta(prior_test[1] + tests[t] * (fabs(y[t,3])),
-                        prior_test[2] + tests[t] * (1 - (fabs(y[t,3]))));
+    confirmed[t] ~ beta(prior_test[1] + tests[t] * y[t,3],
+                        prior_test[2] + tests[t] * (1 - y[t,3]));
     //confirmed[t] ~ normal(y[t,3]*post_test[1], sqrt(fabs(y[t,3])*post_test[2]) ) T[0,];
     //print("after confirmed: ", target());
     
@@ -158,8 +163,8 @@ model {
    
     // recovered
     //recovered[t] ~ normal(y[t,4] * POP, 1) T[0,];
-    recovered[t] ~ beta(prior_test_rec[1] + tests[t] * fabs(y[t,4]),
-                        prior_test_rec[2] + tests[t] * (1 - fabs(y[t,4])));
+    recovered[t] ~ beta(prior_test_rec[1] + tests[t] * y[t,4],
+                        prior_test_rec[2] + tests[t] * (1 - y[t,4]));
     //print("recovered: ", recovered[t], "; prior beta(", prior_test2, ");",
     //      "post beta(", prior_test2[1] + tests[t] * fabs(y[t,4]), ",",
     //                    prior_test2[2] + tests[t] * (1 - fabs(y[t,4])),")")
@@ -167,8 +172,8 @@ model {
     
     //recovered[t] ~ normal(y[t,5],1/POP) T[0,];
     // deaths
-    deaths[t] ~ beta(prior_deaths[1] + POP * fabs(y[t,5]),
-                     prior_deaths[2] + POP * (1 - fabs(y[t,5])));
+    deaths[t] ~ beta(prior_deaths[1] + POP * y[t,5],
+                     prior_deaths[2] + POP * (1 - y[t,5]));
     //deaths[t] ~ normal(y[t,5] * POP, 1) T[0,];
     //print("after deaths: ", target());
     

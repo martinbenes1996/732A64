@@ -53,7 +53,7 @@ def SI():
     return {'x': samples,
             'weib': dweibull.fit(samples, floc = 0)}
 
-def plot_SI(save = False):
+def plot_SI(save = False, name = 'img/sir/SI.png'):
     # get fit
     fit = SI()
     # generate curve
@@ -67,7 +67,7 @@ def plot_SI(save = False):
     ax1.set_ylabel('Density')
     ax1.set_xlim(0,2)
     # save plot
-    #if save: fig1.savefig(name)
+    if save: fig1.savefig(name)
 
 def plot_EI(save = False, name = 'img/sir/EI.png'):
     """"""
@@ -101,6 +101,11 @@ def plot_IR(save = False, name = 'img/sir/IR.png'):
     ax1.set_xlim(0,1)
     # save plot
     if save: fig1.savefig(name)
+
+def plot_parameters():
+    plot_SI(save = True)
+    plot_EI(save = True)
+    plot_IR(save = True)
 
 def priors(save = False, name = 'data/distr/prior.json'):
     """"""
@@ -216,5 +221,6 @@ def plot_test_ratio_all(save = False, name = 'img/parameters/test_ratio.png'):
 #priors(save = True)
 #test_prior(save = True)
 
-confirmed_prior(save = True)
+#confirmed_prior(save = True)
 
+plot_parameters()
