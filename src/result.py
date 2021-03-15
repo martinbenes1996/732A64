@@ -5,30 +5,30 @@ import pandas as pd
 POP = 10629928
 
 # tests
-tests = pd.read_csv('results/14_03-prior2/tests.csv', names=['days','tests'], header=0).tests
+tests = pd.read_csv('results/15_03-prior2/tests.csv', names=['days','tests'], header=0).tests
 
 # HMM parameters
-colnames_window = ['index', *range(27)]
-a_sir = pd.read_csv('results/14_03-prior2/a_sir.csv', names=colnames_window, header=0)
-c_sir = pd.read_csv('results/14_03-prior2/c_sir.csv', names=colnames_window, header=0)
-b_sir = pd.read_csv('results/14_03-prior2/b_sir.csv', names=colnames_window, header=0)
-d_sir = pd.read_csv('results/14_03-prior2/d_sir.csv', names=colnames_window, header=0)
+colnames_window = ['index', *range(7)]
+a_sir = pd.read_csv('results/15_03-prior2/a_sir.csv', names=colnames_window, header=0)
+c_sir = pd.read_csv('results/15_03-prior2/c_sir.csv', names=colnames_window, header=0)
+b_sir = pd.read_csv('results/15_03-prior2/b_sir.csv', names=colnames_window, header=0)
+d_sir = pd.read_csv('results/15_03-prior2/d_sir.csv', names=colnames_window, header=0)
 
 # output
-colnames_day = ['index', *range(27)]
-R0 = pd.read_csv('results/14_03-prior2/R0.csv', names=colnames_day, header=0)
-recov = pd.read_csv('results/14_03-prior2/recovery_time.csv', names=colnames_day, header=0)
+colnames_day = ['index', *range(7)]
+R0 = pd.read_csv('results/15_03-prior2/R0.csv', names=colnames_day, header=0)
+recov = pd.read_csv('results/15_03-prior2/recovery_time.csv', names=colnames_day, header=0)
 
 # latent
 def cname(limit, prefix):
     return [prefix + str(i) for i in range(limit)]
-colnames_latent = ['index', *cname(274,'S'), *cname(274,'E'), *cname(274,'I'), *cname(274,'R'), *cname(274,'D')]
-y = pd.read_csv('results/14_03-prior2/y.csv', names=colnames_latent, header=0)
-y_S = y[cname(274,'S')] * POP
-y_E = y[cname(274,'E')] * POP
-y_I = y[cname(274,'I')] * POP
-y_R = y[cname(274,'R')]
-y_D = y[cname(274,'D')] * POP
+colnames_latent = ['index', *cname(121,'S'), *cname(121,'E'), *cname(121,'I'), *cname(121,'R'), *cname(121,'D')]
+y = pd.read_csv('results/15_03-prior2/y.csv', names=colnames_latent, header=0)
+y_S = y[cname(121,'S')] * POP
+y_E = y[cname(121,'E')] * POP
+y_I = y[cname(121,'I')] * POP
+y_R = y[cname(121,'R')]
+y_D = y[cname(121,'D')] * POP
 
 import numpy as np
 from sklearn.neighbors import KNeighborsRegressor
@@ -51,12 +51,12 @@ def mean_to_smooth(x_mean):
 
 # axis
 from datetime import datetime
-dt = pd.date_range(datetime(2020,4,2),datetime(2020,12,31))
+dt = pd.date_range(datetime(2020,9,2),datetime(2020,12,31))
 # plotting
 import matplotlib.pyplot as plt
 
 # parameters
-dt_param = pd.date_range(datetime(2020,4,1),datetime(2020,12,31), freq = '10D')
+dt_param = pd.date_range(datetime(2020,9,2),datetime(2021,1,20), freq = '20D')
 a_mean = sim_to_mean(a_sir)
 c_mean = sim_to_mean(c_sir)
 b_mean = sim_to_mean(b_sir)
@@ -67,13 +67,6 @@ plt.plot(dt_param[1:], b_mean[1:], label="I-R")
 plt.plot(dt_param[1:], d_mean[1:], label="I-D")
 plt.legend()
 plt.show()
-
-#print(y_E.shape)
-#print(sim_to_mean(y_E).shape)
-#print(mean_to_smooth(sim_to_mean(y_E)).shape)
-#print("tests", tests.shape)
-#print("dt", dt.shape)
-#exit()
 
 # eird
 y_E_smooth = mean_to_smooth(sim_to_mean(y_E))

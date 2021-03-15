@@ -6,7 +6,7 @@ library(bayesplot)
 
 # parameters
 country <- 'CZ'
-date.min <- '2020-04-01' #'2020-03-20' #'2020-09-01'#
+date.min <- '2020-09-01'#'2020-04-01' #'2020-03-20' #'2020-09-01'#
 date.max <- '2020-12-31' #'2020-12-31'#
 
 # fetch data
@@ -50,15 +50,15 @@ saturate <- function(v, max = 1, min = 0, eps=1e-5) {
   else return(v)
 }
 stan_data <- list(
-  DAYS = DAYS, WINDOW = 7, TS = 1:DAYS,
+  DAYS = DAYS, WINDOW = 20, TS = 1:DAYS,
   POP = POP, INDIV = 1/POP,
   prior_a = c(c=1.725482,sigma=.373588),#c(1,2),
   prior_c = c(a=2.736960,b=28.970829),#c(1,2),
   prior_b = c(a=3.622493,b=14.421170),#c(1,2),
-  prior_d = c(a=3.622493,b=14.421170),#c(1,2),
+  prior_d = c(a=3.151443,b=5438.488333),#c(1,2),
   prior_test = c(0.25155568403722195, 0.30983778140500917), #.7,
   prior_test_rec = c(0.25155568403722195, 0.30983778140500917),
-  prior_deaths = c(0.25155568403722195, 0.30983778140500917),#c(10,1),
+  prior_deaths = c(10,1),#c(0.25155568403722195, 0.30983778140500917),#c(10,1),
   tests = covid_tests$T,
   confirmed = covid_stats$I / covid_tests$T,
   recovered = sapply((covid_stats$R+1) / covid_tests$T, saturate),
@@ -71,13 +71,12 @@ stan_data <- list(
                     D = (covid_stats$D[1]+1) / POP)
 )
 
-MAXITER <- 400
+MAXITER <- 500
 model <- stan_model("model/quotient.stan", verbose = TRUE)
 fit_sir <- sampling(model,
                     data = stan_data,
                     iter = MAXITER*2,
                     chains = 1,
-                    cores = 2,
                     seed = 0,
                     init = 1)
 

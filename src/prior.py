@@ -11,6 +11,7 @@ plt.rcParams["figure.figsize"] = (10,8)
 plt.rcParams.update({'font.size': 18})
 sys.path.append('src')
 
+import _ifr
 import _incubation
 import _src
 import _symptoms
@@ -21,7 +22,7 @@ def EI():
     """"""
     # draw from incubation period
     pars = _incubation.continuous()['gamma']
-    draws = gamma.rvs(*pars, size = 10000, random_state = 12345)
+    draws = gamma.rvs(*pars, size = 1000000, random_state = 12345)
     # fit beta to 1/draw
     samples = 1 / draws
     samples = samples[samples < 1]
@@ -32,9 +33,22 @@ def IR():
     """"""
     # draw from symptoms period
     pars = _symptoms.continuous()['gamma']
-    draws = gamma.rvs(*pars, size = 10000, random_state = 54321)
-    # fit beta to 1/draw
-    samples = 1 / draws
+    draws = gamma.rvs(*pars, size = 1000000, random_state = 54321)
+    draws_ifr = _ifr.rvs(size = 1000000)
+    # fit beta to 1 / draw
+    samples = (1 - draws_ifr) / draws
+    samples = samples[(samples > 0) & (samples < 1)]
+    return {'x': samples,
+            'beta': beta.fit(samples, fscale=1, floc=0)}
+
+def ID():
+    """"""
+    # draw from symptoms period
+    pars = _symptoms.continuous()['gamma']
+    draws = gamma.rvs(*pars, size = 1000000, random_state = 54321)
+    draws_ifr = _ifr.rvs(size = 1000000)
+    # fit beta to 1 / draw
+    samples = draws_ifr / draws
     samples = samples[(samples > 0) & (samples < 1)]
     return {'x': samples,
             'beta': beta.fit(samples, fscale=1, floc=0)}
@@ -44,7 +58,7 @@ def SI():
     # get ir
     fit = IR()
     # sample
-    K = 100000
+    K = 1000000
     r0 = uniform.rvs(2,4, size = K)
     ir = beta.rvs(*fit['beta'][:2], size = K)
     # 
@@ -61,7 +75,7 @@ def plot_SI(save = False, name = 'img/sir/SI.png'):
     fx = dweibull.pdf(xgrid, *fit['weib']) * 2
     # plot
     fig1, ax1 = plt.subplots()
-    ax1.hist(fit['x'], density = True, bins = 150)
+    ax1.hist(fit['x'], density = True, bins = 100)
     ax1.plot(xgrid, fx)
     ax1.set_xlabel('R0 * Symptoms')
     ax1.set_ylabel('Density')
@@ -94,11 +108,28 @@ def plot_IR(save = False, name = 'img/sir/IR.png'):
     fx = beta.pdf(xgrid, *fit['beta'])
     # plot
     fig1, ax1 = plt.subplots()
-    ax1.hist(fit['x'], density = True, bins = 300)
+    ax1.hist(fit['x'], density = True, bins = 100)
     ax1.plot(xgrid,fx)
-    ax1.set_xlabel('1 / Symptoms')
+    ax1.set_xlabel('IFR / Symptoms')
     ax1.set_ylabel('Density')
     ax1.set_xlim(0,1)
+    # save plot
+    if save: fig1.savefig(name)
+
+def plot_ID(save = False, name = 'img/sir/ID.png'):
+    """"""
+    # get fit
+    fit = ID()
+    # generate curve
+    xgrid = np.linspace(0,.005,1000)
+    fx = beta.pdf(xgrid, *fit['beta'])
+    # plot
+    fig1, ax1 = plt.subplots()
+    ax1.hist(fit['x'], density = True, bins = 200)
+    ax1.plot(xgrid,fx)
+    ax1.set_xlabel('(1-IFR) / Symptoms')
+    ax1.set_ylabel('Density')
+    ax1.set_xlim(0,.005)
     # save plot
     if save: fig1.savefig(name)
 
@@ -106,12 +137,14 @@ def plot_parameters():
     plot_SI(save = True)
     plot_EI(save = True)
     plot_IR(save = True)
+    plot_ID(save = True)
 
 def priors(save = False, name = 'data/distr/prior.json'):
     """"""
     _si = SI()['weib']
     _ei = EI()['beta']
     _ir = IR()['beta']
+    _id = ID()['beta']
     prior_params = {
         'SI': {
             'distribution': 'weib',
@@ -124,6 +157,10 @@ def priors(save = False, name = 'data/distr/prior.json'):
         'IR': {
             'distribution': 'beta',
             'param': list(_ir[:2])
+        },
+        'ID': {
+            'distribution': 'beta',
+            'param': list(_id[:2])
         }
     }
     if save:
@@ -170,11 +207,8 @@ def confirmed_prior(save = False, name = 'data/distr/confirmedratio.csv'):
         df['ratio'] = df.ratio.apply(lambda r: r if r > 0 else 1e-6)
         df[df.iso_alpha_3 == country3]['tests'] = country_tests
         df[df.iso_alpha_3 == country3]['confirmed'] = country_confirmed
-        print(df[df.iso_alpha_3 == country3])
     df = df[['iso_alpha_3','date','confirmed','tests','ratio']]
-    print(df[(df.ratio <= 0) | (df.ratio >= 1)])
     confirmed_fit = beta.fit(df.ratio, floc = 0, fscale = 1)
-    print(confirmed_fit)
     # save
     if save: df.to_csv(name, index = False)
     return df
@@ -223,4 +257,8 @@ def plot_test_ratio_all(save = False, name = 'img/parameters/test_ratio.png'):
 
 #confirmed_prior(save = True)
 
-plot_parameters()
+if __name__ == "__main__":
+    plot_parameters()
+    priors(save = True)
+    test_prior(save = True)
+    confirmed_prior(save = True)
