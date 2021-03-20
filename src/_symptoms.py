@@ -87,7 +87,9 @@ def discrete_plot(N = 40, save = False, name = 'img/parameters/symptoms_discrete
     plt.legend()
     if save: plt.savefig(name)
 
-#continuous_plot(save=True)
+if __name__ == '__main__':
+    continuous_plot(save=True)
+    plt.show()
 #discrete_plot(save = True)
 #print(continuous())
 #print(distribution_aic())

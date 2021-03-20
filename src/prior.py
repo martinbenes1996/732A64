@@ -3,12 +3,12 @@ import json
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from scipy.stats import lognorm,norm,gamma,beta,norm,uniform,dweibull
+from scipy.stats import lognorm,norm,gamma,beta,norm,uniform,dweibull,argus,triang
 from sklearn.utils import resample
 import sys
 
 plt.rcParams["figure.figsize"] = (10,8)
-plt.rcParams.update({'font.size': 18})
+plt.rcParams.update({'font.size': 10})
 sys.path.append('src')
 
 import _ifr
@@ -20,66 +20,99 @@ import population
 
 def EI():
     """"""
+    # seed
+    np.random.seed(seed=12345)
     # draw from incubation period
     pars = _incubation.continuous()['gamma']
     draws = gamma.rvs(*pars, size = 1000000, random_state = 12345)
     # fit beta to 1/draw
     samples = 1 / draws
-    samples = samples[samples < 1]
+    samples = samples[(samples > 0) & (samples < 1)]
     return {'x': samples,
-            'beta': beta.fit(samples, floc=0, fscale = 1)}
+            'beta': beta.fit(samples),
+            'gamma': gamma.fit(samples, loc = .2, scale = 10)}
     
 def IR():
     """"""
+    # seed
+    np.random.seed(seed=12345)
     # draw from symptoms period
     pars = _symptoms.continuous()['gamma']
-    draws = gamma.rvs(*pars, size = 1000000, random_state = 54321)
-    draws_ifr = _ifr.rvs(size = 1000000)
+    draws = gamma.rvs(*pars, size = 100000, random_state = 54321)
+    draws_ifr = _ifr.rvs(size = 100000)
     # fit beta to 1 / draw
     samples = (1 - draws_ifr) / draws
     samples = samples[(samples > 0) & (samples < 1)]
     return {'x': samples,
-            'beta': beta.fit(samples, fscale=1, floc=0)}
+            'beta': beta.fit(samples),
+            'gamma': gamma.fit(samples)}
 
 def ID():
     """"""
+    # seed
+    np.random.seed(seed=12345)
     # draw from symptoms period
     pars = _symptoms.continuous()['gamma']
-    draws = gamma.rvs(*pars, size = 1000000, random_state = 54321)
-    draws_ifr = _ifr.rvs(size = 1000000)
+    draws = gamma.rvs(*pars, size = 100000, random_state = 54321)
+    draws_ifr = _ifr.rvs(size = 100000)
     # fit beta to 1 / draw
     samples = draws_ifr / draws
     samples = samples[(samples > 0) & (samples < 1)]
     return {'x': samples,
-            'beta': beta.fit(samples, fscale=1, floc=0)}
+            'beta': beta.fit(samples),
+            'gamma': gamma.fit(samples)}
 
 def SI():
     """"""
+    # seed
+    np.random.seed(seed=12345)
     # get ir
-    fit = IR()
+    fit_IR = IR()
+    fit_ID = ID()
     # sample
-    K = 1000000
-    r0 = uniform.rvs(2,4, size = K)
-    ir = beta.rvs(*fit['beta'][:2], size = K)
+    K = 100000
+    r0 = uniform.rvs(1,3, size = K)
+    ir = beta.rvs(*fit_IR['beta'][:2], size = K)
+    id = beta.rvs(*fit_ID['beta'][:2], size = K)
     # 
-    samples = r0 * ir
-    samples = samples[samples < 1]
+    samples = r0 * (ir + id) * 1e7
+    #print(samples)
+    #samples = samples[samples < 1]
     return {'x': samples,
-            'weib': dweibull.fit(samples, floc = 0)}
+            'gamma': gamma.fit(samples)}
+            #'weib': dweibull.fit(samples, floc = 0)}
+
+def _get_beta_label(params):
+    # parameters
+    a = params[0]
+    b = params[1]
+    mu = params[2]
+    s = params[3]
+    # format
+    label = 'Beta((X - %.3f)/%.3f ; a=%.3f, b=%.3f)'
+    return label % (mu, s, a, b)
+def _get_gamma_label(params):
+    # parameters
+    a = params[0]
+    b = 1 / params[2]
+    mu = params[1]
+    # format
+    label = 'Gamma(X - %.3f ; a=%.3f, b=%.3f)'
+    return label % (mu, a, b)
 
 def plot_SI(save = False, name = 'img/sir/SI.png'):
     # get fit
     fit = SI()
     # generate curve
-    xgrid = np.linspace(0,2,100)
+    xgrid = np.linspace(0,2e-6,100)
     fx = dweibull.pdf(xgrid, *fit['weib']) * 2
     # plot
     fig1, ax1 = plt.subplots()
-    ax1.hist(fit['x'], density = True, bins = 100)
+    ax1.hist(fit['x'], density = True, bins = 150)
     ax1.plot(xgrid, fx)
-    ax1.set_xlabel('R0 * Symptoms')
+    ax1.set_xlabel('R0 * (Deaths + Recovered)')
     ax1.set_ylabel('Density')
-    ax1.set_xlim(0,2)
+    ax1.set_xlim(0,2e-6)
     # save plot
     if save: fig1.savefig(name)
 
@@ -89,13 +122,18 @@ def plot_EI(save = False, name = 'img/sir/EI.png'):
     fit = EI()
     # generate curve
     xgrid = np.linspace(0,1,100)
-    fx = beta.pdf(xgrid, *fit['beta'])
+    fx_gamma = gamma.pdf(xgrid, *fit['gamma'])
+    fx_beta = beta.pdf(xgrid, *fit['beta'])
     # plot
     fig1, ax1 = plt.subplots()
     ax1.hist(fit['x'], density = True, bins = 50)
-    ax1.plot(xgrid,fx)
+    gamma_label = _get_gamma_label(fit['gamma'])
+    beta_label = _get_beta_label(fit['beta'])
+    ax1.plot(xgrid,fx_gamma, label=gamma_label)
+    ax1.plot(xgrid,fx_beta, label=beta_label)
     ax1.set_xlabel('1 / Incubation')
     ax1.set_ylabel('Density')
+    ax1.legend()
     # save plot
     if save: fig1.savefig(name)
     
@@ -110,7 +148,7 @@ def plot_IR(save = False, name = 'img/sir/IR.png'):
     fig1, ax1 = plt.subplots()
     ax1.hist(fit['x'], density = True, bins = 100)
     ax1.plot(xgrid,fx)
-    ax1.set_xlabel('IFR / Symptoms')
+    ax1.set_xlabel('(1-IFR) / Symptoms')
     ax1.set_ylabel('Density')
     ax1.set_xlim(0,1)
     # save plot
@@ -127,7 +165,7 @@ def plot_ID(save = False, name = 'img/sir/ID.png'):
     fig1, ax1 = plt.subplots()
     ax1.hist(fit['x'], density = True, bins = 200)
     ax1.plot(xgrid,fx)
-    ax1.set_xlabel('(1-IFR) / Symptoms')
+    ax1.set_xlabel('IFR / Symptoms')
     ax1.set_ylabel('Density')
     ax1.set_xlim(0,.005)
     # save plot
@@ -141,26 +179,26 @@ def plot_parameters():
 
 def priors(save = False, name = 'data/distr/prior.json'):
     """"""
-    _si = SI()['weib']
+    _si = SI()['gamma']
     _ei = EI()['beta']
     _ir = IR()['beta']
     _id = ID()['beta']
     prior_params = {
         'SI': {
-            'distribution': 'weib',
-            'params': [_si[0], _si[2]]
+            'distribution': 'gamma',
+            'params': _si
         },
         'EI': {
             'distribution': 'beta',
-            'params': list(_ei[:2])
+            'params': _ei
         },
         'IR': {
             'distribution': 'beta',
-            'param': list(_ir[:2])
+            'param': _ir
         },
         'ID': {
             'distribution': 'beta',
-            'param': list(_id[:2])
+            'param': _id
         }
     }
     if save:
@@ -258,7 +296,13 @@ def plot_test_ratio_all(save = False, name = 'img/parameters/test_ratio.png'):
 #confirmed_prior(save = True)
 
 if __name__ == "__main__":
-    plot_parameters()
+    #plot_IR()
+    #plt.show()
+    #plot_ID()
+    #plt.show()
+    #plot_SI()
+    #plt.show()
+    #plot_parameters()
     priors(save = True)
-    test_prior(save = True)
-    confirmed_prior(save = True)
+    #test_prior(save = True)
+    #confirmed_prior(save = True)

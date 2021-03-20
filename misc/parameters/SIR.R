@@ -50,15 +50,15 @@ saturate <- function(v, max = 1, min = 0, eps=1e-5) {
   else return(v)
 }
 stan_data <- list(
-  DAYS = DAYS, WINDOW = 20, TS = 1:DAYS,
+  DAYS = DAYS, WINDOW = 5, TS = 1:DAYS,
   POP = POP, INDIV = 1/POP,
-  prior_a = c(c=1.725482,sigma=.373588),#c(1,2),
-  prior_c = c(a=2.736960,b=28.970829),#c(1,2),
-  prior_b = c(a=3.622493,b=14.421170),#c(1,2),
+  prior_a = c(c=1.836352,sigma=.365743),#c(1,2),
+  prior_c = c(a=2.773984,b=15.192478),#c(1,2),
+  prior_b = c(a=3.402405,b=37.713360),#c(1,2),
   prior_d = c(a=3.151443,b=5438.488333),#c(1,2),
   prior_test = c(0.25155568403722195, 0.30983778140500917), #.7,
   prior_test_rec = c(0.25155568403722195, 0.30983778140500917),
-  prior_deaths = c(10,1),#c(0.25155568403722195, 0.30983778140500917),#c(10,1),
+  prior_deaths = c(20,1),#c(0.25155568403722195, 0.30983778140500917),#c(10,1),
   tests = covid_tests$T,
   confirmed = covid_stats$I / covid_tests$T,
   recovered = sapply((covid_stats$R+1) / covid_tests$T, saturate),

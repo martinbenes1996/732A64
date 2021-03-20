@@ -39,8 +39,8 @@ functions {
     d = theta[(ti-1)*4 + 4];
     
     // differences
-    dS_dt = -a / POP * I * S;
-    dE_dt = a / POP * S * I - c * E;
+    dS_dt = -a * S * I;
+    dE_dt = a * S * I - c * E;
     dI_dt = c * E - b * I - d * I;
     dR_dt = b * I;
     dD_dt = d * I;
@@ -104,7 +104,7 @@ transformed parameters {
   //theta[3] = b_sir;
   //theta[4] = d_sir;
   
-  real<lower=0> theta[4*DAYS_W];
+  real<lower=0,upper=1> theta[4*DAYS_W];
   //print("Total: ", 4*DAYS_W);
   for(t in 1:DAYS_W) {
     theta[4*(t-1) + 1] = a_sir[t];
@@ -131,8 +131,8 @@ transformed parameters {
 model {
   for(t in 1:DAYS_W) {
     // priors
-    //a_sir[t] ~ weibull(prior_a[t,1], prior_a[t,2]);
-    a_sir[t] ~ beta(prior_a[1], prior_a[2]);
+    //a_sir[t] ~ weibull(prior_a[1], prior_a[2]);
+    a_sir[t] ~ gamma(prior_a[1], prior_a[2]);
     c_sir[t] ~ beta(prior_c[1], prior_c[2]);
     b_sir[t] ~ beta(prior_b[1], prior_b[2]);
     d_sir[t] ~ beta(prior_d[1], prior_d[2]);
@@ -187,13 +187,13 @@ model {
 generated quantities {
   //real R0 = a_sir / c_sir;
   //real recovery_time = 1 / c_sir;
-  real R0[DAYS];
-  real recovery_time[DAYS];
-  int ti;
-  for(t in 1:DAYS) {
-    ti = t / WINDOW + 1;
-    R0[t] = a_sir[ti] / c_sir[ti];
-    recovery_time[t] = 1 / c_sir[ti]; // / POP;
+  real R0[DAYS_W];
+  real recovery_time[DAYS_W];
+  //int ti;
+  for(ti in 1:DAYS_W) {
+    //ti = t / WINDOW + 1;
+    R0[ti] = a_sir[ti] / c_sir[ti];
+    recovery_time[ti] = 1 / c_sir[ti]; // / POP;
   }
   //real pred_cases[n_days];
   //pred_cases = neg_binomial_2_rng(col(to_matrix(y), 2) + 1e-5, phi);

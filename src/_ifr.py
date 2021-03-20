@@ -16,10 +16,10 @@ def plot_ifr(save = False, name = 'img/sir/ifr.png'):
     # plot
     fig1, ax1 = plt.subplots()
     ax1.hist(draws, density = True, bins = 50)
-    ax1.set_xlabel('1 / Incubation')
+    ax1.set_xlabel('IFR')
     ax1.set_ylabel('Density')
     if save: fig1.savefig(name)
 
 if __name__ == "__main__":
-    plot_ifr()
+    plot_ifr(save = True)
     plt.show()

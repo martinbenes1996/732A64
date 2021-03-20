@@ -1,100 +1,78 @@
 
+from datetime import datetime
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
-POP = 10629928
-
-# tests
-tests = pd.read_csv('results/15_03-prior2/tests.csv', names=['days','tests'], header=0).tests
-
-# HMM parameters
-colnames_window = ['index', *range(7)]
-a_sir = pd.read_csv('results/15_03-prior2/a_sir.csv', names=colnames_window, header=0)
-c_sir = pd.read_csv('results/15_03-prior2/c_sir.csv', names=colnames_window, header=0)
-b_sir = pd.read_csv('results/15_03-prior2/b_sir.csv', names=colnames_window, header=0)
-d_sir = pd.read_csv('results/15_03-prior2/d_sir.csv', names=colnames_window, header=0)
-
-# output
-colnames_day = ['index', *range(7)]
-R0 = pd.read_csv('results/15_03-prior2/R0.csv', names=colnames_day, header=0)
-recov = pd.read_csv('results/15_03-prior2/recovery_time.csv', names=colnames_day, header=0)
-
-# latent
-def cname(limit, prefix):
-    return [prefix + str(i) for i in range(limit)]
-colnames_latent = ['index', *cname(121,'S'), *cname(121,'E'), *cname(121,'I'), *cname(121,'R'), *cname(121,'D')]
-y = pd.read_csv('results/15_03-prior2/y.csv', names=colnames_latent, header=0)
-y_S = y[cname(121,'S')] * POP
-y_E = y[cname(121,'E')] * POP
-y_I = y[cname(121,'I')] * POP
-y_R = y[cname(121,'R')]
-y_D = y[cname(121,'D')] * POP
-
-import numpy as np
 from sklearn.neighbors import KNeighborsRegressor
-def sim_to_mean(x):
-    # latent simulations to mean
-    x_mean = x.mean(axis=0)\
-        .to_numpy()#\
-        #.reshape((-1,1))
-    return x_mean
-def mean_to_smooth(x_mean):
-    # axis
-    xaxis = np.array(range(x_mean.shape[0]))\
-        .reshape((-1,1))
-    #print("xaxis:", xaxis.shape)
-    # smoothing
-    neigh = KNeighborsRegressor(n_neighbors=3)
-    neigh.fit(xaxis, x_mean)
-    x_smooth = neigh.predict(xaxis)
-    return x_smooth
+import sys
 
-# axis
-from datetime import datetime
-dt = pd.date_range(datetime(2020,9,2),datetime(2020,12,31))
-# plotting
-import matplotlib.pyplot as plt
+plt.rcParams["figure.figsize"] = (10,8)
+plt.rcParams.update({'font.size': 10})
 
-# parameters
-dt_param = pd.date_range(datetime(2020,9,2),datetime(2021,1,20), freq = '20D')
-a_mean = sim_to_mean(a_sir)
-c_mean = sim_to_mean(c_sir)
-b_mean = sim_to_mean(b_sir)
-d_mean = sim_to_mean(d_sir)
-plt.plot(dt_param[1:], a_mean[1:], label="S-E")
-plt.plot(dt_param[1:], c_mean[1:], label="E-I")
-plt.plot(dt_param[1:], b_mean[1:], label="I-R")
-plt.plot(dt_param[1:], d_mean[1:], label="I-D")
-plt.legend()
-plt.show()
+def _param_mean(param):
+    return param\
+        .groupby('date')\
+        .mean()\
+        .reset_index()    
+def _param_ci(param):
+    param_groups = param\
+        .groupby('date')
+    ci_low = param_groups\
+        .quantile(q = .025)\
+        .reset_index()
+    ci_high = param_groups\
+        .quantile(q = .975)\
+        .reset_index()
+    return ci_low\
+        .merge(ci_high, on = 'date', suffixes = ('_low','_high'))
+    
+def plot_params(path, save = False):
+    params = pd.read_csv(f'{path}/params.csv', header=0)
+    params['date'] = params.date.apply(lambda dt: datetime.strptime(dt, '%Y-%m-%d'))
+    params_mean = _param_mean(params[['date','a','c','b','d']])
+    params_ci = _param_ci(params[['date','a','c','b','d']])
+    fig,ax = plt.subplots()
+    for col in ['a','c','b','d']:
+        ax.plot(params_mean.date, params_mean[col], label = col)
+        ax.fill_between(params_ci.date, params_ci[col + '_low'], params_ci[col + '_high'], alpha=.1)
+    ax.legend()
+    if save: fig.savefig(f'{path}/params.png')
 
-# eird
-y_E_smooth = mean_to_smooth(sim_to_mean(y_E))
-y_I_smooth = mean_to_smooth(sim_to_mean(y_I))
-y_R_smooth = mean_to_smooth(sim_to_mean(y_R) * tests)
-y_D_smooth = mean_to_smooth(sim_to_mean(y_D))
-plt.plot(dt[5:], y_E_smooth[5:], label="E")
-plt.plot(dt[5:], y_I_smooth[5:], label="I")
-plt.plot(dt[5:], y_R_smooth[5:], label="R")
-plt.plot(dt[5:], y_D_smooth[5:], label="D")
-plt.legend()
-plt.show()
+def plot_eird(path, save = False):
+    params = pd.read_csv(f'{path}/y.csv', header=0)
+    params['date'] = params.date.apply(lambda dt: datetime.strptime(dt, '%Y-%m-%d'))
+    params_mean = _param_mean(params[['date','e','i','r','d']])
+    params_ci = _param_ci(params[['date','e','i','r','d']])
+    fig,ax = plt.subplots()
+    for col in ['e','i','r','d']:
+        ax.plot(params_mean.date, params_mean[col], label = col)
+        ax.fill_between(params_ci.date, params_ci[col + '_low'], params_ci[col + '_high'], alpha=.1)
+    ax.legend()
+    if save: fig.savefig(f'{path}/eird.png')
 
-# s
-y_S_smooth = mean_to_smooth(sim_to_mean(y_S))  
-plt.plot(dt, y_S_smooth, label="S")
-plt.legend()
-plt.show()
+def plot_s(path, save = False):
+    params = pd.read_csv(f'{path}/y.csv', header=0)
+    params['date'] = params.date.apply(lambda dt: datetime.strptime(dt, '%Y-%m-%d'))
+    params_mean = _param_mean(params[['date','s']])
+    params_ci = _param_ci(params[['date','s']])
+    fig,ax = plt.subplots()
+    for col in ['s']:
+        ax.plot(params_mean.date, params_mean[col], label = col)
+        ax.fill_between(params_ci.date, params_ci[col + '_low'], params_ci[col + '_high'], alpha=.1)
+    ax.legend()
+    if save: fig.savefig(f'{path}/s.png')
 
-# r0
-R0_smooth = mean_to_smooth(sim_to_mean(R0))
-plt.plot(dt_param, R0_smooth, label="R0")
-plt.axhline(1, color = 'gray', linestyle='-')
-plt.legend()
-plt.show()
+def plot(path):
+    plot_params(path, save = True)
+    plot_eird(path, save = True)
+    plot_s(path, save = True)
 
-# recovery
-#recov_smooth = mean_to_smooth(sim_to_mean(recov))
-#plt.plot(dt[5:], recov_smooth[5:-1], label="Recovery Interval")
-#plt.legend()
-#plt.show()
+if __name__ == '__main__':
+    try:
+        params = sys.argv[1]
+    except:
+        print("Usage: python src/result.py result/<result-dir>", file = sys.stderr)
+        exit(1)
+    plot(params)
+
+
