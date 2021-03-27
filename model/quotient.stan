@@ -9,7 +9,6 @@ functions {
     real I = y[3];
     real POP = x_i[1];
     int WINDOW = x_i[2];
-    //real DAYS = x_i[2];
     // parameters
     real a;
     real c;
@@ -25,22 +24,16 @@ functions {
     int ti = 1;
     while(ti < floor(t)) ti = ti + 1;
     ti = ti / WINDOW + 1;
-    //print("- sir: ", ti, " (", t, ") -> [", (ti-1)*4 + 1, ",", (ti-1)*4 + 4, "]");
-    //print(t, " => ", ti);
     
     // parameters
-    //a = theta[1];
-    //c = theta[2];
-    //b = theta[3];
-    //d = theta[4];
     a = theta[(ti-1)*4 + 1];
     c = theta[(ti-1)*4 + 2];
     b = theta[(ti-1)*4 + 3];
     d = theta[(ti-1)*4 + 4];
     
     // differences
-    dS_dt = -a * S * I;
-    dE_dt = a * S * I - c * E;
+    dS_dt = -a / POP * S * I;
+    dE_dt = a / POP * S * I - c * E;
     dI_dt = c * E - b * I - d * I;
     dR_dt = b * I;
     dD_dt = d * I;
@@ -131,8 +124,8 @@ transformed parameters {
 model {
   for(t in 1:DAYS_W) {
     // priors
-    //a_sir[t] ~ weibull(prior_a[1], prior_a[2]);
-    a_sir[t] ~ gamma(prior_a[1], prior_a[2]);
+    a_sir[t] ~ weibull(prior_a[1], prior_a[2]);
+    #a_sir[t] ~ beta(prior_a[1], prior_a[2]);
     c_sir[t] ~ beta(prior_c[1], prior_c[2]);
     b_sir[t] ~ beta(prior_b[1], prior_b[2]);
     d_sir[t] ~ beta(prior_d[1], prior_d[2]);
@@ -144,7 +137,7 @@ model {
   
   // epidemic
   for(t in 1:DAYS) {//
-    //real densStart = target();
+    real densBefore = target();
     //print("log density: ", target());
     
     // testing
@@ -154,26 +147,26 @@ model {
     //confirmed[t] ~ normal(y[t,3]*post_test[1], sqrt(fabs(y[t,3])*post_test[2]) ) T[0,];
     //print("after confirmed: ", target());
     
-    //print("x = ", confirmed[t], "; ",//"prior_test = ", prior_test[t,1:2], "; ",
-    //      "post_test = [", prior_test[1] + tests[t] * y[t,3],",",
-    //                       prior_test[2] + tests[t] * (1 - y[t,3]),"]; ",
-    //      "tests = ", tests[t], "; ",
-    //      "y = ", y[t,3], "; ",
-    //      "dens = ", densBefore, "->", target());
+    print("x = ", confirmed[t], "; ",//"prior_test = ", prior_test[t,1:2], "; ",
+          "post_test = [", prior_test[1] + tests[t] * y[t,3],",",
+                           prior_test[2] + tests[t] * (1 - y[t,3]),"]; ",
+          "tests = ", tests[t], "; ",
+          "y = ", y[t,3], "; ",
+          "dens = ", densBefore, "->", target());
    
     // recovered
     //recovered[t] ~ normal(y[t,4] * POP, 1) T[0,];
     recovered[t] ~ beta(prior_test_rec[1] + tests[t] * y[t,4],
                         prior_test_rec[2] + tests[t] * (1 - y[t,4]));
-    //print("recovered: ", recovered[t], "; prior beta(", prior_test2, ");",
-    //      "post beta(", prior_test2[1] + tests[t] * fabs(y[t,4]), ",",
-    //                    prior_test2[2] + tests[t] * (1 - fabs(y[t,4])),")")
+    print("recovered: ", recovered[t], "; prior beta(", prior_test_rec, ");",
+          "post beta(", prior_test_rec[1] + tests[t] * fabs(y[t,4]), ",",
+                        prior_test_rec[2] + tests[t] * (1 - fabs(y[t,4])),")")
     //print("after recovered: ", target());
     
     //recovered[t] ~ normal(y[t,5],1/POP) T[0,];
     // deaths
-    deaths[t] ~ beta(prior_deaths[1] + POP * y[t,5],
-                     prior_deaths[2] + POP * (1 - y[t,5]));
+    deaths[t] ~ beta(prior_deaths[1] + tests[t] * y[t,5],
+                     prior_deaths[2] + tests[t] * (1 - y[t,5]));
     //deaths[t] ~ normal(y[t,5] * POP, 1) T[0,];
     //print("after deaths: ", target());
     

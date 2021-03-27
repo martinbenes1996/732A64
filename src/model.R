@@ -37,6 +37,14 @@ runSim <- function(country, date.min, date.max, window = 5, niter = 500) {
                   D = ifelse(D < 0, 0, D)) %>% # remove corrections
     dplyr::filter(dates >= date.win.min, dates <= date.win.max) %>%
     dplyr::filter(country == 'CZ')
+  #covid_stats_before <- covid_stats %>%
+  #  dplyr::filter(dates <= date.win.min)
+  #init_state <- c(I = sum(covid_stats_before$I),
+  #                R = sum(covid_stats_before$R),
+  #                D = sum(covid_stats_before$D))
+  #covid_stats <- covid_stats %>%
+    
+  
   covid_tests <- read.csv('data/tests.csv', header=T) %>%
     dplyr::transmute(country, dates = as.Date(date), T = tests) %>%
     dplyr::filter(dates >= date.win.min, dates <= date.win.max) %>%
@@ -52,6 +60,7 @@ runSim <- function(country, date.min, date.max, window = 5, niter = 500) {
   # statistics
   DAYS <- nrow(covid_stats)
   POP <- as.integer(10629928)
+  INIT_COEF <- 1.5
   
   # compile model
   model <- stan_model("model/quotient.stan", verbose = TRUE)
@@ -66,25 +75,25 @@ runSim <- function(country, date.min, date.max, window = 5, niter = 500) {
     POP = POP, # population size
     INDIV = 1/POP, # individual ratio
     # priors
-    prior_a = c(2.0073,1/1.5453),#c(1.67,1/1.675572)#c(c=1.836352,sigma=.365743), # prior [S -> E]
+    prior_a = c(c=1.836352,sigma=.365743),# c(1.67,1/1.675572),#c(1.8856,1/2.1),##, # prior [S -> E]
     prior_c = c(a=2.773984,b=15.192478), # prior [E -> I]
     prior_b = c(a=3.402405,b=37.713360), # prior [I -> R]
     prior_d = c(a=3.151443,b=5438.488333), # prior [I -> D]
-    prior_test = c(0.25155568403722195, 0.30983778140500917), # prior [I gets tested]
-    prior_test_rec = c(0.25155568403722195, 0.30983778140500917), # prior [R gets tested]
-    prior_deaths = c(20,1), # prior [D is connected with Covid-19]
+    prior_test = c(35,250),#c(2, POP/2),#c(0.25155568403722195, 0.30983778140500917), # prior [I gets tested]
+    prior_test_rec = c(35,250),#c(2,POP/2),#c(0.25155568403722195, 0.30983778140500917), # prior [R gets tested]
+    prior_deaths = c(1,100),#c(1,POP), # prior [D is connected with Covid-19]
     # statistics
     tests = covid_tests$T, # number of tests
     confirmed = covid_stats$I / covid_tests$T, # positive test ratio
     recovered = sapply((covid_stats$R+1) / covid_tests$T, saturate), # recovered test ratio
-    deaths = (covid_stats$D+1) / POP, # deaths per capita
+    deaths = (covid_stats$D+1) / covid_tests$T, # deaths per capita
     # initial solution
     init_solution = c(
-      S = (POP-(covid_stats$I[1]-covid_stats$R[1])*10-covid_stats$D[1])/ POP, # S
-      E = saturate(covid_stats$I[1]*10/3/POP), # E
-      I = saturate(covid_stats$I[1]*20/3/POP), # I
-      R = saturate(covid_stats$R[1]/POP), # R
-      D = (covid_stats$D[1]+1) / POP # D
+      S = (POP-(INIT_COEF*covid_stats$I[1] + covid_stats$R[1] + covid_stats$D[1]))/ covid_tests$T[1], # S
+      E = saturate(covid_stats$I[1]*INIT_COEF/3/covid_tests$T[1]), # E
+      I = saturate(covid_stats$I[1]*2*INIT_COEF/3/covid_tests$T[1]), # I
+      R = saturate(covid_stats$R[1]+1  /covid_tests$T[1]), # R
+      D = saturate(covid_stats$D[1]+1  /covid_tests$T[1])  # D
     )
   )
   
@@ -147,7 +156,7 @@ runSim <- function(country, date.min, date.max, window = 5, niter = 500) {
   today = format(Sys.Date(), format = '%d_%m_%Y')
   start = format(date.min, format = '%d_%m_%Y')
   end = format(date.max, format = '%d_%m_%Y')
-  save_dir = sprintf("results/%s-%s-%s-w%d-prior2", today, start, end, window)
+  save_dir = sprintf("results/%s-%s-%s-w%d", today, start, end, window)
   # save parameters
   dir.create(save_dir, showWarnings = FALSE)
   write.csv(covid, sprintf('%s/covid.csv',save_dir))
@@ -158,7 +167,7 @@ runSim <- function(country, date.min, date.max, window = 5, niter = 500) {
 #runSim('CZ', '2020-04-01', '2020-04-15')
 #runSim('CZ', '2020-04-16', '2020-04-30')
 #runSim('CZ', '2020-05-01', '2020-05-15', niter = 700)
-runSim('CZ', '2020-04-01', '2020-04-30', window = 10)
+runSim('CZ', '2020-10-01', '2020-10-31', window = 10, niter=600)
 #runSim('CZ', '2020-04-01', '2020-04-30', niter = 1000)
 
 

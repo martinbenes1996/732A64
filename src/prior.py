@@ -62,6 +62,9 @@ def ID():
             'beta': beta.fit(samples),
             'gamma': gamma.fit(samples)}
 
+def draw_R0(K):
+    return uniform.rvs(2,2, size = K)
+
 def SI():
     """"""
     # seed
@@ -71,16 +74,16 @@ def SI():
     fit_ID = ID()
     # sample
     K = 100000
-    r0 = uniform.rvs(1,3, size = K)
+    r0 = draw_R0(K)
     ir = beta.rvs(*fit_IR['beta'][:2], size = K)
     id = beta.rvs(*fit_ID['beta'][:2], size = K)
     # 
-    samples = r0 * (ir + id) * 1e7
+    samples = r0 * (ir + id)
     #print(samples)
     #samples = samples[samples < 1]
     return {'x': samples,
-            'gamma': gamma.fit(samples)}
-            #'weib': dweibull.fit(samples, floc = 0)}
+            #'gamma': gamma.fit(samples),
+            'weib': dweibull.fit(samples, floc = 0)}
 
 def _get_beta_label(params):
     # parameters
@@ -99,6 +102,22 @@ def _get_gamma_label(params):
     # format
     label = 'Gamma(X - %.3f ; a=%.3f, b=%.3f)'
     return label % (mu, a, b)
+
+def plot_R0(save = False, name = 'img/parameters/R0.png'):
+    # get fit
+    r0 = draw_R0(10000)
+    # generate curve
+    xgrid = np.linspace(1.5,4.5,1000)
+    fx = uniform.pdf(xgrid, 2,2)
+    # plot
+    fig1, ax1 = plt.subplots()
+    ax1.hist(r0, density = True, bins = 50)
+    ax1.plot(xgrid, fx)
+    ax1.set_xlabel('R0')
+    ax1.set_ylabel('Density')
+    # save plot
+    if save: fig1.savefig(name)
+    
 
 def plot_SI(save = False, name = 'img/sir/SI.png'):
     # get fit
@@ -179,13 +198,13 @@ def plot_parameters():
 
 def priors(save = False, name = 'data/distr/prior.json'):
     """"""
-    _si = SI()['gamma']
+    _si = SI()['weib']
     _ei = EI()['beta']
     _ir = IR()['beta']
     _id = ID()['beta']
     prior_params = {
         'SI': {
-            'distribution': 'gamma',
+            'distribution': 'weib',
             'params': _si
         },
         'EI': {
@@ -224,6 +243,23 @@ def test_prior(save = False, name = 'data/distr/testratio.csv'):
     # save
     if save: tests.to_csv(name, index = False)
     return tests
+
+def tested(country = None, date_min = None, date_max = None):
+    # get data
+    df = test_prior()
+    # filter by country and dates
+
+    if country is not None:
+        df = df[df.country == country]
+    if date_min is not None:
+        df = df[df.date >= date_min]
+    if date_max is not None:
+        df = df[df.date <= date_max]
+    # perform computation
+    return {
+        'x': df.ratio,
+        'beta': beta.fit(df.ratio)
+    }
 
 def confirmed_prior(save = False, name = 'data/distr/confirmedratio.csv'):
     """"""
@@ -304,5 +340,13 @@ if __name__ == "__main__":
     #plt.show()
     #plot_parameters()
     priors(save = True)
+    #plot_parameters()
     #test_prior(save = True)
     #confirmed_prior(save = True)
+    #pr = tested(country = 'CZE')
+    #print(pr)
+    
+    #plot_R0(save = True)
+    #plt.show()
+    
+    
