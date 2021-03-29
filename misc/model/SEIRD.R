@@ -1,4 +1,5 @@
 
+library(GA)
 library(ggplot2)
 library(mosaicCalc)
 
@@ -147,7 +148,6 @@ get.covid.data <- function(country, POP, date.min, date.max) {
 model_all <- function(data, priors, POP, init) {
   
   objF <- function(pars, data, priors, POP, init_state) {
-    cat("obj -", pars, "\n")
     # parameters
     Tmax <- nrow(data)
     a <- pars[1]; c <- pars[2]; b <- pars[3]; d <- pars[4]
@@ -166,105 +166,65 @@ model_all <- function(data, priors, POP, init) {
     # emission
     objV <- objV + sum(sapply(1:Tmax, function(t) {
       Tt <- data$T[t]
-      dbeta(data$I[t],
+      fx <- dbeta(data$I[t],
             priors$confirmed[1] + Tt * (res$E[t] + res$I[t]),
-            priors$confirmed[2] + Tt * (1 - res$E[t] - res$I[t]))
+            priors$confirmed[2] + Tt * (1 - res$E[t] - res$I[t]), log=TRUE)
+      #if(is.infinite(fx)) return(-1e5)
+      fx
     }))
+    #print(objV)
     objV <- objV + sum(sapply(1:Tmax, function(t) {
       Tt <- data$T[t]
-      dbeta(data$R[t],
+      fx <- dbeta(data$R[t] + 1e-8,
             priors$recovered[1] + Tt * res$R[t],
-            priors$recovered[2] + Tt * (1 - res$R[t]))
+            priors$recovered[2] + Tt * (1 - res$R[t]), log=TRUE)
+      #if(is.infinite(fx)) return(-1e5)
+      fx
     }))
+    #print(objV)
     objV <- objV + sum(sapply(1:Tmax, function(t) {
       Tt <- data$T[t]
-      dbeta(data$D[t],
+      fx <- dbeta(data$D[t] + 1e-8,
             priors$deaths[1] + Tt * res$D[t],
-            priors$deaths[2] + Tt * (1 - res$D[t]))
+            priors$deaths[2] + Tt * (1 - res$D[t]), log=TRUE)
+      #if(is.infinite(fx)) return(-1e5)
     }))
-    print(objV)
-    -objV
+    #cat("obj (", objV, ") - ", pars, "\n")
+    #objV <- ifelse(!is.nan(objV), objV, 0)
+    #objV <- ifelse(!is.infinite(objV), objV, 1e5)
+    objV / Tmax
+    
   }
   initV <- c(
-    a = rweibull(1, priors$a[1], priors$a[2]),
+    #a = rweibull(1, priors$a[1], priors$a[2]),
     c = rbeta(1, priors$c[1], priors$c[2]),
     b = rbeta(1, priors$b[1], priors$b[2]),
     d = rbeta(1, priors$d[1], priors$d[2])
   )
-  optim(initV,#c(.25,.1,.2,.01),#c(.25,.1,.1,.005),
-        objF, method='L-BFGS-B',
-        data = data, priors = priors, POP = POP, init = init,
-        lower = 1e-12, upper = 1-1e-12, control=list(maxit = 200))
+  
+  ga(type = "real-valued", 
+           fitness =  function(x) objF(x,data,priors,POP,init),
+           lower = c(0,.1,0,0), upper = c(.1,1,.1,.01),
+           #suggestions = matrix(c(.015,.25,.002,.005),ncol=4,byrow=T),
+           pmutation = .65, popSize = 70, maxiter = 40, run = 30)
+  #optim(c(.34,.7,.039,.012),
+  #      function(x) -objF(x,data,priors,POP,init_state),
+  #      method='L-BFGS-B', lower = 1e-8, upper = 1-1e-8)
 }
 
-model_bayes <- function(data, priors, POP, init) {
-  
-  as <- c()
-  cs <- c()
-  bs <- c()
-  ds <- c()
-  Is <- matrix(ncol = nrow(data))
-  Rs <- matrix(ncol = nrow(data))
-  Ds <- matrix(ncol = nrow(data))
-  for(i in 1:100) {
-    print(i)
-    #cat("obj -", pars, "\n")
-    # parameters
-    Tmax <- nrow(data)
-    # priors
-    par_a <- rweibull(1, priors$a[1], priors$a[2])
-    par_c <- rbeta(1, priors$c[1], priors$c[2])
-    par_b <- rbeta(1, priors$b[1], priors$b[2])
-    par_d <- rbeta(1, priors$d[1], priors$d[2])
-    # optimize latent
-    res <- run_SEIRD(
-      Tmax=Tmax,
-      pars=list(a=par_a,c=par_c,b=par_b,d=par_d),
-      init=init,
-      POP = POP)
-    # emission
-    It <- sum(sapply(1:Tmax, function(t) {
-      Tt <- data$T[t]
-      rbeta(1,
-            priors$confirmed[1] + Tt * (res$I[t]),
-            priors$confirmed[2] + Tt * (1 - res$I[t]))
-    }))
-    Rt <- sum(sapply(1:Tmax, function(t) {
-      Tt <- data$T[t]
-      rbeta(1,
-            priors$recovered[1] + Tt * res$R[t],
-            priors$recovered[2] + Tt * (1 - res$R[t]))
-    }))
-    Dt <- sum(sapply(1:Tmax, function(t) {
-      Tt <- data$T[t]
-      rbeta(1,
-            priors$deaths[1] + Tt * res$D[t],
-            priors$deaths[2] + Tt * (1 - res$D[t]))
-    }))
-    
-    as <- c(par_a, as)
-    cs <- c(par_c, cs)
-    bs <- c(par_b, bs)
-    ds <- c(par_d, ds)
-    
-    Is <- rbind(Is, It)
-    Rs <- rbind(Rs, Rt)
-    Ds <- rbind(Ds, Dt)
-  }
-  Is <- Is[-1,]
-  Rs <- Rs[-1,]
-  Ds <- Ds[-1,]
-  
-  list(a=as,c=cs,b=bs,d=ds,
-       I=Is,R=Rs,D=Ds)
-}
-
-spline_SEIRD <- function(country, POP, priors,
-                         date.min = '2020-03-15', date.max = '2020-04-30', window = 7) {
-  
+spline_SEIRD <- function(country, POP, priors, init_values = NULL,
+                         date.min = '2020-03-20', date.max = '2020-04-30', window = 7) {
+  # initialize data
   date.min <- as.Date(date.min)
   date.max <- as.Date(date.max)
+  if(is.null(init_values))
+    init_values <- get.covid.data(country, POP, date.min, date.min)$init
+  # iterate
   date.i <- date.min
+  dt <- c()
+  params <- list(a = c(), c = c(), b = c(), d = c())
+  latent <- list(S = c(), E = c(), I = c(), R = c(), D = c())
+  vars <- list(T = c(), Tcum = c())
   while(date.i < date.max) {
     date.j <- date.i + window
     if(date.j > date.max) date.j <- date.max
@@ -274,69 +234,170 @@ spline_SEIRD <- function(country, POP, priors,
     print(date.i)
     print(date.j)
     # fetch data
-    data <- get.covid.data(country, POP, date.i, date.j)
+    data <- get.covid.data(country, POP, date.i, date.j)$data
+    Tmax <- nrow(data)
     print(data)
     
     # fit model
-    fit <- model_all(data$data, priors, POP, data$init)
-    print(fit)
+    print(init_values)
+    fit <- model_all(data, priors, POP, init_values)
+    pars <- as.vector(fit@solution[1,])
+    print(pars)
     
+    # predict
+    res <- run_SEIRD(Tmax=Tmax, init=init_values, POP=POP,
+                     pars=list(a=pars[1], c=pars[2], b=pars[3], d=pars[4]))
+    
+    # Exposed
+    par(mfrow=c(2,2))
+    lim <- c(min(c(res$E*data$T,#data$I*POP,
+                   data$I*data$T)),
+             max(c(res$E*data$T,#data$I*POP,
+                   data$I*data$T)))
+    plot(data$dates,res$E*data$T, col="orange", type="l",ylim=lim,xlab='Date',ylab='Exposed')
+    #points(data$dates,data$I*POP)
+    points(data$dates,data$I*data$T)
+    # Infections
+    lim <- c(min(c(res$I*data$T,#data$I*POP,
+                   data$I*data$T)),
+             max(c(res$I*data$T,#data$I*POP,
+                   data$I*data$T)))
+    plot(data$dates,res$I*data$T, col="red", type="l",ylim=lim,xlab='Date',ylab='Infected')
+    #points(data$dates,data$I * POP)
+    points(data$dates,data$I * data$T)
+    # Recovered
+    lim <- c(min(c(res$R*data$Tcum,#data$R*POP,
+                   data$R*data$Tcum)),
+             max(c(res$R*data$Tcum,#data$R*POP,
+                   data$R*data$Tcum)))
+    plot(data$dates,res$R*data$Tcum, col="green", type="l", ylim = lim,
+         xlab = 'Date', ylab = 'Recovered')
+    #points(data$dates,data$R*POP)
+    points(data$dates,data$R*data$Tcum)
+    # Deaths
+    lim <- c(min(c(res$D*data$Tcum,#data$D*POP,
+                   data$D*data$Tcum)),
+             max(c(res$D*data$Tcum,#data$D*POP,
+                   data$D*data$Tcum)))
+    plot(data$dates,res$D*data$Tcum, col="black",type="l",ylim=lim,xlab='Date',ylab='Deaths')
+    #points(data$dates,data$D*POP)
+    points(data$dates,data$D*data$Tcum)                
+    
+    dt <- c(dt, sapply(data$dates, format))
+    params$a <- c(params$a, rep(pars[1],Tmax))
+    params$c <- c(params$c, rep(pars[2],Tmax))
+    params$b <- c(params$b, rep(pars[3],Tmax))
+    params$d <- c(params$d, rep(pars[4],Tmax))
+    latent$S <- c(latent$S, res$S)
+    latent$E <- c(latent$E, res$E)
+    latent$I <- c(latent$I, res$I)
+    latent$R <- c(latent$R, res$R)
+    latent$D <- c(latent$D, res$D)
+    vars$T <- c(vars$T, data$T)
+    vars$Tcum <- c(vars$Tcum, data$Tcum)
+    
+    # increment
     date.i <- date.i + window
-    break
+    # change init values
+    init_values <- list(S = 1 - (res$E[Tmax]+res$I[Tmax]+res$R[Tmax]+res$D[Tmax]),
+                        E = res$E[Tmax], I = res$I[Tmax], R = res$R[Tmax], D = res$D[Tmax])
   }
+  
+  return(list(
+    data = data.frame(
+      dates = dt,
+      a = params$a,
+      c = params$c,
+      b = params$b,
+      d = params$d,
+      S = latent$S,
+      E = latent$E,
+      I = latent$I,
+      R = latent$R,
+      D = latent$D,
+      T = vars$T,
+      Tcum = vars$Tcum
+    ),
+    POP = POP
+  ))
 }
 
 
 
 
 
-
-# fit model
-#fit <- model_bayes(covid_data, priors, POP, init_state)
-#I <- colMeans(fit$I)
-#R <- colMeans(fit$R)
-#D <- colMeans(fit$D)
-
-# Infections
-#par(mfrow=c(2,2))
-#lim <- c(min(c(I*POP,covid_data$I*covid_data$T#,covid_data$I*POP
-#               )),
-#         max(c(I*POP,covid_data$I*covid_data$T#,covid_data$I*POP
-#               )))
-#plot(covid_data$dates,I * POP, col="red", type="l", ylim = lim)
-#points(covid_data$dates, covid_data$I * POP)
-#points(covid_data$dates, covid_data$I * covid_data$T)
-# Recovered
-#lim <- c(min(c(R*POP,covid_data$R*covid_data$Tcum#,covid_data$R*POP
-#               )),
-#         max(c(R*POP,covid_data$R*covid_data$Tcum#,covid_data$R*POP
-#              )))
-#plot(covid_data$dates,R * POP, col="green", type="l", ylim = lim)
-#points(covid_data$dates, covid_data$R * POP)
-#points(covid_data$dates, covid_data$R * covid_data$Tcum)
-# Deaths
-#lim <- c(min(c(D*POP,covid_data$D*covid_data$Tcum#,covid_data$D*POP
-#               )),
-#         max(c(D*POP,covid_data$D*covid_data$Tcum#,covid_data$D*POP
-#               )))
-#plot(covid_data$dates,D * POP, col="black", type="l", ylim = lim)
-#points(covid_data$dates, covid_data$D * POP)
-#points(covid_data$dates, covid_data$D * covid_data$Tcum)
+priors <- list(
+  # parameters
+  a = c(1,1), # [S -> E]
+  c = c(1,1), # [E -> I]
+  b = c(1,1), # [I -> R]
+  d = c(1,1), # [I -> D]
+  # emission
+  confirmed = c(1,1e2), # [I gets tested]
+  recovered = c(1,1e2), # [R gets tested]
+  deaths = c(1,2)      # [D gets tested]
+)
 
 
+POP <- 1e7
+ga <- spline_SEIRD('CZ', POP, priors, list(S=750/1000,E=50/1000,I=200/1000,R=0,D=0),
+                   '2020-03-15', '2020-05-31', window = 10)
 
+data.ga <- ga$data %>%
+  dplyr::mutate(dates = as.Date(dates)) %>%
+  dplyr::transmute(
+    dates = as.Date(dates),
+    a, b, c, d,
+    S = S,
+    E = E * T,
+    I = I * T,
+    R = R * Tcum,
+    D = D * Tcum
+  )
 
+data.covid <- get.covid.data('CZ', 1e7,'2020-03-15', '2020-05-31')$data %>%
+  dplyr::transmute(
+    dates,
+    confirmed = I * T,
+    recovered = R * Tcum,
+    deaths = D * Tcum) %>%
+  dplyr::full_join(data.ga, by = 'dates')
 
+data.covid %>%
+  #dplyr::mutate(confirmed = cumsum(confirmed), I = cumsum(I)) %>%
+  ggplot() +
+  geom_line(aes(x = dates, y = confirmed), color='blue', size=1.5) +
+  geom_line(aes(x = dates, y = I), color='red', size=1.5)
+data.covid %>%
+  ggplot() +
+  geom_line(aes(x = dates, y = recovered), color='blue', size=1.5) +
+  geom_line(aes(x = dates, y = R), color='red', size=1.5)
+data.covid %>%
+  ggplot() +
+  geom_line(aes(x = dates, y = deaths), color='blue', size=1.5) +
+  geom_line(aes(x = dates, y = D), color='red', size=1.5)
 
 
 # fit model
 #fit <- model_all(covid_data, priors, POP, init_state)
 #pars <- fit$par
 # predict
-#res <- run_SEIRD(Tmax=nrow(covid_data),
-#                 pars=list(a = pars[1], c = pars[2], b = pars[3], d = pars[4]),
-#                 init=init_state,
-#                 POP = POP)
+#data_1503_2003 <- get.covid.data('CZ', 1e7,'2020-03-15', '2020-04-30')
+#covid_data <- data_1503_2003$data
+#POP <- 1e7
+
+#par1 <- list(a=.0137, c=.1156, b=.0285, d=.0348)
+#par2 <- list(a=.9323,c=.7857,b=.0271,d=.0202)
+#par3 <- list(a=.95382,c=.97893,b=.00347,d=.00178)
+#par4 <- list(a=.01723,c=.00803,b=.00737,d=.00505)
+#par5 <- list(a=.01281,c=.22021,b=.00202,d=.04218)
+#par5 <- list(a=.01281,c=.22021,b=.00202,d=.004218)
+#par6 <- list(a=.09524,c=.84633,b=.001,#647,
+#             d=.0005)#21)
+#res <- run_SEIRD(Tmax=nrow(data_1503_2003$data),
+#                 pars=par6,#pars[1], c = pars[2], b = pars[3], d = pars[4]),
+#                 init=data_1503_2003$init,
+#                 POP = data_1503_2003$POP)
 
 
 # Susceptible
@@ -370,31 +431,12 @@ spline_SEIRD <- function(country, POP, priors,
 #points(covid_data$dates, covid_data$R * POP)
 #points(covid_data$dates, covid_data$R * covid_data$Tcum)
 # Deaths
-#lim <- c(min(c(res$D*POP,#covid_data$D*POP,
+#lim <- c(min(c(res$D*POP,covid_data$D*POP,
 #               covid_data$D*covid_data$Tcum)),
-#         max(c(res$D*POP,#covid_data$D*POP,
+#         max(c(res$D*POP,covid_data$D*POP,
 #               covid_data$D*covid_data$Tcum)))
 #plot(covid_data$dates,res$D*POP, col="black", type="l", ylim = lim,
 #     xlab = 'Date', ylab = 'Deaths')
 #points(covid_data$dates, covid_data$D * POP)
 #points(covid_data$dates, covid_data$D * covid_data$Tcum)
-
-
-
-
-
-priors <- list(
-  # parameters
-  a = c(1,1),#c(1.63157,4.1984e-4),#c(1,1),#c(3,2),#3,20),#1.836352,36.5743),     # [S -> E]
-  c = c(1,1),#c(3.47768,30),#51.05856,2.54478),#c(1,1),#c(2,20),#c(2.773984,12),#1.5192478),   # [E -> I]
-  b = c(1,1),#c(2.718446,2186.1217,50),#540947),#c(3.402405,377.13360),   # [I -> R]
-  d = c(1,1),#c(2.29282,9468.9540676,200),#20821096.605),#c(3.151443,5000),#5438.488333), # [I -> D]
-  # emission
-  confirmed = c(1,POP),#c(1,50000),#POP/1e2),#POP), # [I gets tested]
-  recovered = c(1,POP*10),#1000),#POP/1e2),#POP), # [R gets tested]
-  deaths = c(1,POP*10)#POP/3),#POP)      # [D gets tested]
-)
-
-spline_SEIRD('CZ', 1e7, priors, '2020-03-15', '2020-04-04', window = 5)
-
 
