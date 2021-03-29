@@ -333,15 +333,15 @@ priors <- list(
   b = c(1,1), # [I -> R]
   d = c(1,1), # [I -> D]
   # emission
-  confirmed = c(1,1e2), # [I gets tested]
-  recovered = c(1,1e2), # [R gets tested]
-  deaths = c(1,2)      # [D gets tested]
+  confirmed = c(1,5), # [I gets tested]
+  recovered = c(1,5), # [R gets tested]
+  deaths = c(1,1e-2)      # [D gets tested]
 )
 
 
 POP <- 1e7
 ga <- spline_SEIRD('CZ', POP, priors, list(S=750/1000,E=50/1000,I=200/1000,R=0,D=0),
-                   '2020-03-15', '2020-05-31', window = 10)
+                   '2020-03-15', '2020-04-15', window = 10)
 
 data.ga <- ga$data %>%
   dplyr::mutate(dates = as.Date(dates)) %>%
@@ -355,7 +355,7 @@ data.ga <- ga$data %>%
     D = D * Tcum
   )
 
-data.covid <- get.covid.data('CZ', 1e7,'2020-03-15', '2020-05-31')$data %>%
+data.covid <- get.covid.data('CZ', 1e7,'2020-03-15', '2020-04-15')$data %>%
   dplyr::transmute(
     dates,
     confirmed = I * T,
