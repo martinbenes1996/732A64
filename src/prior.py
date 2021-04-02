@@ -7,8 +7,8 @@ from scipy.stats import lognorm,norm,gamma,beta,norm,uniform,dweibull,argus,tria
 from sklearn.utils import resample
 import sys
 
-plt.rcParams["figure.figsize"] = (10,8)
-plt.rcParams.update({'font.size': 10})
+#plt.rcParams["figure.figsize"] = (10,8)
+#plt.rcParams.update({'font.size': 10})
 sys.path.append('src')
 
 import _ifr
@@ -111,7 +111,7 @@ def plot_R0(save = False, name = 'img/parameters/R0.png'):
     fx = uniform.pdf(xgrid, 2,2)
     # plot
     fig1, ax1 = plt.subplots()
-    ax1.hist(r0, density = True, bins = 50)
+    ax1.hist(r0, density = True, bins = 50, alpha = .3)
     ax1.plot(xgrid, fx)
     ax1.set_xlabel('R0')
     ax1.set_ylabel('Density')
@@ -339,14 +339,15 @@ if __name__ == "__main__":
     #plot_SI()
     #plt.show()
     #plot_parameters()
-    priors(save = True)
+    #priors(save = True)
     #plot_parameters()
     #test_prior(save = True)
     #confirmed_prior(save = True)
     #pr = tested(country = 'CZE')
     #print(pr)
     
-    #plot_R0(save = True)
-    #plt.show()
+    plot_test_ratio_all()
+    #plot_R0(save = False)
+    plt.show()
     
     

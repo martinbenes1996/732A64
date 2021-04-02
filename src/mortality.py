@@ -3,13 +3,17 @@ import math
 import matplotlib.pyplot as plt
 import pandas as pd
 import re
-from scipy.stats import multinomial, ttest_ind
+from scipy.stats import multinomial, ttest_ind, f, t
 import seaborn as sns
 
 import eurostat_deaths as eurostat
 
-import logging
-logging.basicConfig(level = logging.INFO)
+import sys
+sys.path.append('src')
+import population
+
+#import logging
+#logging.basicConfig(level = logging.INFO)
 
 def _mortality_data():
     try:
@@ -109,9 +113,28 @@ def plot_poland_0_5(save = False, name = 'img/demographic/mortality.png'):
     #g.map(sns.violinplot, "year", "age")
     if save: plt.savefig(name)
 
-def test_country1_lower(c1, c2):
+def plot_mortality_population(years = [2020]):
     # fetch data
     df = _mortality_data()
+    # filter year
+    df = df[df.year.isin(years)]
+    # join population
+    df = df\
+        .merge(pops, on=['region','sex','age_start','age_end','age'], suffixes=('','_2'))
+    df.deaths = df.deaths / df.population
+    
+
+pops = population._populations_data()
+pops.population = pops.population / 1000
+def test_countries_equal(c1, c2, years = [2020]):
+    # fetch data
+    df = _mortality_data()
+    # filter year
+    df = df[df.year.isin(years)]
+    # join population
+    df = df\
+        .merge(pops, on=['region','sex','age_start','age_end','age'], suffixes=('','_2'))
+    df.deaths = df.deaths / df.population
     # filter country data
     country1 = df[df.region == c1]
     country2 = df[df.region == c2]
@@ -120,36 +143,95 @@ def test_country1_lower(c1, c2):
     n2 = country2.deaths.sum()
     x1 = (country1.age_end + country1.age_start) / 2
     x2 = (country2.age_end + country2.age_start) / 2
-    mu1 = (country1.deaths * x1).sum() / n1
-    mu2 = (country2.deaths * x2).sum() / n2
-    var1 = (country1.deaths * (x1 - mu1)**2).sum() / n1
-    var2 = (country2.deaths * (x2 - mu2)**2).sum() / n2
-    sd_pooled = ((n1-1)*var1 + (n2-1)*var2) / (n1+n2-2)
-    tstat = (mu1 - mu2) / math.sqrt(sd_pooled) / (n1+n2-2)
+    mu1 = (country1.deaths @ x1) / n1
+    mu2 = (country2.deaths @ x2) / n2
+    var1 = (country1.deaths @ (x1 - mu1)**2) / n1
+    var2 = (country2.deaths @ (x2 - mu2)**2) / n2
+    var_pooled = ((n1-1)*var1 + (n2-1)*var2) / (n1+n2-2)
     
-    print(mu1, mu2)
-    print(var1, var2)
-    print(tstat)
-    return
-    # upsample
-    cases = {'sex': [], 'age': [], 'country': []}
-    for row in df.itertuples():
-        random_deaths = multinomial.rvs(int(row.deaths / 10), [0.1]*10)#, random_state = 12345)
-        ages = list(range(row.age_start, row.age_end + 1))
-        for age,deaths in zip(ages, random_deaths):
-            for _ in range(deaths):
-                cases['country'].append(row.region)
-                cases['sex'].append(row.sex)
-                cases['age'].append(age)
-    cases = pd.DataFrame(cases)\
-        .sort_values(by = 'sex', ascending = False)
-    cases['date'] = None
+    # f test
+    if var1 > var2:
+        f_df1,f_df2 = n1-1,n2-1
+        fstat = var1 / var2
+    else:
+        f_df1,f_df2 = n2-1,n1-1
+        fstat = var2 / var1
+    # f test pi value
+    fpi = 1 - f.cdf(fstat, f_df1, f_df2)
     
-    # test
-    test_res = ttest_ind(country_data1, country_data2, equal_var = False, alternative = 'two-sided')
-    print(test_res)
-    
-plot_mortality_violin()
-plt.show()
+    # t test
+    if fpi > .05:
+        tstat = abs(mu1 - mu2) / math.sqrt(var_pooled * (n1+n2)/n1/n2)
+        t_df = n1 + n2 - 2
+    else:
+        tstat = abs(mu1 - mu2) / math.sqrt(var1 / n1 + var2 / n2)
+        t_df = (var1**2/n1 + var2**2/n2)**2 / ((var1/n1)**2/(n1-1) + (var2/n2)**2/(n2-1))
+    # t test pi value
+    tpi = 1 - t.cdf(tstat, t_df)
+    print("Countries %s - %s" % (c1, c2))
+    print("* F-test %.5f [%s]" % (fpi, 'Y' if fpi > .05 else 'N'))
+    print("* T-test %.5f [%s]" % (tpi, 'Y' if tpi > .05 else 'N'))
 
-#test_country1_lower('PL','SE')
+def test_country_age_equal(c1, years = [2020]):
+    # fetch data
+    df = _mortality_data()
+    # filter year
+    df = df[df.year.isin(years)]
+    # join population
+    df = df\
+        .merge(pops, on=['region','sex','age_start','age_end','age'], suffixes=('','_2'))
+    df.deaths = df.deaths / df.population
+    # filter country data
+    df1 = df[(df.region == c1) & (df.sex == 'F')]
+    df2 = df[(df.region == c1) & (df.sex == 'M')]
+    # country statistics
+    n1 = df1.deaths.sum()
+    n2 = df2.deaths.sum()
+    x1 = (df1.age_end + df1.age_start) / 2
+    x2 = (df2.age_end + df2.age_start) / 2
+    mu1 = (df1.deaths @ x1) / n1
+    mu2 = (df2.deaths @ x2) / n2
+    var1 = (df1.deaths @ (x1 - mu1)**2) / n1
+    var2 = (df2.deaths @ (x2 - mu2)**2) / n2
+    var_pooled = ((n1-1)*var1 + (n2-1)*var2) / (n1+n2-2)
+    
+    # f test
+    if var1 > var2:
+        f_df1,f_df2 = n1-1,n2-1
+        fstat = var1 / var2
+    else:
+        f_df1,f_df2 = n2-1,n1-1
+        fstat = var2 / var1
+    # f test pi value
+    fpi = 1 - f.cdf(fstat, f_df1, f_df2)
+    
+    # t test
+    if fpi > .05:
+        tstat = (mu1 - mu2) / math.sqrt(var_pooled * (n1+n2)/n1/n2)
+        t_df = n1 + n2 - 2
+    else:
+        tstat = (mu1 - mu2) / math.sqrt(var1 / n1 + var2 / n2)
+        t_df = (var1**2/n1 + var2**2/n2)**2 / ((var1/n1)**2/(n1-1) + (var2/n2)**2/(n2-1))
+    # t test pi value
+    tpi = 1 - t.cdf(tstat, t_df)
+    print("Country %s" % (c1))
+    print("* F-test %.5f [%s]" % (fpi, 'Y' if fpi > .05 else 'N'))
+    print("* T-test %.5f [%s]" % (tpi, 'Y' if tpi > .05 else 'N'))
+
+    
+#plot_mortality_violin()
+#plt.show()
+
+#test_countries_equal('IT','SE')
+#test_countries_equal('IT','PL')
+#test_countries_equal('IT','CZ')
+#test_countries_equal('SE','PL')
+#test_countries_equal('SE','CZ')
+#test_countries_equal('PL','CZ')
+
+test_country_age_equal('IT')
+test_country_age_equal('SE')
+test_country_age_equal('PL')
+test_country_age_equal('CZ')
+
+#plot_mortality_population
