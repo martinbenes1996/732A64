@@ -81,10 +81,11 @@ def posterior_objective(params, country, POP, dates, initial_values,
     return score / D
 
 def simulate_posterior(country, params, dates, initial_values,
-                       POP = 1e7, N = 1000, parI = (1,1),parR = (1,1),parD = (1,1)):
+                       POP = 1e7, N = 1000, parI = (1,1), parR = (1,1),parD = (1,1)):
     """"""
     assert(country in {'CZE','SWE','ITA','POL'})
-    x = _posterior_data(country, dates)
+    x = _posterior_data(country, dates)\
+        .reset_index(drop = True)
     # filter param
     params = params[params.start <= dates[1]]
     if (params.end > dates[1]).any():
@@ -101,6 +102,8 @@ def simulate_posterior(country, params, dates, initial_values,
         sim_obs[2,i,:] = emission(latent.I.to_numpy(), x.tests.to_numpy(), *parI)
         sim_obs[3,i,:] = emission(latent.R.to_numpy(), x.tests.to_numpy(), *parR)
         sim_obs[4,i,:] = emission(latent.D.to_numpy(), x.tests.to_numpy(), *parD)
+    # spare last
+    last_values = sim_lat[:,:,-1].mean(axis = 1)
     # denormalize probability
     sim_lat[3:5,:,:] = np.diff(sim_lat[3:5,:,:], axis=2, prepend=sim_lat[3:5,:,2:3])
     sim_lat = sim_lat * x.tests.to_numpy()
@@ -108,7 +111,7 @@ def simulate_posterior(country, params, dates, initial_values,
     sim_obs[3:5,:,:] = np.diff(sim_obs[3:5,:,:], axis=2, prepend=sim_obs[3:5,:,2:3])
     sim_obs = sim_obs * x.tests.to_numpy()
     sim_obs[3:5,:,:] = sim_obs[3:5,:,:].cumsum(axis = 2)
-    return sim_lat, sim_obs
+    return (sim_lat, sim_obs), last_values
 
 def plot_posterior(country, params, dates, initial_values,
                    POP = 1e7, N = 1000, parI = (1,1),parR = (1,1),parD = (1,1)):

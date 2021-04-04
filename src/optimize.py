@@ -24,7 +24,7 @@ def optimize_segment(country, dates, initial_values):
         'crossover_probability': .8,
         'parents_portion': .5,
         'crossover_type':'uniform',
-        'max_iteration_without_improv': 12
+        'max_iteration_without_improv': 10
     }
     varbound = np.array([[0,.25],[0,.1],[0,.01]])
     model = ga(function=_obj,
@@ -59,13 +59,14 @@ def optimize_spline(country, dates, initial_values, window = 7):
             'start': [start], 'end': [end],
             'a': [p[0]], 'c': [p[1]], 'b': [p[2]], 'd': [p[3]]
         })
-        sim_lat,sim_obs = posterior.simulate_posterior(
+        (sim_lat,sim_obs),last_values = posterior.simulate_posterior(
             country = country, params = segment_pars, dates = (start,end), POP = 1e7, N = 500,
             initial_values = initial_values, parI = (1,1), parR = (1,1), parD = (1,1))
         # plot
         posterior._plot_posterior(sim = (sim_lat,sim_obs), country = country, dates = (start,end))
         # change initial values
-        initial_values = sim_lat[:,:,-1].mean(axis = 1)
+        print(last_values)
+        initial_values = last_values
         print(initial_values)
     # best params
     #params = _parse_params(model.output_dict['variable'], fixparam)
@@ -74,7 +75,7 @@ def optimize_spline(country, dates, initial_values, window = 7):
 if __name__ == '__main__':
     # parameters
     dates = (datetime(2020,3,1),datetime(2020,4,30))
-    initial_values = (700/1000,300/1000,0/1000,0/1000,0/1000)
+    initial_values = (800/1000,200/1000,0/1000,0/1000,0/1000)
     # optimize
     optimize_spline('CZE', dates, initial_values, window = 14)
     exit()
