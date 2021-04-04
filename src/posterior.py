@@ -3,107 +3,92 @@ from datetime import datetime,timedelta
 from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
-from scipy.stats import beta,betaprime
 from scipy.integrate import odeint
 import sys
 sys.path.append('src')
 
 import _src
+from emission import emission,emission_objective
+from transition import transition
 
-def _seird(y, t, POP, a, c, b, d):
-    S, E, I, R, D = y
-    dSdt = - a*S*I
-    dEdt = a*S*I - c*E
-    dIdt = c*E - b*I - d*I
-    dRdt = b*I
-    dDdt = d*I
-    return dSdt, dEdt, dIdt, dRdt, dDdt
-def _transition(POP, initial_values, parameters):
-    """Transition sampler.
-    
-    Args:
-        POP (int): Population size.
-        initial_values (tuple): Initial values (S0, E0, I0, R0, D0).
-        parameters (tuple): Dataframe of parameters: start, end, a, c, b, d.
-    """
-    assert(len(initial_values) == 5)
-    # iterate over time slots
-    result = {'date': [], 'S': [], 'E': [], 'I': [], 'R': [], 'D': []}
-    for row in parameters.itertuples():
-        D = (row.end - row.start).days
-        t = np.linspace(0, D, D+1)
-        # integrate
-        a = beta.rvs(*row.a, size = 1)[0]
-        c = beta.rvs(*row.c, size = 1)[0]
-        b = beta.rvs(*row.b, size = 1)[0]
-        d = beta.rvs(*row.d, size = 1)[0]
-        r = odeint(_seird, initial_values, t, args=(POP, a, c, b, d))
-        for dt in pd.date_range(row.start, row.end-timedelta(days=1)):
-            result['date'].append(dt)
-        #result['date'] = [*result['date'], )
-        result['S'] = [*result['S'], *r.T[0,:D]]
-        result['E'] = [*result['E'], *r.T[1,:D]]
-        result['I'] = [*result['I'], *r.T[2,:D]]
-        result['R'] = [*result['R'], *r.T[3,:D]]
-        result['D'] = [*result['D'], *r.T[4,:D]]
-        initial_values = r[D,:]
-    # add last
-    result['date'].append(row.end)
-    result['S'].append(r.T[0,D])
-    result['E'].append(r.T[1,D])
-    result['I'].append(r.T[2,D])
-    result['R'].append(r.T[3,D])
-    result['D'].append(r.T[4,D])
-    # return
-    result = pd.DataFrame(result)
-    return result
-
-def _emission(xbar, T, a, b):
-    # parameters
-    alpha_ = (a + T * xbar)
-    beta_ = (b + T * (1 - xbar))
-    # simulate
-    D = T.shape[0]
-    draw = np.zeros((D,))
-    for i in range(D):
-        draw[i] = betaprime.rvs(alpha_[i], beta_[i], size = 1)
+def _parse_params(params, fixparams):
+    # no fixparams set
+    if fixparams is None:
+        return params
+    ptr = 0
+    # a
+    a = fixparams[0]
+    if a is None:
+        a = params[ptr]
+        ptr += 1
+    # c
+    c = fixparams[1]
+    if c is None:
+        c = params[ptr]
+        ptr += 1 
+    # b
+    b = fixparams[2]
+    if b is None:
+        b = params[ptr]
+        ptr += 1
+    # d
+    d = fixparams[3]
+    if d is None:
+        d = params[ptr]
     # result
-    return draw
+    return a,c,b,d
 
-def run_country(country, params, dates = (datetime(2020,3,15),datetime(2021,2,28)),
-                initial_values = (800/1000,50/1000,150/1000,0,0), POP = 1e7, N = 1000,
-                parI = (1,1),parR = (1,1),parD = (1,1)):
-    """"""
-    assert(country in {'CZE','SWE','ITA','POL'})
-    # get data and filter by country
-    x = _src.get_data()
+_data = None
+def _posterior_data(country, dates):
+    global _data
+    if _data is None:
+        # get data
+        x = _src.get_data()
+        # normalize by tests
+        x['confirmed'] = x.confirmed / x.tests.replace({0: 1})
+        x['recovered'] = (x.recovered / x.tests.replace({0: 1})).cumsum()
+        x['deaths'] = (x.deaths / x.tests.replace({0: 1})).cumsum()
+        _data = x
+    x = _data
     x = x[x.iso_alpha_3 == country]
-    # filter param
-    params = params[params.start < dates[1]]
-    if (params.end > dates[1]).any():
-        params.loc[params.end > dates[1], 'end'] = dates[1]
-
-    # daily to cumsum and normalize by tests
-    x['cumtests'] = x.tests.cumsum()
-    x['confirmed'] = x.confirmed / x.tests
-    x[x.confirmed < 0]['confirmed'] = 0
-    x['recovered'] = (x.recovered / x.tests)
-    x[x.recovered < 0]['recovered'] = 0
-    x['deaths'] = (x.deaths / x.tests)
-    x[x.deaths < 0]['deaths'] = 0
     # filter by dates
     x = x[(x.date >= dates[0]) & (x.date <= dates[1])]
     if x.date.min() > dates[0]:
         x_init = pd.DataFrame({
             'dates': pd.date_range(dates[0],x.date.min()),
-            'tests': 100,
-            'confirmed': 0,
-            'recovered': 0,
-            'deaths': 0
-        })
+            'iso_alpha_3': country,
+            'tests': 0,'confirmed': 0,'recovered': 0,'deaths': 0})
         x = x.append(x_init)\
             .sort_values('dates')
-    
+    return x
+
+def posterior_objective(params, country, POP, dates, initial_values,
+                        fixparams = None, parI = (1,1), parR = (1,1), parD = (1,1)):
+    """"""
+    assert(country in {'CZE','SWE','ITA','POL'})
+    x = _posterior_data(country, dates)
+    # construct params dataframe
+    a,c,b,d = _parse_params(params, fixparams)
+    params = pd.DataFrame({'start': [dates[0]], 'end': [dates[1]],
+                            'a': [a], 'b': [b], 'c': [c], 'd': [d]})
+    # compute score
+    D = (dates[1] - dates[0]).days + 1
+    score = 0
+    latent = transition(POP, initial_values, params)
+    score += emission_objective(x.confirmed.to_numpy(), latent.I.to_numpy(), x.tests.to_numpy(), *parI)
+    score += emission_objective(x.recovered.to_numpy(), latent.R.to_numpy(), x.tests.to_numpy(), *parR)
+    score += emission_objective(x.deaths.to_numpy(), latent.D.to_numpy(), x.tests.to_numpy(), *parD)
+    return score / D
+
+def simulate_posterior(country, params, dates, initial_values,
+                       POP = 1e7, N = 1000, parI = (1,1),parR = (1,1),parD = (1,1)):
+    """"""
+    assert(country in {'CZE','SWE','ITA','POL'})
+    x = _posterior_data(country, dates)
+    # filter param
+    params = params[params.start <= dates[1]]
+    if (params.end > dates[1]).any():
+        params.loc[params.end > dates[1], 'end'] = dates[1]
     # simulate
     D = (dates[1] - dates[0]).days + 1
     sim_lat = np.zeros((5,N,D))
@@ -111,18 +96,32 @@ def run_country(country, params, dates = (datetime(2020,3,15),datetime(2021,2,28
     for i in range(N):
         if i == 0 or (i+1) % 100 == 0:
             print('%4d / %d' % (i+1,N))
-        latent = _transition(POP, initial_values, params)
+        latent = transition(POP, initial_values, params)
         sim_lat[:,i,:] = latent[['S','E','I','R','D']].to_numpy().T
-        sim_obs[2,i,:] = _emission(latent.I.to_numpy(), x.tests.to_numpy(), *parI)
-        sim_obs[3,i,:] = _emission(latent.R.to_numpy(), x.tests.to_numpy(), *parR)
-        sim_obs[4,i,:] = _emission(latent.D.to_numpy(), x.tests.to_numpy(), *parD)
+        sim_obs[2,i,:] = emission(latent.I.to_numpy(), x.tests.to_numpy(), *parI)
+        sim_obs[3,i,:] = emission(latent.R.to_numpy(), x.tests.to_numpy(), *parR)
+        sim_obs[4,i,:] = emission(latent.D.to_numpy(), x.tests.to_numpy(), *parD)
     # denormalize probability
     sim_lat[3:5,:,:] = np.diff(sim_lat[3:5,:,:], axis=2, prepend=sim_lat[3:5,:,2:3])
     sim_lat = sim_lat * x.tests.to_numpy()
-    sim_lat[sim_lat > 1e5] = 0
-    sim_lat[sim_lat < 0] = 0
+    sim_lat[3:5,:,:] = sim_lat[3:5,:,:].cumsum(axis = 2)
+    sim_obs[3:5,:,:] = np.diff(sim_obs[3:5,:,:], axis=2, prepend=sim_obs[3:5,:,2:3])
     sim_obs = sim_obs * x.tests.to_numpy()
+    sim_obs[3:5,:,:] = sim_obs[3:5,:,:].cumsum(axis = 2)
+    return sim_lat, sim_obs
+
+def plot_posterior(country, params, dates, initial_values,
+                   POP = 1e7, N = 1000, parI = (1,1),parR = (1,1),parD = (1,1)):
+    """"""
+    # run simulation
+    sim_lat,sim_obs = simulate_posterior(country = country, params = params, dates = dates, POP = POP, N = N, 
+                                         initial_values = initial_values, parI = parI, parR = parR, parD = parD)
+    _plot_posterior(sim = (sim_lat,sim_obs), country = country, dates = dates)
     
+def _plot_posterior(sim, country, dates):
+    # fetch data
+    x = _posterior_data(country, dates)
+    sim_lat,sim_obs = sim
     # aggregate results
     sim_mean = sim_lat.mean(axis = 1)
     sim_ci = np.quantile(sim_lat, [.025,.975], axis = 1)
@@ -145,7 +144,7 @@ def run_country(country, params, dates = (datetime(2020,3,15),datetime(2021,2,28
     ax1.fill_between(x.date, sim_ci[0,3,:], sim_ci[1,3,:], color = 'orange', alpha = .25)
     ax1.plot(x.date, sim_obs_mean[3,:], color='red', label='Recovered (observed)')
     ax1.fill_between(x.date, sim_obs_ci[0,3,:], sim_obs_ci[1,3,:], color = 'red', alpha = .1)
-    ax1.plot(x.date, x.recovered * x.cumtests, color = 'blue', label='Recovered')
+    ax1.plot(x.date, x.recovered * x.tests, color = 'blue', label='Recovered')
     ax1.set_xlabel('Date')
     ax1.set_ylabel('Recovered')
     plt.legend()
@@ -156,12 +155,13 @@ def run_country(country, params, dates = (datetime(2020,3,15),datetime(2021,2,28
     ax1.fill_between(x.date, sim_ci[0,4,:], sim_ci[1,4,:], color = 'orange', alpha = .25)
     ax1.plot(x.date, sim_obs_mean[4,:], color='red', label='Deaths (observed)')
     ax1.fill_between(x.date, sim_obs_ci[0,4,:], sim_obs_ci[1,4,:], color = 'red', alpha = .1)
-    ax1.plot(x.date, x.deaths * x.cumtests, color = 'blue', label='Deaths')
+    ax1.plot(x.date, x.deaths * x.tests, color = 'blue', label='Deaths')
     ax1.set_xlabel('Date')
     ax1.set_ylabel('Deaths')
     plt.legend()
     plt.show()
-    
+
+
 #params = pd.DataFrame({
 #    'start': [datetime(2020,3,15), datetime(2020,3,25), datetime(2020,4,4), datetime(2020,4,14)],
 #    'end': [datetime(2020,3,25), datetime(2020,4,4), datetime(2020,4,14), datetime(2020,4,15)],
@@ -179,22 +179,51 @@ def run_country(country, params, dates = (datetime(2020,3,15),datetime(2021,2,28
 #    'b': [(3,700), (3,500), (3,300), (3,400), (3,400), (3,400)],
 #    'd': [(2,1e4), (5,1e4), (5,1e4), (2,1e4), (2,1e4), (2,1e4)]
 #})
-params = pd.DataFrame({
-    'start': [datetime(2020,2,28), datetime(2020,3,10), datetime(2020,4,1), datetime(2020,5,1), datetime(2020,6,1), datetime(2020,6,15), datetime(2020,7,1)],
-    'end': [datetime(2020,3,10), datetime(2020,4,1), datetime(2020,5,1), datetime(2020,6,1), datetime(2020,6,15), datetime(2020,7,1), datetime(2020,7,30)],
-    'a': [(2,6), (2,20), (2,200), (2,1e3), (2,1e3), (2,400), (2,400)],
-    'c': map(lambda _:(3,51),range(7)),
-    'b': map(lambda _:(1.1,10),range(7)),
-    'd': map(lambda _:(1.1,100),range(7))
-})
+#params = pd.DataFrame({
+#    'start': [datetime(2020,2,28), datetime(2020,3,10), datetime(2020,4,1), datetime(2020,5,1), datetime(2020,6,1), datetime(2020,6,15), datetime(2020,7,1)],
+#    'end': [datetime(2020,3,10), datetime(2020,4,1), datetime(2020,5,1), datetime(2020,6,1), datetime(2020,6,15), datetime(2020,7,1), datetime(2020,7,30)],
+#    'a': [(2,6), (2,20), (2,200), (2,1e3), (2,1e3), (2,400), (2,400)],
+#    'c': map(lambda _:(3,51),range(7)),
+#    'b': map(lambda _:(1.1,10),range(7)),
+#    'd': map(lambda _:(1.1,100),range(7))
+#})
+#params = pd.DataFrame({
+#    'start': [datetime(2020,3,1), datetime(2020,3,15), datetime(2020,3,29)],
+#    'end': [datetime(2020,3,15), datetime(2020,3,29), datetime(2020,4,12)],
+#    'a': [.23455118,.0048916962,.009328],
+#    'c': [.2,.2,.2],
+#    'b': [.00038252,.007314,.0326747],
+#    'd': [.000714116,.009550056,.00985778]
+#})
 
 
+def run_0304():
+    params = pd.DataFrame({
+        'start': [datetime(2020,3,1), datetime(2020,3,15), datetime(2020,3,29), datetime(2020,4,12), datetime(2020,4,26)],
+        'end': [datetime(2020,3,15), datetime(2020,3,29), datetime(2020,4,12), datetime(2020,4,26), datetime(2020,4,30)],
+        'a': [.0119831,.0038502,.00067523,.0039271,.0047303],
+        'c': [.2,.2,.2,.2,.2],
+        'b': [.00092836,.00761937,.0425419445,.0934527,.0194829],
+        'd': [.00187313,.001527467,.0096889,.001792207,.0002380]
+    })
+    plot_posterior(
+        'CZE', POP = 1e7, N = 300,
+        params = params, dates = (datetime(2020,3,1),datetime(2020,4,30)), 
+        initial_values = (700/1000,300/1000,0/1000,0,0),
+        parI=(1,1), parR=(1,1), parD=(1,1))
+
+
+
+#get_obj()
 
 #POP = 1e7
 #run_country('CZE', N = 300, params = params, dates = (datetime(2020,3,15),datetime(2020,6,30)), POP = 1e7,
 #            initial_values = (820/1000,80/1000,100/1000,0,0), alpha = 2, beta = 10000)
-run_country('CZE', N = 300, params = params, dates = (datetime(2020,2,28),datetime(2020,7,30)), POP = 1e7,
-            initial_values = (700/1000,300/1000,0/1000,0,0), parI=(2,5e4), parR=(2,5e4), parD=(2,1e8))
+#run_country('CZE', N = 300, params = params, dates = (datetime(2020,2,28),datetime(2020,7,30)), POP = 1e7,
+#            initial_values = (700/1000,300/1000,0/1000,0,0), parI=(2,5e4), parR=(2,5e4), parD=(2,1e8))
+#run_country('CZE', N = 300, params = params, dates = (datetime(2020,3,1),datetime(2020,4,12)), POP = 1e7,
+#            initial_values = (700/1000,300/1000,0/1000,0,0), parI=(2,1e5), parR=(2,1e4), parD=(2,1e4))
+
 #run_country('CZE', dates = (datetime(2020,9,1),datetime(2020,11,30)), alpha = 1000, beta = 300)
 
 

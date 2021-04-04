@@ -97,5 +97,4 @@ def get_data():
     return data[['date','tests','confirmed','recovered','deaths','iso_alpha_3']]\
         .reset_index(drop = True)
     
-#print(get_data())
 

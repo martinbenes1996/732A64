@@ -322,9 +322,12 @@ priors <- list(
   b = c(1,1), # [I -> R]
   d = c(1,1), # [I -> D]
   # emission
-  confirmed = c(2,1e4), # [I gets tested]
-  recovered = c(2,1e4), # [R gets tested]
-  deaths = c(2,1e7)     # [D gets tested]
+  confirmed = c(1,1), # [I gets tested]
+  recovered = c(1,1), # [R gets tested]
+  deaths = c(1,1)     # [D gets tested]
+  #confirmed = c(2,1e4), # [I gets tested]
+  #recovered = c(2,1e4), # [R gets tested]
+  #deaths = c(2,1e7)     # [D gets tested]
 )
 
 
@@ -344,9 +347,9 @@ get.start <- function(pop,E,I,R,D) {
 
 # run simulation
 ga <- spline_SEIRD(c('CZ','CZE'), POP, priors, get.start(1000,300,0,0,0),
-                   date.min='2020-03-01', date.max='2020-07-31', window = 14)
+                   date.min='2020-03-01', date.max='2020-04-30', window = 14)
 
-#write.csv(ga$data, 'results/02_04_2021/data.csv')
+write.csv(ga$data, 'results/03_04_2021/data.csv')
 # parse output
 data.ga <- ga$data %>%
   dplyr::transmute(
