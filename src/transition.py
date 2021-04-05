@@ -100,8 +100,14 @@ def transition(POP, initial_values, parameters, parse_params = None):
             result['I'].append(r.T[2,D])
             result['R'].append(r.T[3,D])
             result['D'].append(r.T[4,D])
-    # return
+    # R,D to diff
     result = pd.DataFrame(result)
+    result['dR'] = result['R'].diff()
+    result.loc[0,'dR'] = 0#result.loc[0,'R']
+    result['dD'] = result['D'].diff()
+    result.loc[0,'dD'] = 0#result.loc[0,'D']
+    #print(result)
+    # return result
     return result
 
 

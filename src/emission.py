@@ -12,7 +12,11 @@ def emission(xbar, T, a, b):
     D = T.shape[0]
     draw = np.zeros((D,))
     for i in range(D):
-        draw[i] = beta.rvs(alpha_[i], beta_[i], size = 1)
+        try:
+            draw[i] = beta.rvs(alpha_[i], beta_[i], size = 1)
+        except:
+            print(i, a, b, T[i], xbar[i], alpha_[i], beta_[i])
+            raise
     # result
     return draw
 
