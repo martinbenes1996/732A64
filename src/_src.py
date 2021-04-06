@@ -2,6 +2,7 @@
 import covid19dh
 import covid19czechia as CZ
 import covid19poland as PL
+import covid19sweden as SE
 from datetime import datetime
 import numpy as np
 import pandas as pd
@@ -122,11 +123,17 @@ def _CZ_data():
     return cz
     
 def _PL_data():
+    # fetch deaths and tests per region
     pl_deaths = PL.covid_deaths(level = 2,from_github = True)\
         .rename({'NUTS2': 'region'}, axis=1)
     pl_tests = PL.covid_tests(level = 2, offline = False, from_github=True)
     print(pl_tests)
     return
-    
 
-_PL_data()
+def _SE_data():
+    # fetch covid deaths and confirmed per region
+    se_deaths = SE.covid_deaths()
+    se_deaths = se_deaths[['year','week','region','deaths','confirmed']]
+    print(se_deaths)
+    
+_SE_data()
