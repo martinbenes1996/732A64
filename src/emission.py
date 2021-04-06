@@ -28,7 +28,7 @@ def emission_objective(reported, xbar, T, a, b):
     D = T.shape[0]
     logL = 0
     for i in range(D):
-        logL += beta.logpdf(reported[i] + 1e-8, alpha_[i], beta_[i])
+        logL += beta.logpdf(reported[i] + 1e-11, alpha_[i], beta_[i])
     # result
     return -logL
 

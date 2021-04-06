@@ -7,12 +7,13 @@ import sys
 sys.path.append('src')
 
 import posterior
+import _results
 
 def optimize_segment(country, dates, initial_values):
-    fixparam = [None,.2,None,None]
+    fixparams = [None,.2,None,None]#.0064]
     def _obj(pars):
         return posterior.posterior_objective(
-            pars, country = country, fixparams = fixparam,
+            pars, country = country, fixparams = fixparams,
             POP = 1e7, dates = dates,
             initial_values = initial_values,
             parI=(1,1), parR=(1,1), parD=(1,1))
@@ -24,11 +25,11 @@ def optimize_segment(country, dates, initial_values):
         'crossover_probability': .8,
         'parents_portion': .5,
         'crossover_type':'uniform',
-        'max_iteration_without_improv': 20
+        'max_iteration_without_improv': 40
     }
-    varbound = np.array([[0,.25],[0,.1],[0,.01]])
+    varbound = np.array([[0,.25],[0,.1],[0,.1]])
     model = ga(function=_obj,
-               dimension=3,
+               dimension=sum([i is None for i in fixparams]),
                variable_type='real',
                variable_boundaries=varbound,
                convergence_curve = False,
@@ -36,11 +37,11 @@ def optimize_segment(country, dates, initial_values):
                algorithm_parameters=algorithm_param)
     model.run()
     # best params
-    params = posterior._parse_params(model.output_dict['variable'], fixparam)
+    params = posterior._parse_params(model.output_dict['variable'], fixparams)
     return params
 
 def optimize_spline(country, dates, initial_values, emission_parameters = [(1,1),(1,1),(1,1)], window = 7):
-    fixparam = [None,.2,None,None]
+    #fixparam = [None,.2,None,.0064]
     # iterate windows
     parameters = {'start': [], 'end': [], 'a': [], 'b': [], 'c': [], 'd': []}
     for start in pd.date_range(dates[0], dates[1], freq=f'{window}D'):
@@ -72,42 +73,31 @@ def optimize_spline(country, dates, initial_values, emission_parameters = [(1,1)
 
 if __name__ == '__main__':
     # parameters
-    country = 'SWE'
-    dates = (datetime(2020,3,1),datetime(2020,6,30))
-    initial_values = (900/1000,100/1000,0/1000,0/1000,0/1000)
+    country = 'CZE'
+    dates = (datetime(2020,3,1),datetime(2020,5,31))
+    initial_values = (800/1000,100/1000,100/1000,0/1000,0/1000)
+    emission_params = [(1,1e4),(1,1e4),(1,1)]
     # optimize
     params = optimize_spline(country, dates, initial_values,
-                             emission_parameters = [(1,1e3),(1,1e3),(1,1)], window = 14)
+                             emission_parameters = emission_params, window = 14)
     print(params)
+    # simulate result
     (sim_lat,sim_obs),last_values = posterior.simulate_posterior(
         country = country, params = params, dates = dates, POP = 1e7, N = 1000,
-        initial_values = initial_values, parI = (1,1e3), parR = (1,1e3), parD = (1,1))
-    
-    lat = sim_lat.mean(axis = 1)
-    obs = sim_obs.mean(axis = 1)
-    print(lat.shape, obs.shape)
-    pd.DataFrame({'date': pd.date_range(*dates),
-                  'latent_S': lat[0,:],
-                  'latent_E': lat[1,:],
-                  'latent_I': lat[2,:],
-                  'latent_R': lat[3,:],
-                  'latent_D': lat[4,:],
-                  'observed_I': obs[0,:],
-                  'observed_R': obs[1,:],
-                  'observed_D': obs[2,:]})\
-        .to_csv('res.csv', index = False)
-    
-    posterior.plot_posterior(country, params, dates, initial_values, POP = 1e7)
-    exit()
-    
+        initial_values = initial_values,
+        parI = emission_params[0], parR = emission_params[1], parD = emission_params[2])
+    # save result
+    _results.save_result((sim_lat,sim_obs), dates, country, 'res.csv')
+    # plot
+    posterior._plot_posterior((sim_lat,sim_obs), country, dates)    
     
     # optimize
-    pars = optimize_segment('CZE', dates, initial_values)
+    #pars = optimize_segment('CZE', dates, initial_values)
     # plot
-    params = pd.DataFrame({'start': [dates[0]], 'end': [dates[1]],
-                            'a': [pars[0]], 'c': [pars[1]], 'b': [pars[2]], 'd': [pars[3]]})
-    run_country('CZE', params,
-                dates = dates,
-                initial_values = initial_values,
-                POP = 1e7, N = 500,
-                parI = (1,1),parR = (1,1),parD = (1,1))
+    #params = pd.DataFrame({'start': [dates[0]], 'end': [dates[1]],
+    #                        'a': [pars[0]], 'c': [pars[1]], 'b': [pars[2]], 'd': [pars[3]]})
+    #run_country('CZE', params,
+    #            dates = dates,
+    #            initial_values = initial_values,
+    #            POP = 1e7, N = 500,
+    #            parI = (1,1),parR = (1,1),parD = (1,1))

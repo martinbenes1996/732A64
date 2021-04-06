@@ -1,5 +1,7 @@
 
 import covid19dh
+import covid19czechia as CZ
+import covid19poland as PL
 from datetime import datetime
 import numpy as np
 import pandas as pd
@@ -96,5 +98,35 @@ def get_data():
             data = pd.concat([data, country_data])
     return data[['date','tests','confirmed','recovered','deaths','iso_alpha_3']]\
         .reset_index(drop = True)
+
+def _CZ_data():
+    """"""
+    # load czech
+    def _per_day(df, key):
+        return df\
+            .groupby(['date','week','region'])\
+            .aggregate({key: 'sum'})\
+            .reset_index()
+    cz_deaths = CZ.covid_deaths(level = 2, usecache=True)
+    cz_confirmed = CZ.covid_confirmed(level = 2, usecache=True)
+    cz_tests = CZ.covid_tests(level = 2, usecache=True)
+    cz_recovered = CZ.covid_recovered(level = 2, usecache=True)
+    # merge czech
+    cz = _per_day(cz_tests, 'tests')\
+        .merge(_per_day(cz_confirmed,'confirmed'), how='outer', on=['date','week','region'])\
+        .merge(_per_day(cz_deaths,'deaths'), how='outer', on=['date','week','region'])\
+        .merge(_per_day(cz_recovered,'recovered'), how='outer', on=['date','week','region'])\
+        .fillna(0)\
+        .sort_values(['date','region'])
+    
+    return cz
+    
+def _PL_data():
+    pl_deaths = PL.covid_deaths(level = 2,from_github = True)\
+        .rename({'NUTS2': 'region'}, axis=1)
+    pl_tests = PL.covid_tests(level = 2, offline = False, from_github=True)
+    print(pl_tests)
+    return
     
 
+_PL_data()

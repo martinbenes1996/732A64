@@ -51,8 +51,8 @@ def seird(y, t, POP, a, c, b, d):
     dSdt = - a*S*I
     dEdt = a*S*I - c*E
     dIdt = c*E - b*I - d*I
-    dRdt = b*I
-    dDdt = d*I
+    dRdt = b*(1-d)*I
+    dDdt = b*d*I
     return dSdt, dEdt, dIdt, dRdt, dDdt
 
 def parse_const_params(a, c, b, d):
