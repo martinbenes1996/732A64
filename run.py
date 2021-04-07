@@ -50,18 +50,52 @@ pop = population.population()
 
 
 import _src
-x = _src._se_regional_tests()
 
+print("CZ level 1")
+x = _src._CZ_data(level = 1)
+x.to_csv('CZ_data_1.csv', index = False)
+
+print("PL level 1")
+x = _src._PL_data(level = 1)
+x.to_csv('PL_data_1.csv', index = False)
+
+print("IT level 1")
+x = _src._IT_data(level = 1)
+x.to_csv('IT_data_1.csv', index = False)
+
+print("SE level 1")
+x = _src._SE_data(level = 1)
+x.to_csv('SE_data_1.csv', index = False)
+
+print("CZ level 2")
+x = _src._CZ_data(level = 2)
+x.to_csv('CZ_data_2.csv', index = False)
+
+print("PL level 2")
+x = _src._PL_data(level = 2)
 x = x\
-    .merge(pop.rename({'region':'Region'},axis=1), how='left', on=['Region'])
-x['Tests_per1K'] = x.Tests / x.population * 1000
-print(x)
+    .merge(pop, how='left', on=['region'])
+x.to_csv('PL_data_2.csv', index = False)
 
-fig, ax = plt.subplots(figsize=(8,6))
-#x['tests'] = x.groupby('region')['tests'].cumsum()
-for label, df in x.groupby('Region'):
-    df.plot(x = 'Monday', y = 'Tests_per1K', ax=ax, label=label)
-plt.xlabel('Time')
-plt.ylabel('Tests per 1000 people')
-plt.set_cmap('plasma')
-plt.show()
+print("IT level 2")
+x = _src._IT_data(level = 2)
+x = x\
+    .merge(pop, how='left', on=['region'])
+x.to_csv('IT_data_2.csv', index = False)
+
+print("SE level 2")
+x = _src._SE_data(level = 2)
+x = x\
+    .merge(pop, how='left', on=['region'])
+x.to_csv('SE_data_2.csv', index = False)
+
+#x['Tests_per1K'] = x.tests / x.population * 1000
+#print(x['Tests_per1K'])
+#fig, ax = plt.subplots(figsize=(8,6))
+#for label, df in x.groupby('region'):
+#    print(label)
+#    df.plot(x = 'date', y = 'recovered', ax=ax, label=label)
+#plt.xlabel('Time')
+#plt.ylabel('Tests_per1K')
+#plt.set_cmap('plasma')
+#plt.show()

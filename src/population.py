@@ -18,7 +18,8 @@ def _filter_country(regional = False):
             res = res or (s[:2] == 'SE' and len(s) == 5)
             res = res or (s[:2] == 'PL' and len(s) == 4 and s[:3] != 'PL9')
             res = res or (s[:2] == 'PL' and len(s) == 3)
-            res = res or (s[:2] == 'IT' and len(s) == 5) # todo
+            res = res or (s[:2] == 'IT' and s in {'ITH10','ITH20'})
+            res = res or (s[:2] == 'IT' and len(s) == 4 and s not in {'ITH1','ITH2'})
         else:
             res = s in ['CZ','IT','PL','SE']
         return res
@@ -119,7 +120,7 @@ def plot_population_violin(df = None, save = False, name = 'img/demographic/popu
     if save: plt.savefig(name)
 
 if __name__ == '__main__':
-    plot_population_violin()
-    plt.show()
-    #x = population(save = True)
-    #print(x)
+    #plot_population_violin()
+    #plt.show()
+    x = population(save = True)
+    print(x)
