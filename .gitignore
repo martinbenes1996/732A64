@@ -4,8 +4,6 @@
 .Ruserdata
 */*.Rproj
 *.Rproj
-data/*.csv
-data/*.xlsx
 __pycache__
 deaths.csv
 archive.csv

@@ -7,32 +7,34 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 
-def _se_tests():
+def _se_tests(level = 1):
     """"""
     # read data
     x = pd.read_csv('data/se_tests.csv')
-    # fill date
-    x['Monday'] = x.Monday.apply(lambda m: datetime.strptime(m, '%Y-%m-%d'))
-    r = pd.date_range(start=x.Monday.min(), end=x.Monday.max())
-    x = x\
-        .set_index('Monday')\
-        .reindex(r)
-    x['Tests'] = x.Tests.fillna(method='ffill')
-    x['Performed'] = x.Performed.fillna(method='ffill')
-    x['Tests'] = x.Tests.fillna(0.0)
-    x['Performed'] = x.Performed.fillna(0.0)
-    x = x\
-        .rename_axis('date')\
-        .reset_index()
-    # parse
-    x['Year'] = x.date.apply(lambda i: int(i.strftime("%Y")))
-    x['Week'] = x.date.apply(lambda i: int(i.strftime("%W")))
-    x['Year'] = x.Year.apply(int)
-    x['Week'] = x.Week.apply(int)
-    x['Tests'] = x.Tests.apply(int)
-    x['Performed'] = x.Performed.apply(int)
-    # sort
-    return x.sort_values(by = 'date', axis = 0)
+    if level == 1:
+        x = x[x.Region.isna()]
+        # fill date
+        x['Monday'] = x.Monday.apply(lambda m: datetime.strptime(m, '%Y-%m-%d'))
+        r = pd.date_range(start=x.Monday.min(), end=x.Monday.max())
+        x = x.set_index('Monday').reindex(r)
+        x['Tests'] = x.Tests.fillna(method='ffill')
+        x['Performed'] = x.Performed.fillna(method='ffill')
+        x['Tests'] = x.Tests.fillna(0.0)
+        x['Performed'] = x.Performed.fillna(0.0)
+        x = x.rename_axis('date').reset_index()
+        # parse
+        x['Year'] = x.date.apply(lambda i: int(i.strftime("%Y")))
+        x['Week'] = x.date.apply(lambda i: int(i.strftime("%W")))
+        x['Year'] = x.Year.apply(int)
+        x['Week'] = x.Week.apply(int)
+        x['Tests'] = x.Tests.apply(int)
+        x['Performed'] = x.Performed.apply(int)
+        # sort
+        x = x.sort_values(by = 'date', axis = 0)
+    else:
+        x = x[~x.Region.isna()]\
+            .sort_values(['Monday','Region'])
+    return x
 
 def _dead_gender():
     """"""
@@ -130,10 +132,43 @@ def _PL_data():
     print(pl_tests)
     return
 
-def _SE_data():
-    # fetch covid deaths and confirmed per region
-    se_deaths = SE.covid_deaths()
-    se_deaths = se_deaths[['year','week','region','deaths','confirmed']]
-    print(se_deaths)
+def _SE_data(level = 1):
+    # fetch data
+    se_data = SE.covid_deaths(level = level)
+    se_data_change = (se_data.year == 2020) & (se_data.week == 53)
+    se_data.loc[se_data_change,'year'] = 2021
+    se_data.loc[se_data_change,'week'] = 0
+    se_data.loc[se_data.year == 2021,'week'] = se_data.loc[se_data.year == 2021,'week'] + 1
+    # fetch tests
+    se_tests = _se_tests(level = level)\
+            .rename({'Year':'year','Week':'week','Tests':'tests','Region':'region'}, axis=1)
+    # country level
+    if level == 1:
+        # select columns
+        se_data = se_data[['year','week','deaths','confirmed']]
+        se_tests = se_tests[['year','week','tests']]
+        # to weeks
+        se_tests = se_tests[~se_tests.duplicated(['year','week'])]
+        # merge
+        se = se_data.merge(se_tests, how='outer', on=['year','week'])
+        
+    # region level
+    else:
+        # select columns
+        se_data = se_data[['year','week','region','deaths','confirmed']]
+        se_tests = se_tests[['year','week','region','tests']]
+        # merge
+        se = se_data.merge(se_tests, how='outer', on=['year','week','region'])
+        
+    # postprocess
+    se['date'] = se.apply(lambda r: datetime.strptime(f'{int(r.year)}-{int(r.week)}-1','%Y-%W-%w'), axis=1)
+    se = se[~se.deaths.isna() & ~se.confirmed.isna() & ~se.tests.isna()]
+    se = se.sort_values('date').reset_index(drop = True)
+    return se
     
-_SE_data()
+x = _SE_data(level = 2)
+#x.to_csv('res.csv', index=False)
+print(x)
+#from matplotlib import pyplot as plt
+#plt.plot(x.date, x.tests)
+#plt.show()
