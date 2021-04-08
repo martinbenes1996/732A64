@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from scipy.integrate import odeint
 import sys
+pd.options.mode.chained_assignment = None
 sys.path.append('src')
 
 import _src
@@ -89,7 +90,8 @@ def posterior_objective(params, country, POP, dates, initial_values,
     return score / D
 
 def simulate_posterior(country, params, dates, initial_values,
-                       POP = 1e7, N = 1000, parI = (1,1), parR = (1,1),parD = (1,1)):
+                       POP = 1e7, N = 1000, parI = (1,1), parR = (1,1),parD = (1,1),
+                       random_params = False):
     """"""
     assert(country in {'CZE','SWE','ITA','POL'})
     x = _posterior_data(country, dates)\
@@ -106,42 +108,42 @@ def simulate_posterior(country, params, dates, initial_values,
         if i == 0 or (i+1) % 100 == 0:
             print('%4d / %d' % (i+1,N))
         # transition
-        latent = transition(POP, initial_values, params)
+        latent = transition(POP, initial_values, params, random_params=random_params)
         latent[latent.I < 0]['I'] = 0
         latent[latent.dR < 0]['dR'] = 0
         latent[latent.dD < 0]['dD'] = 0
         sim_lat[:,i,:] = latent[['S','E','I','R','D']].to_numpy().T
         # emission
         sim_obs[2,i,:] = emission(latent.I.to_numpy(), x.tests.to_numpy(), *parI)
-        sim_obs[3,i,:] = emission(latent.dR.to_numpy(), x.tests.to_numpy(), *parR)
-        sim_obs[4,i,:] = emission(latent.dD.to_numpy(), x.tests.to_numpy(), *parD)
+        sim_obs[3,i,:] = emission(latent.R.to_numpy(), x.cumtests.to_numpy(), *parR)
+        sim_obs[4,i,:] = emission(latent.D.to_numpy(), x.cumtests.to_numpy(), *parD)
         #sim_obs[2,i,:][sim_obs[2,i,:] < 0] = 0
         #sim_obs[3,i,:][sim_obs[3,i,:] < 0] = 0
         #sim_obs[4,i,:][sim_obs[4,i,:] < 0] = 0
     # spare last
     last_values = sim_lat[:,:,-1].mean(axis = 1)
     # denormalize probability
-    #sim_lat[3:5,:,:] = np.diff(sim_lat[3:5,:,:], axis=2, prepend=sim_lat[3:5,:,2:3])
-    sim_lat[1:5,:,:] = sim_lat[1:5,:,:] * x.tests.to_numpy()
-    sim_lat[0,:,:] = POP - sim_lat[1:5,:,:].sum(axis = 0)
-    #sim_lat[1:3,:,:] = sim_lat[1:3,:,:] * x.tests.to_numpy()
-    #sim_lat[3:5,:,:] = sim_lat[3:5,:,:] * x.tests.to_numpy()#x.cumtests.to_numpy()
-    #sim_lat[3:5,:,:] = sim_lat[3:5,:,:]
-    #sim_obs[3:5,:,:] = np.diff(sim_obs[3:5,:,:], axis=2, prepend=sim_obs[3:5,:,2:3])
-    sim_obs[1:5,:,:] = sim_obs[1:5,:,:] * x.tests.to_numpy()
-    sim_obs[0,:,:] = POP - sim_obs[1:5,:,:].sum(axis = 0)
-    #sim_obs[1:3,:,:] = sim_obs[1:3,:,:] * x.tests.to_numpy()
-    #sim_obs[3:5,:,:] = sim_obs[3:5,:,:] * x.tests.to_numpy()#x.cumtests.to_numpy()
-    #sim_obs[3:5,:,:] = sim_obs[3:5,:,:]
+    #sim_lat[1:5,:,:] = sim_lat[1:5,:,:] * x.tests.to_numpy()
+    #sim_lat[0,:,:] = POP - sim_lat[1:5,:,:].sum(axis = 0)
+    sim_lat[1:3,:,:] = sim_lat[1:3,:,:] * x.tests.to_numpy()
+    sim_lat[3:5,:,:] = sim_lat[3:5,:,:] * x.cumtests.to_numpy()#x.tests.to_numpy()#
+    sim_lat[3:5,:,:] = np.diff(sim_lat[3:5,:,:], axis=2, prepend=sim_lat[3:5,:,0:1])
+    #sim_obs[1:5,:,:] = sim_obs[1:5,:,:] * x.tests.to_numpy()
+    #sim_obs[0,:,:] = POP - sim_obs[1:5,:,:].sum(axis = 0)
+    sim_obs[1:3,:,:] = sim_obs[1:3,:,:] * x.tests.to_numpy()
+    sim_obs[3:5,:,:] = sim_obs[3:5,:,:] * x.cumtests.to_numpy()#x.tests.to_numpy()#
+    sim_obs[3:5,:,:] = np.diff(sim_obs[3:5,:,:], axis=2, prepend=sim_obs[3:5,:,0:1])
     return (sim_lat, sim_obs), last_values
 
 def plot_posterior(country, params, dates, initial_values,
-                   POP = 1e7, N = 1000, parI = (1,1),parR = (1,1),parD = (1,1)):
+                   POP = 1e7, N = 1000, parI = (1,1),parR = (1,1),parD = (1,1),
+                   random_params=False):
     """"""
     # run simulation
     (sim_lat,sim_obs),_ = simulate_posterior(
         country = country, params = params, dates = dates, POP = POP, N = N,
-        initial_values = initial_values, parI = parI, parR = parR, parD = parD)
+        initial_values = initial_values, parI = parI, parR = parR, parD = parD,
+        random_params=random_params)
     _plot_posterior(sim = (sim_lat,sim_obs), country = country, dates = dates)
     
 def _plot_posterior(sim = None, country = None, dates = None, sim_mean = None):
@@ -191,12 +193,12 @@ def _plot_posterior(sim = None, country = None, dates = None, sim_mean = None):
     plt.show()
     
     fig1, ax1 = plt.subplots()
-    ax1.plot(x.date, sim_mean[4,:], color='orange', label='Deaths (latent)')
+    ax1.plot(x.date, sim_mean[4,:], color='red', label='Deaths (latent)')
     if sim_ci is not None:
-        ax1.fill_between(x.date, sim_ci[0,4,:], sim_ci[1,4,:], color = 'orange', alpha = .25)
-    ax1.plot(x.date, sim_obs_mean[4,:], color='red', label='Deaths (observed)')
+        ax1.fill_between(x.date, sim_ci[0,4,:], sim_ci[1,4,:], color = 'red', alpha = .25)
+    ax1.plot(x.date, sim_obs_mean[4,:], color='orange', label='Deaths (observed)')
     if sim_obs_ci is not None:
-        ax1.fill_between(x.date, sim_obs_ci[0,4,:], sim_obs_ci[1,4,:], color = 'red', alpha = .1)
+        ax1.fill_between(x.date, sim_obs_ci[0,4,:], sim_obs_ci[1,4,:], color = 'orange', alpha = .1)
     ax1.plot(x.date, x.deaths, color = 'blue', label='Deaths')
     ax1.set_xlabel('Date')
     ax1.set_ylabel('Deaths')
@@ -204,59 +206,24 @@ def _plot_posterior(sim = None, country = None, dates = None, sim_mean = None):
     plt.show()
 
 
-#params = pd.DataFrame({
-#    'start': [datetime(2020,3,15), datetime(2020,3,25), datetime(2020,4,4), datetime(2020,4,14)],
-#    'end': [datetime(2020,3,25), datetime(2020,4,4), datetime(2020,4,14), datetime(2020,4,15)],
-#    'a': [.00744432423122573, .00256929147327853, .00222884179092944, .000310343377761511],
-#    'c': [.202934525296726, .428593541196657, .529646578160122, .358540222347213],
-#    'b': [.00355981379148359, .000883336900733411, .0103621398903399, .0723453141705167],
-#    'd': [.000155681618489325, .00224380836567308, .0010705482843332, .00982152286218479]
-#})
-
-#params = pd.DataFrame({
-#    'start': [datetime(2020,3,15), datetime(2020,4,1), datetime(2020,5,1), datetime(2020,6,1), datetime(2020,6,15), datetime(2020,7,1)],
-#    'end': [datetime(2020,4,1), datetime(2020,5,1), datetime(2020,6,1), datetime(2020,6,15), datetime(2020,7,1), datetime(2020,7,30)],
-#    'a': [(2,900), (2,1200), (2,1200), (2,50), (2,50), (2,50)],
-#    'c': [(4,8), (4,8), (4,8), (4,8), (4,8), (4,8)],
-#    'b': [(3,700), (3,500), (3,300), (3,400), (3,400), (3,400)],
-#    'd': [(2,1e4), (5,1e4), (5,1e4), (2,1e4), (2,1e4), (2,1e4)]
-#})
-#params = pd.DataFrame({
-#    'start': [datetime(2020,2,28), datetime(2020,3,10), datetime(2020,4,1), datetime(2020,5,1), datetime(2020,6,1), datetime(2020,6,15), datetime(2020,7,1)],
-#    'end': [datetime(2020,3,10), datetime(2020,4,1), datetime(2020,5,1), datetime(2020,6,1), datetime(2020,6,15), datetime(2020,7,1), datetime(2020,7,30)],
-#    'a': [(2,6), (2,20), (2,200), (2,1e3), (2,1e3), (2,400), (2,400)],
-#    'c': map(lambda _:(3,51),range(7)),
-#    'b': map(lambda _:(1.1,10),range(7)),
-#    'd': map(lambda _:(1.1,100),range(7))
-#})
-#params = pd.DataFrame({
-#    'start': [datetime(2020,3,1), datetime(2020,3,15), datetime(2020,3,29)],
-#    'end': [datetime(2020,3,15), datetime(2020,3,29), datetime(2020,4,12)],
-#    'a': [.23455118,.0048916962,.009328],
-#    'c': [.2,.2,.2],
-#    'b': [.00038252,.007314,.0326747],
-#    'd': [.000714116,.009550056,.00985778]
-#})
-
-
-def run_0304():
+def run_covid_characteristics():
     params = pd.DataFrame({
-        'start': [datetime(2020,3,1), datetime(2020,3,15), datetime(2020,3,29), datetime(2020,4,12), datetime(2020,4,26)],
-        'end': [datetime(2020,3,15), datetime(2020,3,29), datetime(2020,4,12), datetime(2020,4,26), datetime(2020,4,30)],
-        'a': [.0119831,.0038502,.00067523,.0039271,.0047303],
-        'c': [.2,.2,.2,.2,.2],
-        'b': [.00092836,.00761937,.0425419445,.0934527,.0194829],
-        'd': [.00187313,.001527467,.0096889,.001792207,.0002380]
+        'start': [datetime(2020,3,1)],
+        'end': [datetime(2020,9,30)],
+        'a': [(2.20007645778212,27.37944426070125,0,6.619279818359113e-05)],
+        'c': [(3.4776857980163545,51.0585661816971,.03465259257309947,2.5447897386852354)],
+        'b': [(2.58506397436604,1581376.9982822197,0.01431241008785283,41895.140446301935)],
+        'd': [(.004,.01-.004)]
     })
     plot_posterior(
-        'CZE', POP = 1e7, N = 300,
-        params = params, dates = (datetime(2020,3,1),datetime(2020,4,30)), 
-        initial_values = (700/1000,300/1000,0/1000,0,0),
-        parI=(1,1), parR=(1,1), parD=(1,1))
+        'CZE', POP = 1e7, N = 1000,
+        params = params, dates = (datetime(2020,3,1),datetime(2020,9,30)), 
+        initial_values = (700/1000,150/1000,150/1000,0,0),
+        parI=(1,1), parR=(1,1), parD=(1,1e4), random_params=True)
 
 
 
-#get_obj()
+run_covid_characteristics()
 
 #POP = 1e7
 #run_country('CZE', N = 300, params = params, dates = (datetime(2020,3,15),datetime(2020,6,30)), POP = 1e7,

@@ -4,7 +4,7 @@ import functools as F
 import numpy as np
 import pandas as pd
 from scipy.integrate import odeint
-from scipy.stats import beta
+from scipy.stats import beta,uniform
 import sys
 
 sys.path.append('src')
@@ -61,10 +61,10 @@ def parse_random_params(prior_a, prior_c, prior_b, prior_d):
     a = beta.rvs(*prior_a, size = 1)[0]
     c = beta.rvs(*prior_c, size = 1)[0]
     b = beta.rvs(*prior_b, size = 1)[0]
-    d = beta.rvs(*prior_d, size = 1)[0]
+    d = uniform.rvs(*prior_d, size = 1)[0]
     return a,c,b,d
     
-def transition(POP, initial_values, parameters, parse_params = None):
+def transition(POP, initial_values, parameters, random_params = False):
     """Transition sampler.
     
     Args:
@@ -73,7 +73,7 @@ def transition(POP, initial_values, parameters, parse_params = None):
         parameters (tuple): Dataframe of parameters: start, end, a, c, b, d.
     """
     assert(len(initial_values) == 5)
-    parse_params = parse_const_params if parse_params is None else parse_params
+    parse_params = parse_const_params if not random_params else parse_random_params
     # iterate over time slots
     result = {'date': [], 'S': [], 'E': [], 'I': [], 'R': [], 'D': []}
     for i,row in enumerate(parameters.itertuples()):

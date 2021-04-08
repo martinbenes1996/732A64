@@ -41,7 +41,7 @@ def IR():
     draws = gamma.rvs(*pars, size = 100000, random_state = 54321)
     draws_ifr = _ifr.rvs(size = 100000)
     # fit beta to 1 / draw
-    samples = (1 - draws_ifr) / draws
+    samples = 1 / draws #(1 - draws_ifr) / draws
     samples = samples[(samples > 0) & (samples < 1)]
     return {'x': samples,
             'beta': beta.fit(samples),
@@ -71,19 +71,19 @@ def SI():
     np.random.seed(seed=12345)
     # get ir
     fit_IR = IR()
-    fit_ID = ID()
+    #fit_ID = ID()
     # sample
     K = 100000
     r0 = draw_R0(K)
     ir = beta.rvs(*fit_IR['beta'][:2], size = K)
-    id = beta.rvs(*fit_ID['beta'][:2], size = K)
+    #id = beta.rvs(*fit_ID['beta'][:2], size = K)
     # 
-    samples = r0 * (ir + id)
+    samples = r0 * (ir)#r0 * (ir + id)
     #print(samples)
     #samples = samples[samples < 1]
     return {'x': samples,
             #'gamma': gamma.fit(samples),
-            'weib': dweibull.fit(samples, floc = 0)}
+            'beta': beta.fit(samples, floc = 0)}
 
 def _get_beta_label(params):
     # parameters
@@ -123,15 +123,15 @@ def plot_SI(save = False, name = 'img/sir/SI.png'):
     # get fit
     fit = SI()
     # generate curve
-    xgrid = np.linspace(0,2e-6,100)
-    fx = dweibull.pdf(xgrid, *fit['weib']) * 2
+    xgrid = np.linspace(0,1e-4,100)
+    fx = beta.pdf(xgrid, *fit['beta']) * 2
     # plot
     fig1, ax1 = plt.subplots()
     ax1.hist(fit['x'], density = True, bins = 150)
     ax1.plot(xgrid, fx)
     ax1.set_xlabel('R0 * (Deaths + Recovered)')
     ax1.set_ylabel('Density')
-    ax1.set_xlim(0,2e-6)
+    ax1.set_xlim(0,1e-4)
     # save plot
     if save: fig1.savefig(name)
 
@@ -198,13 +198,13 @@ def plot_parameters():
 
 def priors(save = False, name = 'data/distr/prior.json'):
     """"""
-    _si = SI()['weib']
+    _si = SI()['beta']
     _ei = EI()['beta']
     _ir = IR()['beta']
     _id = ID()['beta']
     prior_params = {
         'SI': {
-            'distribution': 'weib',
+            'distribution': 'beta',
             'params': _si
         },
         'EI': {
@@ -332,11 +332,13 @@ def plot_test_ratio_all(save = False, name = 'img/parameters/test_ratio.png'):
 #confirmed_prior(save = True)
 
 if __name__ == "__main__":
-    #plot_IR()
-    #plt.show()
+    plot_SI()
+    plt.show()
+    plot_EI()
+    plt.show()
+    plot_IR()
+    plt.show()
     #plot_ID()
-    #plt.show()
-    #plot_SI()
     #plt.show()
     #plot_parameters()
     #priors(save = True)
@@ -346,8 +348,8 @@ if __name__ == "__main__":
     #pr = tested(country = 'CZE')
     #print(pr)
     
-    plot_test_ratio_all()
+    #plot_test_ratio_all()
     #plot_R0(save = False)
-    plt.show()
+    #plt.show()
     
     
