@@ -55,7 +55,6 @@ def _populations_data():
     x['age_end'] = x.age.apply(get_age_end)
     return x
 
-
 def countries():
     # get data
     x = _get_populations()
@@ -92,12 +91,13 @@ def population(save = False, name = 'data/population.csv'):
     if save: x.to_csv(name, index = False)
     return x
 
-def plot_population_violin(df = None, save = False, name = 'img/demographic/population.png'):
+def get_population(region):
+    x = population()
+    return int(x.loc[x.region == region,'population'])
 
+def plot_population_violin(df = None, save = False, name = 'img/demographic/population.png'):
     # fetch data
     df = _populations_data() if df is None else df
-    print(df)
-    #return
     # upsample
     cases = {'sex': [], 'age': [], 'country': []}
     for row in df.itertuples():
@@ -112,8 +112,6 @@ def plot_population_violin(df = None, save = False, name = 'img/demographic/popu
     cases = pd.DataFrame(cases)\
         .sort_values(by = 'sex', ascending = False)
     cases['date'] = None
-    
-    print(cases)
     # plot
     plt.rcParams.update({'font.size': 20})
     sns.violinplot(x="country", y="age", hue="sex", data = cases)
@@ -122,5 +120,8 @@ def plot_population_violin(df = None, save = False, name = 'img/demographic/popu
 if __name__ == '__main__':
     #plot_population_violin()
     #plt.show()
-    x = population(save = True)
+    #x = population(save = True)
+    #print(x)
+    x = get_population('SE124')
     print(x)
+    

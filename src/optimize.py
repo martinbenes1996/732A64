@@ -1,21 +1,22 @@
 
 from datetime import datetime,timedelta
 from geneticalgorithm import geneticalgorithm as ga
+import json
 import numpy as np
 import pandas as pd
 import sys
 sys.path.append('src')
 
+import population
 import posterior
 import _results
 
-def optimize_segment(country, dates, initial_values):
+def optimize_segment(region, dates, initial, attributes):
     fixparams = [None,.2,None,None]#.0064]
     def _obj(pars):
         return posterior.posterior_objective(
-            pars, country = country, fixparams = fixparams,
-            POP = 1e7, dates = dates,
-            initial_values = initial_values,
+            pars, region=region, fixparams=fixparams,
+            dates=dates, initial=initial, attributes=attributes,
             parI=(1,1), parR=(1,1), parD=(1,1))
     algorithm_param = {
         'max_num_iteration': 500,
@@ -40,7 +41,7 @@ def optimize_segment(country, dates, initial_values):
     params = posterior._parse_params(model.output_dict['variable'], fixparams)
     return params
 
-def optimize_spline(country, dates, initial_values, emission_parameters = [(1,1),(1,1),(1,1)], window = 7):
+def optimize_spline(region, dates, initial, emission = [(1,1),(1,1),(1,1)], attributes = 'IRD', window = 7):
     #fixparam = [None,.2,None,.0064]
     # iterate windows
     parameters = {'start': [], 'end': [], 'a': [], 'b': [], 'c': [], 'd': []}
@@ -49,7 +50,7 @@ def optimize_spline(country, dates, initial_values, emission_parameters = [(1,1)
         if start == end: continue
         print("Segment", start, "to", end)
         # optimize
-        p = optimize_segment(country, (start,end), initial_values)
+        p = optimize_segment(region, (start,end), initial, attributes)
         parameters['start'].append(start)
         parameters['end'].append(end)
         parameters['a'].append(p[0])
@@ -62,42 +63,68 @@ def optimize_spline(country, dates, initial_values, emission_parameters = [(1,1)
             'a': [p[0]], 'c': [p[1]], 'b': [p[2]], 'd': [p[3]]
         })
         (sim_lat,sim_obs),last_values = posterior.simulate_posterior(
-            country = country, params = segment_pars, dates = (start,end), POP = 1e7, N = 1,
-            initial_values = initial_values,
-            parI = emission_parameters[0], parR = emission_parameters[1], parD = emission_parameters[2])
+            region=region, params=segment_pars, dates=(start,end), N=1,
+            initial=initial, parI=emission[0], parR=emission[1], parD=emission[2])
         # plot
         #posterior._plot_posterior(sim = (sim_lat,sim_obs), country = country, dates = (start,end))
         # change initial values
         initial_values = last_values
     return pd.DataFrame(parameters)
 
-if __name__ == '__main__':
-    # parameters
-    country = 'CZE'
-    dates = (datetime(2020,3,1),datetime(2020,5,31))
-    initial_values = (800/1000,100/1000,100/1000,0/1000,0/1000)
-    emission_params = [(1,1e4),(1,1e4),(1,1)]
+def run(region, N = 1000):
+    region = region.upper().strip()
+    print(region)
+    # load config
+    with open("model/regions.json") as fp:
+        _config = json.load(fp)
+    config = _config[region]
+    config = {
+        'dates': ('2020-03-15','2020-12-31'),
+        'window': 7, 'attributes': 'IRD',
+        'initial': {'E':.1,'I':.1,'R':0,'D':0},
+        'emission': {'I':(1,1),'R':(1,1),'D':(1,1)},
+        **config}
+    POP = population.get_population(region)
+    # parse
+    dates = [datetime.strptime(d, "%Y-%m-%d") for d in config['dates']]
+    window = config['window']
+    attributes = config['attributes'].upper()
+    initial = [1-sum(config['initial'].values()), # S
+               config['initial'].get('E',0), # E
+               config['initial'].get('I',0), # I
+               config['initial'].get('R',0), # R     
+               config['initial'].get('D',0)] # D
+    emission = [config['emission'].get('I',(1,1)),
+                config['emission'].get('R',(1,1)),
+                config['emission'].get('D',(1,1))]
     # optimize
-    params = optimize_spline(country, dates, initial_values,
-                             emission_parameters = emission_params, window = 14)
+    params = optimize_spline(
+        region, dates, initial=initial, attributes=attributes,
+        emission=emission, window=window)
     print(params)
     # simulate result
     (sim_lat,sim_obs),last_values = posterior.simulate_posterior(
-        country = country, params = params, dates = dates, POP = 1e7, N = 1000,
-        initial_values = initial_values,
-        parI = emission_params[0], parR = emission_params[1], parD = emission_params[2])
+        region=region, params=params, dates=dates, N=N, initial=initial,
+        parI=emission[0], parR=emission[1], parD=emission[2])
     # save result
-    _results.save_result((sim_lat,sim_obs), dates, country, 'res.csv')
-    # plot
-    posterior._plot_posterior((sim_lat,sim_obs), country, dates)    
+    _results.save_result((sim_lat,sim_obs), dates, region, params)
+
+if __name__ == '__main__':
+    # country
+    run('CZ')
+    # CZ regions
+    run('CZ010')
+    run('CZ020')
+    run('CZ031')
+    run('CZ032')
+    run('CZ041')
+    run('CZ042')
+    run('CZ051')
+    run('CZ052')
+    run('CZ053')
+    run('CZ063')
+    run('CZ064')
+    run('CZ071')
+    run('CZ072')
+    run('CZ080')
     
-    # optimize
-    #pars = optimize_segment('CZE', dates, initial_values)
-    # plot
-    #params = pd.DataFrame({'start': [dates[0]], 'end': [dates[1]],
-    #                        'a': [pars[0]], 'c': [pars[1]], 'b': [pars[2]], 'd': [pars[3]]})
-    #run_country('CZE', params,
-    #            dates = dates,
-    #            initial_values = initial_values,
-    #            POP = 1e7, N = 500,
-    #            parI = (1,1),parR = (1,1),parD = (1,1))

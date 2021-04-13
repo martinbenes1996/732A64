@@ -53,41 +53,20 @@ import _src
 
 print("CZ level 1")
 x = _src._CZ_data(level = 1)
-x.to_csv('CZ_data_1.csv', index = False)
-
 print("PL level 1")
 x = _src._PL_data(level = 1)
-x.to_csv('PL_data_1.csv', index = False)
-
 print("IT level 1")
 x = _src._IT_data(level = 1)
-x.to_csv('IT_data_1.csv', index = False)
-
 print("SE level 1")
 x = _src._SE_data(level = 1)
-x.to_csv('SE_data_1.csv', index = False)
-
 print("CZ level 2")
 x = _src._CZ_data(level = 2)
-x.to_csv('CZ_data_2.csv', index = False)
-
 print("PL level 2")
 x = _src._PL_data(level = 2)
-x = x\
-    .merge(pop, how='left', on=['region'])
-x.to_csv('PL_data_2.csv', index = False)
-
 print("IT level 2")
 x = _src._IT_data(level = 2)
-x = x\
-    .merge(pop, how='left', on=['region'])
-x.to_csv('IT_data_2.csv', index = False)
-
 print("SE level 2")
 x = _src._SE_data(level = 2)
-x = x\
-    .merge(pop, how='left', on=['region'])
-x.to_csv('SE_data_2.csv', index = False)
 
 #x['Tests_per1K'] = x.tests / x.population * 1000
 #print(x['Tests_per1K'])

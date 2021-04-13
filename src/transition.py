@@ -6,6 +6,9 @@ import pandas as pd
 from scipy.integrate import odeint
 from scipy.stats import beta,uniform
 import sys
+# suppress warnings
+#import warnings
+#warnings.filterwarnings('ignore')
 
 sys.path.append('src')
 import _incubation
@@ -81,7 +84,7 @@ def transition(POP, initial_values, parameters, random_params = False):
         t = np.linspace(0, D, D+1)
         # integrate
         a,c,b,d = parse_params(row.a, row.c, row.b, row.d)
-        r = odeint(seird, initial_values, t, args=(POP, a, c, b, d))
+        r,_ = odeint(seird, initial_values, t, args=(POP, a, c, b, d), full_output = 1)
         # accumulate
         for dt in pd.date_range(row.start, row.end-timedelta(days=1)):
             result['date'].append(dt)

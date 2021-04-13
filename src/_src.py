@@ -4,8 +4,28 @@ import covid19czechia as CZ
 import covid19poland as PL
 import covid19sweden as SE
 from datetime import datetime
+import math
 import numpy as np
 import pandas as pd
+
+class cache:
+    @staticmethod
+    def read(country, level):
+        """"""
+        name = f'tmp/cache/{country}_{level}.csv'
+        try: x = pd.read_csv(name)
+        except: return None
+        x['date'] = x.date.apply(lambda d: datetime.strptime(d, "%Y-%m-%d"))
+        x['week'] = x.week.apply(int)
+        for c in set(x.columns) - {'date','week','region'}:
+            x[c] = x[c].apply(float)
+        print(x)
+        return x
+    @staticmethod
+    def write(x, country, level):
+        """"""
+        name = f'tmp/cache/{country}_{level}.csv'
+        x.to_csv(name, index = False)
 
 def _se_tests(level = 1):
     """"""
@@ -68,49 +88,20 @@ def _cum_to_new(x):
     x = _ffill0(pd.Series(res))
     return x.to_numpy()
     
-def get_data():
-    """"""
-    # load
-    x,sources = covid19dh.covid19(['CZE','ITA','Poland','SWE'], verbose = False)
-    # parse
-    data = None
-    for country,country_data in x.groupby('iso_alpha_3'):
-        # Sweden
-        if country == 'SWE':
-            se_tests = _se_tests()[['date','Tests']]\
-                .rename({'Tests': 'tests'}, axis = 1)
-            country_data = country_data\
-                .drop('tests', axis=1)\
-                .merge(se_tests, how = 'outer', on = 'date')
-            country_data['tests'] = country_data.tests / 7.
-        # fill from top
-        country_data['tests'] = _ffill0(country_data.tests)
-        country_data['confirmed'] = _ffill0(country_data.confirmed)
-        country_data['deaths'] = _ffill0(country_data.deaths)
-        country_data['recovered'] = _ffill0(country_data.recovered)
-        # cumulative to newly
-        if country != 'SWE':
-            country_data['tests'] = _cum_to_new(country_data.tests)
-        country_data['confirmed'] = _cum_to_new(country_data.confirmed)
-        country_data['deaths'] = _cum_to_new(country_data.deaths)
-        country_data['recovered'] = _cum_to_new(country_data.recovered)
-        # data
-        if data is None:
-            data = country_data
-        else:
-            data = pd.concat([data, country_data])
-    return data[['date','tests','confirmed','recovered','deaths','iso_alpha_3']]\
-        .reset_index(drop = True)
-
 def _CZ_data(level = 1):
     """"""
+    # read cache
+    cz = cache.read(country='CZ', level=level)
+    if cz is not None: return cz
     # aggregation
     def _aggregator(keys):
         def _per_day(df, key):
-            return df\
+            df['week'] = df.date.apply(lambda d: int(d.strftime('%W')))
+            df = df\
                 .groupby(keys)\
                 .aggregate({key: 'sum'})\
                 .reset_index()
+            return df
         return _per_day
     on_cols = ['date','week'] if level == 1 else ['date','week','region']
     aggregate = _aggregator(on_cols)  
@@ -119,17 +110,31 @@ def _CZ_data(level = 1):
     cz_confirmed = CZ.covid_confirmed(level = level, usecache=True)
     cz_tests = CZ.covid_tests(level = level, usecache=True)
     cz_recovered = CZ.covid_recovered(level = level, usecache=True)
+    # parse
+    cz_deaths = aggregate(cz_deaths,'deaths')
+    cz_confirmed = aggregate(cz_confirmed,'confirmed')
+    #cz_tests['date'] = cz_tests.date.apply(lambda d: datetime.strptime(d,'%Y-%m-%d'))
+    cz_tests = aggregate(cz_tests,'tests')
+    cz_recovered = aggregate(cz_recovered,'recovered')
     # merge czech
-    cz = aggregate(cz_tests, 'tests')\
-        .merge(aggregate(cz_confirmed,'confirmed'), how='outer', on=on_cols)\
-        .merge(aggregate(cz_deaths,'deaths'), how='outer', on=on_cols)\
-        .merge(aggregate(cz_recovered,'recovered'), how='outer', on=on_cols)\
-        .fillna(0)\
+    cz = cz_tests\
+        .merge(cz_confirmed, how='outer', on=on_cols)\
+        .merge(cz_deaths, how='outer', on=on_cols)\
+        .merge(cz_recovered, how='outer', on=on_cols)\
         .sort_values(on_cols)
+    cz.reset_index(drop=True).to_csv('here.csv')
+    #print(cz)
+    if level == 1:
+        cz['region'] = 'CZ'
+    cache.write(cz, country='CZ', level=level)
     return cz
-    
+
 def _PL_data(level = 1):
-    pl_deaths = PL.covid_deaths(level = level,from_github = True)
+    # read cache
+    pl = cache.read(country='PL', level=level)
+    if pl is not None: return pl
+    # fetch data
+    pl_deaths = PL.covid_deaths(level = level, from_github = True)
     pl_tests = PL.covid_tests(level = level, offline = False, from_github=True)
     # country level
     if level == 1:
@@ -143,33 +148,40 @@ def _PL_data(level = 1):
             .reset_index(drop = True)
         pl['deaths'] = pl.deaths.fillna(0)
         pl['tests'] = pl.tests.fillna(0)
-        
+        if level == 1:
+            pl['region'] = 'PL'
     # region
     else:
+        # deaths
         pl_deaths = pl_deaths\
             .rename({'NUTS2': 'region'}, axis = 1)\
             .groupby(['date','week','region'])\
             .aggregate({'deaths': 'sum'})\
             .reset_index()
+        pl_deaths_9 = pl_deaths[pl_deaths.region.isin({'PL91','PL92'})]\
+            .groupby(['date','week'])\
+            .aggregate({'deaths': 'sum'})\
+            .reset_index()
+        pl_deaths_9['region'] = 'PL9'
+        pl_deaths = pl_deaths[~pl_deaths.region.isin({'PL91','PL92'})]\
+            .append(pl_deaths_9, ignore_index=True)
+        pl_deaths['week'] = pl_deaths.week.apply(int)
+        # tests
         pl_tests = pl_tests[['date','week','region','tests']]
+        pl_tests['week'] = pl_tests.week.apply(int)
+        # merge
         pl = pl_deaths\
             .merge(pl_tests, how='outer', on=['date','week','region'])\
             .sort_values(['date','week'])\
             .reset_index(drop = True)
+        pl = pl[~pl.deaths.isna() & ~pl.tests.isna()]
+    cache.write(pl, country='PL', level=level)
     return pl
 
-#from matplotlib import pyplot as plt
-#x = _PL_data(level = 2)
-#fig, ax = plt.subplots(figsize=(8,6))
-#for label, df in x.groupby('region'):
-#    print(label)
-#    df.plot(x = 'date', y = 'deaths', ax=ax, label=label)
-#plt.xlabel('Time')
-#plt.ylabel('Deaths')
-#plt.set_cmap('plasma')
-#plt.show()
-
 def _SE_data(level = 1):
+    # read cache
+    se = cache.read(country='SE', level=level)
+    if se is not None: return se
     # fetch data
     se_data = SE.covid_deaths(level = level)
     se_data_change = (se_data.year == 2020) & (se_data.week == 53)
@@ -188,7 +200,8 @@ def _SE_data(level = 1):
         se_tests = se_tests[~se_tests.duplicated(['year','week'])]
         # merge
         se = se_data.merge(se_tests, how='outer', on=['year','week'])
-        
+        if level == 1:
+            se['region'] = 'SE'
     # region level
     else:
         # select columns
@@ -196,11 +209,11 @@ def _SE_data(level = 1):
         se_tests = se_tests[['year','week','region','tests']]
         # merge
         se = se_data.merge(se_tests, how='outer', on=['year','week','region'])
-        
     # postprocess
     se['date'] = se.apply(lambda r: datetime.strptime(f'{int(r.year)}-{int(r.week)}-1','%Y-%W-%w'), axis=1)
     se = se[~se.deaths.isna() & ~se.confirmed.isna() & ~se.tests.isna()]
     se = se.sort_values('date').reset_index(drop = True)
+    cache.write(se, country='SE', level=level)
     return se
 
 def _name_to_nuts():
@@ -208,8 +221,10 @@ def _name_to_nuts():
     return {r.name: r.nuts for r in nuts.itertuples()}
 
 def _IT_data(level = 1):
+    # read cache
+    it = cache.read(country='IT', level=level)
+    if it is not None: return it
     # fetch
-    assert(level in {1,2})
     x,_ = covid19dh.covid19('ITA', level = level, verbose = False)
     # country level
     if level == 1:
@@ -222,6 +237,8 @@ def _IT_data(level = 1):
         x['deaths'] = x.deaths.diff().fillna(x.loc[0,'deaths'])
         x['recovered'] = x.recovered.diff().fillna(x.loc[0,'recovered'])
         x = x[~x.confirmed.isna() & ~x.tests.isna() & ~x.deaths.isna() & ~x.recovered.isna()]
+        if level == 1:
+            x['region'] = 'IT'
     # region level
     else:
         name_mapper = _name_to_nuts()
@@ -239,17 +256,39 @@ def _IT_data(level = 1):
                 .diff().fillna(df.reset_index(drop=True).loc[0,"deaths"])
             x.loc[x.region == reg,'recovered'] = df.recovered\
                 .diff().fillna(df.reset_index(drop=True).loc[0,"recovered"])
-            
+    cache.write(x, country='IT', level=level)
     return x
 
-#x = _IT_data(level = 1)
+def get_data(region):
+    """"""
+    # parse input
+    region = region.upper().strip()
+    level = 1 if len(region) == 2 else 2
+    # fetch data
+    if region[:2] == 'CZ':
+        x = _CZ_data(level = level)
+    elif region[:2] == 'PL':
+        x = _PL_data(level = level)
+    elif region[:2] == 'SE':
+        x = _SE_data(level = level)
+    elif region[:2] == 'IT':
+        x = _IT_data(level = level)
+    else:
+        raise NotImplementedError(f'not implemented region {region}')
+    # filter region
+    x = x[x.region == region]
+    return x
+    
+#x = get_data('CZ')
 #print(x)
-#x.to_csv('res.csv', index=False)
+#x = x[~x.tests.isna() & ~x.confirmed.isna() & ~x.deaths.isna() & ~x.recovered.isna()]
 #print(x)
 #from matplotlib import pyplot as plt
 #plt.plot(x.date, x.tests)
 #plt.show()
-#plt.plot(x.date, x.confirmed)
-#plt.plot(x.date, x.recovered)
-#plt.plot(x.date, x.deaths)
+
+#x = get_data('SE')
+#print(x)
+#from matplotlib import pyplot as plt
+#plt.plot(x.date, x.tests)
 #plt.show()
