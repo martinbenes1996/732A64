@@ -4,15 +4,15 @@ library(ggplot2)
 library(mosaicCalc)
 
 run_SEIRD <- function(Tmax, POP, pars, init) {
-  dS_dt <- dS ~ -a*S*I + f*R + g*S
+  dS_dt <- dS ~ -a*S*I + f*R
   dE_dt <- dE ~  a*S*I - c*E
-  dI_dt <- dI ~  c*E - b*I - e*I
-  dR_dt <- dR ~  b*I - f*R
-  dD_dt <- dD ~  e*I
+  dI_dt <- dI ~  c*E - b*I
+  dR_dt <- dR ~  b*(1-e)*I - f*R
+  dD_dt <- dD ~  b*e*I
   pars$e <- ifelse(is.null(pars$e), 0, pars$e)
   pars$g <- ifelse(is.null(pars$g), 0, pars$g)
   epi = integrateODE(dS_dt, dE_dt, dI_dt, dR_dt, dD_dt,
-                     a=pars$a, c=pars$c, b=pars$b, e=pars$d, f=pars$e, g=pars$g,
+                     a=pars$a, c=pars$c, b=pars$b, e=pars$d, f=pars$e,
                      S=init$S, E=init$E, I=init$I, R=init$R, D=init$D,
                      POP=POP, tdur=Tmax)
   list(
@@ -45,15 +45,55 @@ plot_SEIRD <- function(Tmax, POP, pars, init, ylog=T) {
   p <- res %>%
     ggplot() +
     geom_line(aes(x = dates, y = value, color = type), size=1) +
-    xlab('Days') + ylab('Population ratio')
+    xlab('Days') + ylab('Population ratio') +
+    theme(panel.background = element_rect(fill = 'white', colour = 'grey'))
   
   if(ylog)
     p <- p + scale_y_log10()
   return(p)
 }
 
-#plot_SEIRD(100, 10000, list(a = .7, c = .4, b = .2, d = .05, e=0, g=0), list(I = 1), ylog = F)
-#plot_SEIRD(150, 10000, list(a = .5, c = .4, b = .2, d = .05, e=0, g=0), list(I = 1), ylog = F)
+run_LotkaVolterra <- function(Tmax, POP, pars, init) {
+  dS_dt <- dS ~ -a*S*I/POP + b*S
+  dI_dt <- dI ~  a*S*I/POP - b*I
+  epi = integrateODE(dS_dt, dI_dt,
+                     a=pars$a, b=pars$b, S=init$S, I=init$I, POP=POP, tdur=Tmax)
+  list(
+    S = sapply(1:Tmax, epi$S),
+    I = sapply(1:Tmax, epi$I)
+  )
+}
+
+plot_LotkaVolterra <- function(Tmax, POP, pars, init, ylog=T) {
+  # parameters
+  init$I <- ifelse(is.null(init$I), 0, init$I)
+  init$S <- POP - init$I
+  print(init)
+  # fit
+  res <- run_LotkaVolterra(Tmax=Tmax, POP=POP, pars = pars, init=init)
+  res$POP = res$S + res$I
+  # transform
+  res <- rbind(
+    data.frame(dates=1:Tmax, value=res$S, type='Prey (S)'),
+    data.frame(dates=1:Tmax, value=res$I, type='Predator (I)'),
+    data.frame(dates=1:Tmax, value=res$POP, type='Total (S+I)')
+  )
+  # plot
+  p <- res %>%
+    ggplot() +
+    geom_line(aes(x = dates, y = value, color = type), size=1) +
+    xlab('Days') + ylab('Population') +
+    theme(panel.background = element_rect(fill = 'white', colour = 'grey'))
+  
+  if(ylog)
+    p <- p + scale_y_log10()
+  return(p)
+}
+
+plot_SEIRD(100, 10000, list(a = .8, c = .3, b = .3, d = .05), list(I = 1), ylog = F)
+plot_SEIRD(100, 10000, list(a = .9, c = .3, b = .2, d = .05), list(I = 1), ylog = F)
+plot_SEIRD(100, 10000, list(a = .5, c = .3, b = .5, d = .05), list(I = 1), ylog = T)
+plot_LotkaVolterra(150, 50, list(a = .1, b = .1), list(I = 20), ylog = F)
 #plot_SEIRD(150, 10000, list(a = .7, c = .1, b = .2, d = .05, e=0, g=0), list(I = 1), ylog = F)
 #plot_SEIRD(100, 10000, list(a = .7, c = .4, b = .12, d = .05, e=0, g=0), list(I = 1), ylog = F)
 #plot_SEIRD(100, 10000, list(a = .7, c = .4, b = .3, d = .05, e=0, g=0), list(I = 1), ylog = F)

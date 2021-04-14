@@ -16,10 +16,11 @@ class cache:
         try: x = pd.read_csv(name)
         except: return None
         x['date'] = x.date.apply(lambda d: datetime.strptime(d, "%Y-%m-%d"))
-        x['week'] = x.week.apply(int)
+        x['week'] = x.date.apply(lambda d: int(d.strftime('%W')))
+        #x['week'] = x.week.apply(int)
         for c in set(x.columns) - {'date','week','region'}:
             x[c] = x[c].apply(float)
-        print(x)
+        #print(x)
         return x
     @staticmethod
     def write(x, country, level):
@@ -278,7 +279,9 @@ def get_data(region):
     # filter region
     x = x[x.region == region]
     return x
-    
+
+x = _IT_data()
+print(x)
 #x = get_data('CZ')
 #print(x)
 #x = x[~x.tests.isna() & ~x.confirmed.isna() & ~x.deaths.isna() & ~x.recovered.isna()]

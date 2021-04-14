@@ -8,19 +8,20 @@ import sys
 sys.path.append('src')
 import posterior
 
-def get_path(dates, region):
+def get_path(dates, region, now = None, create_if_not_exists = True):
     # parse dates
     date_start = dates[0].strftime('%Y-%m-%d')
     date_end = dates[1].strftime('%Y-%m-%d')
-    now = datetime.now().strftime('%Y-%m-%d')
+    if now is None: now = datetime.now()
+    now = now.strftime('%Y-%m-%d')
     # paths
     def _create_path(path):
         try: os.makedirs(path) 
         except OSError as error: pass
     projdir = f'results/{now}/{region}_{date_start}_{date_end}'
-    _create_path(projdir)
+    if create_if_not_exists:
+        _create_path(projdir)
     return projdir
-    
 
 def save_result(sim, dates, region, params):
     # path
@@ -64,10 +65,19 @@ def save_result(sim, dates, region, params):
     plt.savefig(f'{path}/recovered.png')
     posterior._plot_deaths((sim_mean,sim_obs_mean),(sim_ci,sim_obs_ci),x)
     plt.savefig(f'{path}/deaths.png')
-    
-def load_result(filename):
+    plot_characteristics(dates, region, datetime.now(), par='R0')
+    plt.savefig(f'{path}/R0.png')
+    plot_characteristics(dates, region, datetime.now(), par='Incubation period')
+    plt.savefig(f'{path}/incubation.png')
+    plot_characteristics(dates, region, datetime.now(), par='IFR')
+    plt.savefig(f'{path}/ifr.png')
+    plot_characteristics(dates, region, datetime.now(), par='Symptom duration')
+    plt.savefig(f'{path}/symptom.png')    
+
+def load_result(dates, region, now=None):
+    path = get_path(dates, region, now=now, create_if_not_exists=False)
     # load
-    x = pd.read_csv(filename)
+    x = pd.read_csv(f'{path}/data.csv')
     x['date'] = x.date.apply(lambda dt: datetime.strptime(dt, '%Y-%m-%d'))
     # parse
     lat = x[['latent_S','latent_E','latent_I','latent_R','latent_D']].to_numpy().T
@@ -75,12 +85,52 @@ def load_result(filename):
     obs[2:5,:] = x[['observed_I','observed_R','observed_D']].to_numpy().T
     region = x.loc[0,'region']
     dates = (x.date.min(), x.date.max())
+    params = x[['param_a','param_c','param_b','param_d']].to_numpy().T
     
-    return (lat,obs),dates,region
+    return (lat,obs),x.date,region,params
+
+def plot_params(dates, region, now=None):
+    # load
+    sim,dt,region,params = load_result(dates,region,now)
+    #dt = pd.date_range(dates[0],dates[1])
+    # create plot
+    fig1, ax1 = plt.subplots()
+    ax1.plot(dt, params[0,:], color='red', label='a')
+    ax1.plot(dt, params[1,:], color='orange', label='c')
+    ax1.plot(dt, params[2,:], color='green', label='b')
+    ax1.plot(dt, params[3,:], color='black', label='d')
+    ax1.set_xlabel('Date')
+    ax1.set_ylabel('Value')
+    plt.yscale('log')
+    plt.legend()
+
+def plot_characteristics(dates, region, now=None, par='r0', crop_last=0):
+    # load
+    sim,dt,region,params = load_result(dates,region,now)
+    #print(params.shape)
+    #dt = pd.date_range(dates[0],dates[1])
+    if crop_last > 0:
+        dt,params = dt[:-crop_last],params[:,:-crop_last]
+    # compute
+    r0 = params[0,:] / params[2,:]
+    incubation = 1 / params[1,:]
+    ifr = params[3,:]
+    symptoms = 1 / params[2,:]
+    # create plot
+    fig1, ax1 = plt.subplots()
+    if par.lower() == 'r0':
+        ax1.plot(dt, r0, label=par)
+        ax1.axhline(y=1, color='grey', alpha=.4)
+    if par.lower() == 'incubation period':
+        ax1.plot(dt, incubation, label=par)
+    if par.lower() == 'ifr':
+        ax1.plot(dt, ifr, label=par)
+    if par.lower() == 'Symptom duration':
+        ax1.plot(dt, symptoms, label=par)
+    ax1.set_xlabel('Date')
+    ax1.set_ylabel('Value')
+    #plt.yscale('log')
+    plt.legend()
 
 if __name__ == '__main__':
-    #sim,dates,region = load_result('res.csv')
-    #posterior._plot_posterior(sim_mean = sim, region = region, dates = dates)
-    get_path((datetime(2020,3,1),datetime(2020,3,31)),'CZ')
-    get_path((datetime(2020,3,1),datetime(2020,3,31)),'CZ010')
-#load_result('res.csv')
+    pass

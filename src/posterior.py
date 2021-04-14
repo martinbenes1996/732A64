@@ -121,6 +121,7 @@ def simulate_posterior(region, params, dates, initial, N = 1000,
         #latent[latent.dR < 0]['dR'] = 0
         #latent[latent.dD < 0]['dD'] = 0
         xx = x.merge(latent, how='left', on=['date'])
+        xx.tests = xx['tests'].apply(lambda t: t if t >= 0 else 1)
         sim_lat[:,i,:] = xx[['S','E','I','R','D']].to_numpy().T
         # emission
         try:
