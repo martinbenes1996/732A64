@@ -16,7 +16,7 @@ CZ,2020-09-10,Down,Masks,Masks in interiors,https://www.mzcr.cz/tiskove-centrum-
 CZ,2020-10-06,Special,Elections,Regional elections,https://www.mvcr.cz/clanek/volby-2020-zastupitelstva-kraju-a-senat.aspx
 CZ,2020-10-09,Down,Businesses,Closed businesses,https://www.mzcr.cz/tiskove-centrum-mz/vlada-kvuli-sireni-epidemie-covid-19-omezi-sportovni-kulturni-a-spolecenske-akce-cinnost-uradu-i-skol-rodicum-prodlouzi-osetrovne/
 CZ,2020-10-28,Down,Night lockdown,Lockdown during night,https://www.mzcr.cz/tiskove-centrum-mz/vlada-prodlouzi-program-podpory-zamestnavatelu-antivirus-b-do-konce-roku-vyhlasila-take-dalsi-krizova-opatreni/
-CZ,2020-11-13,Down,Shops limit,People in shops limited,
+CZ,2020-11-13,Down,Shops limit,People in shops limited,https://www.ceskenoviny.cz/zpravy/cesko-je-ve-ctvrtem-stupni-rizika-z-peti-opatreni-se-nemeni/1957669
 CZ,2020-11-25,Up,Schools,Schools partially reopened,https://www.mzcr.cz/tiskove-centrum-mz/vlada-rozhodla-o-prodlouzeni-nouzoveho-stavu-do-12-prosince-od-pondeli-dojde-k-dilcimu-zmirneni-nekterych-opatreni/
 CZ,2020-11-30,Up,Schools,Schools reopened,https://www.mzcr.cz/tiskove-centrum-mz/vlada-rozhodla-o-prodlouzeni-nouzoveho-stavu-do-12-prosince-od-pondeli-dojde-k-dilcimu-zmirneni-nekterych-opatreni/
 CZ,2020-12-15,Down,Businesses,Businesses closed,https://www.mzcr.cz/tiskove-centrum-mz/prisnejsi-opatreni-4-stupne-pes-zacnou-platit-v-patek-rozhodla-vlada-postizenym-podnikatelum-pomohou-dalsi-kompenzace/
@@ -35,9 +35,9 @@ PL,2020-05-18,Up,Business (3),"Restaurants, hairdressers, public transport",http
 PL,2020-05-30,Up,Crowd limit,Events (150),https://www.gov.pl/web/koronawirus/4-etap-odmrazania
 PL,2020-06-06,Up,Business (4),"Weddings (150), theater, fitness",https://www.gov.pl/web/koronawirus/4-etap-odmrazania
 PL,2020-06-28,Up,Elections,1st round of presidential election,"https://prawo.gazetaprawna.pl/artykuly/1482352,wybory-prezydenckie-2020-zasady-glosowania-pierwsza-druga-tura.html"
-PL,2020-07-12,Up,Elections,2nd round of presidential election,
+PL,2020-07-12,Up,Elections,2nd round of presidential election,"https://tvn24.pl/wybory-prezydenckie-2020/wybory-prezydenckie-2020-druga-tura-relacja-na-zywo-4635501"
 PL,2020-08-08,Special,Regionalization,Restrictions in regions by infection,https://www.gov.pl/web/zdrowie/dodatkowe-obostrzenia-w-powiatach-z-najwiekszym-przyrostem-zakazen
-PL,2020-09-01,Special,School,Schools open,
+PL,2020-09-01,Special,School,Schools open,https://www.money.pl/gospodarka/otwarcie-szkol-ekspert-najbardziej-prawdopodobne-ze-nauczanie-zdalne-wroci-po-2-4-tygodniach-6547567865514624a.html
 PL,2020-10-10,Down,Masks,Masks to more regions,https://samorzad.pap.pl/kategoria/aktualnosci/jakie-obostrzenia-dla-powiatow-czerwonych-i-zoltych-od-10-pazdziernika-2020-r
 PL,2020-10-17,Down,Gatherings,Restricted numbers in gastro and culture,https://samorzad.pap.pl/kategoria/aktualnosci/od-17-pazdziernika-beda-nowe-zasady-bezpieczenstwa-w-zoltych-i-czerwonych
 PL,2020-10-24,Down,Masks/Business,"Masks, restaurants and fitness closed",https://isap.sejm.gov.pl/isap.nsf/download.xsp/WDU20200001871/O/D20201871.pdf
@@ -47,35 +47,33 @@ PL,2020-11-09,Down,Schools,All schools closed,https://www.gov.pl/web/koronawirus
 PL,2020-12-24,Special,Christmas,Christmas Eve,
 PL,2020-12-28,Down,Ski resorts,Ski resorts and hotels closed,"https://www.infor.pl/prawo/nowosci-prawne/5155118,Jakie-obostrzenia-od-28-grudnia-2020-r.html"
 PL,2020-12-31,Special,New Year,New Year Eve,
-SE,2020-03-11,Down,Gatherings,Gatherings limited to 500 people,
-SE,2020-03-18,Down,Schools,Schools closed,
-SE,2020-03-19,Down,Borders,Borders closed for non-EU/EEA countries,
-SE,2020-03-11,Down,Gatherings,Gatherings limited to 50 people,
-SE,2020-03-27,Down,Sport events,Sport events limited,
+SE,2020-03-11,Down,Gatherings,Gatherings limited to 500 people,https://www.thelocal.se/20200311/sweden-to-ban-large-public-gatherings-over-coronavirus/
+SE,2020-03-18,Down,Schools,Schools closed,https://www.medrxiv.org/content/10.1101/2020.10.13.20211359v3.full
+SE,2020-03-19,Down,Borders,Borders closed for non-EU/EEA countries,https://www.garda.com/crisis24/news-alerts/324111/sweden-government-to-close-borders-effective-march-19-update-2
+SE,2020-03-29,Down,Gatherings,Gatherings limited to 50 people,https://www.krisinformation.se/en/news/2020/march/further-restriction-of-gatherings
 SE,2020-04-12,Special,Easter,Easter Sunday,
-SE,2020-06-15,Up,Schools,Schools reopened,
-SE,2020-11-01,Up,Gatherings,Gathering eased to 300 people,
-SE,2020-12-24,Down,Alcohol,Alcohol serving limited by time,
+SE,2020-06-15,Up,Schools,Schools reopened,https://www.krisinformation.se/en/news/2020/may/upper-secondary-schools-can-reopen
+SE,2020-11-01,Up,Gatherings,Gathering eased to 300 people,https://www.thelocal.se/20201022/explained-what-you-need-to-know-about-swedens-new-rules-for-events-and-nightlife/
+SE,2020-12-24,Down,Alcohol,Alcohol serving limited by time,https://www.thelocal.se/20201218/these-are-swedens-seven-new-coronavirus-measures/
 SE,2020-12-24,Special,Christmas,Christmas Eve,
 SE,2020-12-31,Special,New Year,New Year Eve,
-SE,2021-01-10,Down,Restrictions,Recommendations replaced with restrictions,
-IT,2020-02-25,Down,Regional restrictions,Closing of institutions,
+SE,2021-01-10,Down,Restrictions,Recommendations replaced with restrictions,https://sverigesradio.se/artikel/7637186
+IT,2020-02-25,Down,Regional restrictions,Local locdowns,https://metro.co.uk/2020/02/25/towns-italy-lockdown-coronavirus-12298246/
 IT,2020-03-04,Down,Schools,Closing schools,https://www.gazzettaufficiale.it/eli/id/2020/03/04/20A01475/sg
 IT,2020-03-09,Down,Lockdown,Regional lockdown (limited movement),https://www.gazzettaufficiale.it/eli/id/2020/03/09/20A01558/sg
-IT,2020-03-11,Down,Gatherings,"Gathering restrictions ""#IoRestoaCasa Decree""",http://www.salute.gov.it/portale/nuovocoronavirus/dettaglioNotizieNuovoCoronavirus.jsp?lingua=italiano&id=4186
+IT,2020-03-11,Down,Gatherings,"Gathering restrictions "#IoRestoaCasa Decree",http://www.salute.gov.it/portale/nuovocoronavirus/dettaglioNotizieNuovoCoronavirus.jsp?lingua=italiano&id=4186
 IT,2020-03-22,Down,Lockdown,No leaving of home,https://www.gazzettaufficiale.it/eli/id/2020/03/22/20A01807/sg
 IT,2020-04-12,Special,Easter,Easter Sunday,
-IT,2020-05-04,Up,Relaxation,Relaxation round of presidential relaxation,
-IT,2020-05-25,Up,Sport,Sporting facilities reopened,
-IT,2020-06-08,Special,Immuni,Immuni app introduced,
-IT,2020-06-15,Up,Culture,Cultural events,
-IT,2020-07-14,Down,Sport and culture,Sport and culture restricted,
-IT,2020-08-16,Down,Masks,Masks restricted in public,
+IT,2020-05-04,Up,Relaxation,Relaxation round of presidential relaxation,https://www.bbc.com/news/world-europe-52435273
+IT,2020-05-25,Up,Sport,Sporting facilities reopened,https://www.thelocal.it/20200525/what-are-italys-new-rules-on-going-to-the-gym-or-pool/
+IT,2020-06-08,Special,Immuni,Immuni app introduced,https://www.thelocal.it/20200605/italy-to-begin-testing-immuni-contact-tracing-app-in-four-regions/
+IT,2020-06-15,Up,Culture,Cultural events,https://www.thelocal.it/20200612/heres-what-changes-from-monday-as-italy-moves-into-phase-three/
+IT,2020-07-14,Down,Sport and culture,Sport and culture restricted,https://www.forbes.com/sites/irenedominioni/2020/07/14/italy-renews-coronavirus-restrictions-connections-with-13-countries-blocked-until-end-of-july/?sh=723c02726f4c
+IT,2020-08-16,Down,Masks,Masks restricted in public,https://www.aljazeera.com/news/2020/8/16/italy-orders-mask-wearing-at-night-live-coronavirus-updates
 IT,2020-09-20,Special,Elections,Public referendum,https://www.ilsussidiario.net/news/elezioni-regionali-2020-data-20-21-settembre-decreto-fissa-referendum-e-suppletive/2049115/
-IT,2020-10-08,Down,,,
-IT,2020-10-22,Down,Public areas,Regional lockdown of public areas,
-IT,2020-10-24,Down,Business,Closing of business,
-IT,2020-11-25,Special,Regionalization,Regionalization round of presidential regionalization,
-IT,2020-12-18,Down,Holiday restrictions,Holiday round of presidential restrictions,
+IT,2020-10-22,Down,Public areas,Regional lockdown of public areas,https://www.wantedinrome.com/news/covid-19-italian-regions-impose-curfews-at-night.html
+IT,2020-10-26,Down,Business,Closing of business,https://www.garda.com/crisis24/news-alerts/392941/italy-authorities-announce-new-covid-19-restrictions-nationwide-from-october-26-update-46
+IT,2020-11-25,Special,Regionalization,Regionalization round of presidential regionalization,https://www.sitata.com/en/alerts/covid-19-precautionary-measures-in-italy-25-november-update
+IT,2020-12-18,Down,Holiday restrictions,Holiday round of presidential restrictions,https://www.thelocal.it/20201203/italian-pm-announces-christmas-restrictions-under-new-decree/
 IT,2020-12-24,Special,Christmas,Christmas Eve,
 IT,2020-12-31,Special,New Year,New Year Eve,

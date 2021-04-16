@@ -1,9 +1,12 @@
 
 from datetime import datetime
+import json
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 import pandas as pd
 from sklearn.neighbors import KNeighborsRegressor
+from scipy.stats import beta
 import sys
 
 plt.rcParams["figure.figsize"] = (10,8)
@@ -62,10 +65,45 @@ def plot_s(path, save = False):
     ax.legend()
     if save: fig.savefig(f'{path}/s.png')
 
+def plot_param_distribution2(path, save = False):
+    # load
+    x = pd.read_csv(f'{path}/data.csv', header=0)
+    x['date'] = x.date.apply(lambda dt: datetime.strptime(dt, '%Y-%m-%d'))
+    # plot distribution
+    fig,ax = plt.subplots()
+    ax.hist(x.param_a, bins=50, label='Optimized', alpha=.5, density=True)
+    # prior density
+    with open('data/distr/prior.json') as fp:
+        prior = json.load(fp)
+    xgrid = np.linspace(0,.25,1000)
+    fx = [beta.pdf(i, *prior['SI']['params'][:2]) for i in xgrid]
+    ax.plot(xgrid,fx,label='Prior')
+    ax.legend()
+    #if save: fig.savefig(f'{path}/params.png')
+
+def plot_param_distribution(path, save = False):
+    # load
+    x = pd.read_csv(f'{path}/data.csv', header=0)
+    x['date'] = x.date.apply(lambda dt: datetime.strptime(dt, '%Y-%m-%d'))
+    # plot distribution
+    beta_fit = beta.fit(x.param_d.unique(), floc=0, fscale=1)
+    fig,ax = plt.subplots()
+    ax.hist(x.param_d.unique(), bins=150, label='Optimized', alpha=.5, density=True)
+    # prior density
+    #with open('data/distr/prior.json') as fp:
+    #    prior = json.load(fp)
+    xgrid = np.linspace(0,.1,1000)
+    fx = [beta.pdf(i, *beta_fit) for i in xgrid]
+    print(beta_fit)
+    ax.plot(xgrid,fx,label='Prior')
+    ax.legend()
+
 def plot(path):
-    plot_params(path, save = True)
-    plot_eird(path, save = True)
-    plot_s(path, save = True)
+    plot_param_distribution(path, save = True)
+    plt.show()
+    #plot_params(path, save = True)
+    #plot_eird(path, save = True)
+    #plot_s(path, save = True)
 
 if __name__ == '__main__':
     try:
@@ -74,5 +112,6 @@ if __name__ == '__main__':
         print("Usage: python src/result.py result/<result-dir>", file = sys.stderr)
         exit(1)
     plot(params)
+    
 
 

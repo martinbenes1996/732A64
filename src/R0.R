@@ -322,8 +322,52 @@ plot_trace_R0_box <- function(country = c('CZ','IT','SE','PL'),
     dplyr::mutate(Month = format(Date,'%Y-%m'))
   Rs %>%
     ggplot(mapping = aes(x = Month, y = R0, color = Country)) +
-    geom_boxplot(width=0.5) #+
-    #facet_wrap(~Country)
+    geom_boxplot(width=0.5) +
+    geom_hline(yintercept=1, color='grey') +
+    theme(text = element_text(size=15))
+}
+
+test_R0_above1 <- function(country = c('CZ','IT','SE','PL'),
+                           date.min = '2020-03-15', date.max = '2021-01-31') {
+  # daily incidence
+  covid_data <- covid19(country, level = 1)
+  covid_stats <- covid_data %>%
+    dplyr::ungroup() %>%
+    dplyr::transmute(Country = iso_alpha_2, dates = date, I = c(0,diff(confirmed))) %>%
+    dplyr::mutate(I = ifelse(is.na(I), 0, I)) %>%
+    dplyr::mutate(I = as.integer(I)) %>%
+    dplyr::mutate(I = ifelse(I < 0, 0, I)) %>% # remove corrections
+    dplyr::filter(dates <= as.Date(date.max))
+  # tests
+  #tests <- get_tests(covid_data, country, date.min)
+  Rs <- NA
+  Rs.empty <- T
+  for(country in unique(covid_stats$Country)) {
+    country_stats <- covid_stats[covid_stats$Country == country,] %>%
+      dplyr::transmute(dates,I)
+    R <- estimate_reproduction(country_stats, date.min)
+    R <- cbind(R, data.frame(Country = country))
+    if(Rs.empty) {
+      Rs <- R
+      Rs.empty <- F
+    }
+    else Rs <- rbind(Rs,R)
+  }
+  data <- Rs %>% dplyr::mutate(Month = format(Date,'%Y-%m'))
+  grouped <- data %>% dplyr::distinct(Country, Month)
+  res <- grouped %>%
+    dplyr::mutate(Value = 0) %>%
+    tidyr::pivot_wider(id_cols=Month, names_from = Country, values_from = Value)
+  for(i in 1:nrow(grouped)) {
+    # get data
+    country = grouped[i,'Country']
+    month = grouped[i,'Month']
+    x = data[(data$Country == country) & (data$Month == month),'R0']
+    # test
+    tt = t.test(x, alternative='greater', mu=1)
+    res[res$Month == month,country] = tt$p.value #> .05
+  }
+  res
 }
 
 plot_trace_test_R0_box <- function(countries = c('CZE','ITA','SWE','POL'),
@@ -358,10 +402,14 @@ plot_trace_test_R0_box <- function(countries = c('CZE','ITA','SWE','POL'),
   Rs %>%
     dplyr::mutate(Test_R0 = R0) %>%
     ggplot(mapping = aes(x = Month, y = Test_R0, color = Country)) +
-    geom_boxplot(width=0.5) #+
-  #facet_wrap(~Country)
+    geom_boxplot(width=0.5) +
+    geom_hline(yintercept=1, color='grey') +
+    theme(text = element_text(size=15))
 }
 
-
+# R0 from incidence
+plot_trace_R0_box()
+test_R0_above1()
+# R0 from tests
 plot_trace_test_R0_box()
 
