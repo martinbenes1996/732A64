@@ -7,8 +7,8 @@ from scipy.integrate import odeint
 from scipy.stats import beta,uniform
 import sys
 # suppress warnings
-#import warnings
-#warnings.filterwarnings('ignore')
+import warnings
+warnings.filterwarnings('ignore')
 
 sys.path.append('src')
 import _incubation

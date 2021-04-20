@@ -1,105 +1,120 @@
 {
     "CZ": {
         "dates": ["2020-03-10", "2021-03-31"],
-        "window": 7,
+        "window": 28,
+        "weekly": true,
         "attributes": "IRD",
-        "initial": {"E": 0.2, "I": 0.2},
+        "initial": {"E": 1e-5, "I": 1e-5},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "CZ010": {
         "dates": ["2020-08-01", "2021-03-31"],
-        "window": 7,
+        "window": 28,
+        "weekly": true,
         "attributes": "IRD",
         "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "CZ020": {
         "dates": ["2020-08-01", "2021-03-31"],
-        "window": 7,
+        "window": 28,
+        "weekly": true,
         "attributes": "IRD",
         "initial": {"E": 0.01, "I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "CZ031": {
         "dates": ["2020-08-01", "2021-03-31"],
-        "window": 7,
+        "window": 28,
+        "weekly": true,
         "attributes": "IRD",
         "initial": {"E": 0.01, "I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "CZ032": {
         "dates": ["2020-08-01", "2021-03-31"],
-        "window": 7,
+        "window": 28,
+        "weekly": true,
         "attributes": "IRD",
         "initial": {"E": 0.01, "I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "CZ041": {
         "dates": ["2020-08-01", "2021-03-31"],
-        "window": 7,
+        "window": 28,
+        "weekly": true,
         "attributes": "IRD",
         "initial": {"E": 0.01, "I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "CZ042": {
         "dates": ["2020-08-01", "2021-03-31"],
-        "window": 7,
+        "window": 28,
+        "weekly": true,
         "attributes": "IRD",
         "initial": {"E": 0.01, "I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "CZ051": {
         "dates": ["2020-08-01", "2021-03-31"],
-        "window": 7,
+        "window": 28,
+        "weekly": true,
         "attributes": "IRD",
         "initial": {"E": 0.01, "I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "CZ052": {
         "dates": ["2020-08-01", "2021-03-31"],
-        "window": 7,
+        "window": 28,
+        "weekly": true,
         "attributes": "IRD",
         "initial": {"E": 0.01, "I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "CZ053": {
         "dates": ["2020-08-01", "2021-03-31"],
-        "window": 7,
+        "window": 28,
+        "weekly": true,
         "attributes": "IRD",
         "initial": {"E": 0.01, "I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "CZ063": {
         "dates": ["2020-08-01", "2021-03-31"],
-        "window": 7,
+        "window": 28,
+        "weekly": true,
         "attributes": "IRD",
         "initial": {"E": 0.01, "I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "CZ064": {
         "dates": ["2020-08-01", "2021-03-31"],
-        "window": 7,
+        "window": 28,
+        "weekly": true,
         "attributes": "IRD",
         "initial": {"E": 0.01, "I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "CZ071": {
         "dates": ["2020-08-01", "2021-03-31"],
-        "window": 7,
+        "window": 28,
+        "weekly": true,
         "attributes": "IRD",
         "initial": {"E": 0.01, "I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "CZ072": {
         "dates": ["2020-08-01", "2021-03-31"],
-        "window": 7,
+        "window": 28,
+        "weekly": true,
         "attributes": "IRD",
         "initial": {"E": 0.01, "I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "CZ080": {
         "dates": ["2020-08-01", "2021-03-15"],
-        "window": 7,
+        "window": 28,
+        "weekly": true,
         "attributes": "IRD",
         "initial": {"E": 0.01, "I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
@@ -409,6 +424,125 @@
         "dates": ["2020-03-01", "2021-03-31"],
         "window": 7,
         "attributes": "IRD",
+        "initial": {"E": 0.1,"I": 0.1},
+        "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
+    },
+    "PL": {
+        "dates": ["2020-03-03", "2021-04-16"],
+        "window": 7,
+        "attributes": "IRD",
+        "initial": {"E": 0.1,"I": 0.1},
+        "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
+    },
+    "PL71": {
+        "dates": ["2020-03-04", "2021-04-17"],
+        "window": 7,
+        "attributes": "ID",
+        "initial": {"E": 0.1,"I": 0.1},
+        "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
+    },
+    "PL72": {
+        "dates": ["2020-03-04", "2021-04-17"],
+        "window": 7,
+        "attributes": "ID",
+        "initial": {"E": 0.1,"I": 0.1},
+        "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
+    },
+    "PL21": {
+        "dates": ["2020-03-04", "2021-04-17"],
+        "window": 7,
+        "attributes": "ID",
+        "initial": {"E": 0.1,"I": 0.1},
+        "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
+    },
+    "PL22": {
+        "dates": ["2020-03-04", "2021-04-17"],
+        "window": 7,
+        "attributes": "ID",
+        "initial": {"E": 0.1,"I": 0.1},
+        "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
+    },
+    "PL81": {
+        "dates": ["2020-03-04", "2021-04-17"],
+        "window": 7,
+        "attributes": "ID",
+        "initial": {"E": 0.1,"I": 0.1},
+        "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
+    },
+    "PL82": {
+        "dates": ["2020-03-04", "2021-04-17"],
+        "window": 7,
+        "attributes": "ID",
+        "initial": {"E": 0.1,"I": 0.1},
+        "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
+    },
+    "PL84": {
+        "dates": ["2020-03-04", "2021-04-17"],
+        "window": 7,
+        "attributes": "ID",
+        "initial": {"E": 0.1,"I": 0.1},
+        "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
+    },
+    "PL41": {
+        "dates": ["2020-03-04", "2021-04-17"],
+        "window": 7,
+        "attributes": "ID",
+        "initial": {"E": 0.1,"I": 0.1},
+        "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
+    },
+    "PL42": {
+        "dates": ["2020-03-04", "2021-04-17"],
+        "window": 7,
+        "attributes": "ID",
+        "initial": {"E": 0.1,"I": 0.1},
+        "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
+    },
+    "PL43": {
+        "dates": ["2020-03-04", "2021-04-17"],
+        "window": 7,
+        "attributes": "ID",
+        "initial": {"E": 0.1,"I": 0.1},
+        "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
+    },
+    "PL51": {
+        "dates": ["2020-03-04", "2021-04-17"],
+        "window": 7,
+        "attributes": "ID",
+        "initial": {"E": 0.1,"I": 0.1},
+        "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
+    },
+    "PL52": {
+        "dates": ["2020-03-04", "2021-04-17"],
+        "window": 7,
+        "attributes": "ID",
+        "initial": {"E": 0.1,"I": 0.1},
+        "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
+    },
+    "PL61": {
+        "dates": ["2020-03-04", "2021-04-17"],
+        "window": 7,
+        "attributes": "ID",
+        "initial": {"E": 0.1,"I": 0.1},
+        "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
+    },
+    "PL62": {
+        "dates": ["2020-03-04", "2021-04-17"],
+        "window": 7,
+        "attributes": "ID",
+        "initial": {"E": 0.1,"I": 0.1},
+        "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
+    },
+    "PL63": {
+        "dates": ["2020-03-04", "2021-04-17"],
+        "window": 7,
+        "attributes": "ID",
+        "initial": {"E": 0.1,"I": 0.1},
+        "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
+    },
+    "PL9": {
+        "dates": ["2020-03-04", "2021-04-17"],
+        "window": 7,
+        "attributes": "ID",
         "initial": {"E": 0.1,"I": 0.1},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     }

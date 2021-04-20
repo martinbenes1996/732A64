@@ -132,5 +132,37 @@ def plot_characteristics(dates, region, now=None, par='r0', crop_last=0):
     #plt.yscale('log')
     plt.legend()
 
-if __name__ == '__main__':
-    pass
+def plotSusceptible_SE224_Weekly():
+    (sim_mean,sim_obs_mean),dates,region,params = load_result(
+        (datetime(2020,7,1),datetime(2021,3,15)), 'SE224', datetime(2021,4,14))
+    x = posterior._posterior_data('SE224', (datetime(2020,7,1),datetime(2021,3,15)), weekly=True)
+    #print(x)
+    #sim_mean,sim_obs_mean = posterior.compute_sim_mean(sim)        
+    #sim_ci,sim_obs_ci = posterior.compute_sim_ci(sim)
+    plt.plot(dates, sim_mean[0,:], label='S')
+    plt.legend()
+    plt.show()
+    #posterior._plot_confirmed((sim_mean,sim_obs_mean),None,x)
+    #plt.show()
+    #posterior._plot_recovered((sim_mean,sim_obs_mean),None,x)
+    #plt.show()
+    #posterior._plot_deaths((sim_mean,sim_obs_mean),None,x)
+    #plt.show()
+
+def plotSusceptible_PL_Weekly():
+    (sim_mean,sim_obs_mean),dates,region,params = load_result(
+        (datetime(2020,3,3),datetime(2021,4,16)), 'PL', datetime(2021,4,18))
+    x = posterior._posterior_data('PL', (datetime(2020,3,3),datetime(2021,4,16)), weekly=False)
+    #print(x)
+    #sim_mean,sim_obs_mean = posterior.compute_sim_mean(sim)        
+    #sim_ci,sim_obs_ci = posterior.compute_sim_ci(sim)
+    plt.plot(dates, sim_mean[0,:], label='S')
+    plt.legend()
+    plt.show()
+    #posterior._plot_confirmed((sim_mean,sim_obs_mean),None,x)
+    #plt.show()
+    #posterior._plot_recovered((sim_mean,sim_obs_mean),None,x)
+    #plt.show()
+    #posterior._plot_deaths((sim_mean,sim_obs_mean),None,x)
+    #plt.show()
+#plotSusceptible_PL_Weekly()

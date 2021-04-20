@@ -8,6 +8,11 @@ import math
 import numpy as np
 import pandas as pd
 
+# make NUTS mapping
+def _name_to_nuts():
+    nuts = pd.read_csv('data/demo/NUTS.csv')
+    return {r.name: r.nuts for r in nuts.itertuples()}
+
 class cache:
     @staticmethod
     def read(country, level):
@@ -124,36 +129,116 @@ def _CZ_data(level = 1):
         .merge(cz_recovered, how='outer', on=on_cols)\
         .sort_values(on_cols)
     cz.reset_index(drop=True).to_csv('here.csv')
-    #print(cz)
     if level == 1:
         cz['region'] = 'CZ'
     cache.write(cz, country='CZ', level=level)
     return cz
+
+def _PL_confirmed(level = 1):
+    # country
+    if level == 1:
+        pass
+    # region
+    else:
+        # load
+        df_confirmed = pd.read_excel(
+            io = 'data/COVID-19 w Polsce.xlsx', engine='openpyxl',
+            sheet_name='Wzrost w województwach', skiprows=7, nrows=17, header=None)
+        # crop and set column names
+        df_confirmed.columns = pd.Series(['region']).append(df_confirmed.loc[0,1:].apply(str))
+        df_confirmed = df_confirmed.iloc[1:,:-2]
+        # wide to long
+        df_confirmed = pd.melt(df_confirmed, id_vars='region', var_name='date', value_name='confirmed')
+        df_confirmed['date'] = df_confirmed.date.apply(lambda dt: datetime.strptime(dt, '%Y-%m-%d %H:%M:%S'))
+        df_confirmed['region'] = df_confirmed.region.apply(str)\
+            .replace({'Świętokrzyskie *': 'Świętokrzyskie'})\
+            .apply(_name_to_nuts().get)
+        df_confirmed['confirmed'] = df_confirmed.confirmed.apply(float)
+        # merge
+        df = df_confirmed\
+            .sort_values(['date','region'])\
+            .reset_index(drop=True)
+    df['week'] = df.date.apply(lambda dt: datetime.strftime(dt, '%W'))
+    return df
+
+def _PL_tests(level = 1):
+    # country
+    if level == 1:
+        # read
+        df_tests = pd.read_excel(
+            io = 'data/COVID-19 w Polsce.xlsx', engine='openpyxl',
+            sheet_name='Testy', skiprows=2, nrows=411, header=None)
+        # columns
+        df_tests = df_tests.loc[1:,1:5]
+        df_tests.columns = ['date','x1','x2','x3','tests']
+        df = df_tests[['date','tests']]
+    # region
+    else:
+        # load
+        df_tests = pd.read_excel(
+            io = 'data/COVID-19 w Polsce.xlsx', engine='openpyxl',
+            sheet_name=' Testy w województwach od 11.05', skiprows=2, nrows=17, header=None)
+        # crop and set column names
+        df_tests.columns = pd.Series(['region']).append(df_tests.loc[0,1:].apply(str))
+        df_tests = df_tests.iloc[1:,:-5]
+        # wide to long
+        df_tests = pd.melt(df_tests, id_vars='region', var_name='date', value_name='tests')
+        df_tests['date'] = df_tests.date.apply(lambda dt: datetime.strptime(dt, '%Y-%m-%d %H:%M:%S'))
+        df_tests['region'] = df_tests.region\
+            .apply(str)\
+            .replace({'Świętokrzyskie *': 'Świętokrzyskie'})\
+            .apply(_name_to_nuts().get)
+        df_tests['tests'] = df_tests.tests.apply(float)
+        # load
+        df_tests2 = pd.read_excel(
+            io = 'data/COVID-19 w Polsce.xlsx', engine='openpyxl',
+            sheet_name='Testy w województwach', skiprows=3, nrows=17, header=None)
+        # crop and set column names
+        df_tests2 = df_tests2.loc[:,1:]
+        df_tests2.columns = pd.Series(['region']).append(df_tests2.loc[0,2:].apply(str))
+        df_tests2 = df_tests2.iloc[1:,:-2]
+        # wide to long
+        df_tests2 = pd.melt(df_tests2, id_vars='region', var_name='date', value_name='tests')
+        df_tests2['date'] = df_tests2.date.apply(lambda dt: datetime.strptime(dt, '%Y-%m-%d %H:%M:%S'))
+        df_tests2['region'] = df_tests2.region\
+            .apply(str)\
+            .apply(_name_to_nuts().get)
+        df_tests2['tests'] = df_tests2.tests.apply(float)
+        # merge
+        df = df_tests.append(df_tests2)\
+            .sort_values(['date','region'])\
+            .reset_index(drop=True)
+        df = df[['date','region','tests']]
+    df['week'] = df.date.apply(lambda dt: int(datetime.strftime(dt, '%W')))
+    return df
 
 def _PL_data(level = 1):
     # read cache
     pl = cache.read(country='PL', level=level)
     if pl is not None: return pl
     # fetch data
-    pl_deaths = PL.covid_deaths(level = level, from_github = True)
-    pl_tests = PL.covid_tests(level = level, offline = False, from_github=True)
+    pl_tests = _PL_tests(level=level)
     # country level
     if level == 1:
-        pl_deaths = pl_deaths\
-            .groupby(['date','week'])\
-            .aggregate({'deaths': 'sum'})\
-            .reset_index()
-        pl = pl_deaths\
+        # read
+        pl = pd.read_excel(
+            io = 'data/COVID-19 w Polsce.xlsx', engine='openpyxl',
+            sheet_name='Wzrost', skiprows=2, nrows=411, header=None)
+        pl = pl.loc[:,:8]
+        pl.columns = ['date','confirmed','x1','x2','x3','x4','x5','deaths','recovered']
+        pl = pl[['date','confirmed','deaths','recovered']]
+        pl['week'] = pl.date.apply(lambda dt: int(datetime.strftime(dt, '%W')))
+        # merge
+        pl = pl\
             .merge(pl_tests, how='outer', on=['date','week'])\
             .sort_values(['date','week'])\
             .reset_index(drop = True)
-        pl['deaths'] = pl.deaths.fillna(0)
-        pl['tests'] = pl.tests.fillna(0)
-        if level == 1:
-            pl['region'] = 'PL'
+        pl = pl[~pl.deaths.isna() & ~pl.tests.isna() & ~pl.confirmed.isna() & ~pl.recovered.isna()]
+        pl['region'] = 'PL'
     # region
     else:
         # deaths
+        pl_deaths = PL.covid_deaths(level = level, from_github = True)
         pl_deaths = pl_deaths\
             .rename({'NUTS2': 'region'}, axis = 1)\
             .groupby(['date','week','region'])\
@@ -166,16 +251,21 @@ def _PL_data(level = 1):
         pl_deaths_9['region'] = 'PL9'
         pl_deaths = pl_deaths[~pl_deaths.region.isin({'PL91','PL92'})]\
             .append(pl_deaths_9, ignore_index=True)
-        pl_deaths['week'] = pl_deaths.week.apply(int)
+        pl_deaths['week'] = pl_deaths.date.apply(lambda dt: int(datetime.strftime(dt, '%W')))
         # tests
         pl_tests = pl_tests[['date','week','region','tests']]
         pl_tests['week'] = pl_tests.week.apply(int)
+        # confirmed
+        pl_confirmed = _PL_confirmed(level=level)
+        pl_confirmed['week'] = pl_confirmed.date.apply(lambda dt: int(datetime.strftime(dt, '%W')))
+        pl_confirmed = pl_confirmed[['date','week','region','confirmed']]
         # merge
         pl = pl_deaths\
             .merge(pl_tests, how='outer', on=['date','week','region'])\
-            .sort_values(['date','week'])\
-            .reset_index(drop = True)
-        pl = pl[~pl.deaths.isna() & ~pl.tests.isna()]
+            .merge(pl_confirmed, how='outer', on=['date','week','region'])\
+            .sort_values(['date','week','region'])\
+            .reset_index(drop = True)\
+            .fillna(0)
     cache.write(pl, country='PL', level=level)
     return pl
 
@@ -217,10 +307,6 @@ def _SE_data(level = 1):
     cache.write(se, country='SE', level=level)
     return se
 
-def _name_to_nuts():
-    nuts = pd.read_csv('data/demo/NUTS.csv')
-    return {r.name: r.nuts for r in nuts.itertuples()}
-
 def _IT_data(level = 1):
     # read cache
     it = cache.read(country='IT', level=level)
@@ -260,7 +346,7 @@ def _IT_data(level = 1):
     cache.write(x, country='IT', level=level)
     return x
 
-def get_data(region):
+def get_data(region, weekly=False):
     """"""
     # parse input
     region = region.upper().strip()
@@ -278,20 +364,16 @@ def get_data(region):
         raise NotImplementedError(f'not implemented region {region}')
     # filter region
     x = x[x.region == region]
+    # weekly
+    if weekly:
+        x['year'] = x.date.apply(lambda d: int(datetime.strftime(d, '%Y')))
+        x = x\
+            .drop('date', axis=1)\
+            .groupby(['year','week','region'])\
+            .sum()\
+            .reset_index(drop=False)
+        x['date'] = x.apply(lambda r: datetime.strptime(f'{r.year}-{r.week}-1', '%Y-%W-%w'), axis=1)
     return x
 
-x = _IT_data()
-print(x)
-#x = get_data('CZ')
+#x = _CZ_data(level = 2)
 #print(x)
-#x = x[~x.tests.isna() & ~x.confirmed.isna() & ~x.deaths.isna() & ~x.recovered.isna()]
-#print(x)
-#from matplotlib import pyplot as plt
-#plt.plot(x.date, x.tests)
-#plt.show()
-
-#x = get_data('SE')
-#print(x)
-#from matplotlib import pyplot as plt
-#plt.plot(x.date, x.tests)
-#plt.show()

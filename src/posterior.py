@@ -40,11 +40,11 @@ def _parse_params(params, fixparams):
     return a,c,b,d
 
 _data = {}
-def _posterior_data(region, dates):
+def _posterior_data(region, dates, weekly=False):
     global _data
     # get data
     if region not in _data:
-        x = _src.get_data(region)
+        x = _src.get_data(region, weekly=weekly)
         #print(x)
         # parse tests
         x['cumtests'] = x.tests.cumsum()
@@ -68,10 +68,10 @@ def _posterior_data(region, dates):
     return x
 
 import time
-def posterior_objective(params, region, dates, initial, fixparams = None,
+def posterior_objective(params, region, dates, initial, fixparams = None, weekly=False,
                         attributes = 'IRD', parI = (1,1), parR = (1,1), parD = (1,1)):
     """"""
-    x = _posterior_data(region, dates)
+    x = _posterior_data(region, dates, weekly=weekly)
     POP = population.get_population(region)
     # construct params dataframe
     a,c,b,d = _parse_params(params, fixparams)
@@ -96,10 +96,10 @@ def posterior_objective(params, region, dates, initial, fixparams = None,
                                     x.R.to_numpy(), x.cumtests.to_numpy(), *parR)
     return score / D
 
-def simulate_posterior(region, params, dates, initial, N = 1000,
+def simulate_posterior(region, params, dates, initial, N = 1000, weekly = False,
                        parI = (1,1), parR = (1,1),parD = (1,1), random_params = False):
     """"""
-    x = _posterior_data(region, dates)\
+    x = _posterior_data(region, dates, weekly=weekly)\
         .reset_index(drop = True)
     POP = population.get_population(region)
     # filter param
@@ -258,13 +258,14 @@ def run_covid_characteristics():
         'd': [(.004,.01-.004)]
     })
     plot_posterior(
-        'IT', N=1000, params=params, dates=(datetime(2020,3,1),datetime(2020,9,30)), 
-        initial_values=(700/1000,150/1000,150/1000,0,0),
-        parI=(1,1), parR=(1,1), parD=(1,1e4), random_params=True)
+        'PL', N=1000, params=params, dates=(datetime(2020,3,1),datetime(2020,9,30)), 
+        initial=(700/1000,150/1000,150/1000,0,0),
+        parI=(1,1e3), parR=(1,1e3), parD=(1,1), random_params=True)
 
 
 
-#run_covid_characteristics()
+if __name__ == '__main__':
+    run_covid_characteristics()
 
 #POP = 1e7
 #run_country('CZE', N = 300, params = params, dates = (datetime(2020,3,15),datetime(2020,6,30)), POP = 1e7,

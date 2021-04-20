@@ -11,11 +11,11 @@ import population
 import posterior
 import _results
 
-def optimize_segment(region, dates, initial, attributes):
+def optimize_segment(region, dates, initial, attributes, weekly):
     fixparams = [None,.2,None,None]#.0064]
     def _obj(pars):
         return posterior.posterior_objective(
-            pars, region=region, fixparams=fixparams,
+            pars, region=region, fixparams=fixparams, weekly=weekly,
             dates=dates, initial=initial, attributes=attributes,
             parI=(1,1), parR=(1,1), parD=(1,1))
     algorithm_param = {
@@ -41,7 +41,7 @@ def optimize_segment(region, dates, initial, attributes):
     params = posterior._parse_params(model.output_dict['variable'], fixparams)
     return params
 
-def optimize_spline(region, dates, initial, emission = [(1,1),(1,1),(1,1)], attributes = 'IRD', window = 7):
+def optimize_spline(region, dates, initial, emission = [(1,1),(1,1),(1,1)], attributes = 'IRD', window = 7, weekly = False):
     #fixparam = [None,.2,None,.0064]
     # iterate windows
     parameters = {'start': [], 'end': [], 'a': [], 'b': [], 'c': [], 'd': []}
@@ -50,7 +50,7 @@ def optimize_spline(region, dates, initial, emission = [(1,1),(1,1),(1,1)], attr
         if start == end: continue
         print("Segment", start, "to", end)
         # optimize
-        p = optimize_segment(region, (start,end), initial, attributes)
+        p = optimize_segment(region, (start,end), initial, attributes, weekly)
         parameters['start'].append(start)
         parameters['end'].append(end)
         parameters['a'].append(p[0])
@@ -63,7 +63,7 @@ def optimize_spline(region, dates, initial, emission = [(1,1),(1,1),(1,1)], attr
             'a': [p[0]], 'c': [p[1]], 'b': [p[2]], 'd': [p[3]]
         })
         (sim_lat,sim_obs),last_values = posterior.simulate_posterior(
-            region=region, params=segment_pars, dates=(start,end), N=1,
+            region=region, params=segment_pars, dates=(start,end), N=1, weekly=weekly,
             initial=initial, parI=emission[0], parR=emission[1], parD=emission[2])
         # plot
         #posterior._plot_posterior(sim = (sim_lat,sim_obs), country = country, dates = (start,end))
@@ -80,7 +80,7 @@ def run(region, N = 1000):
     config = _config[region]
     config = {
         'dates': ('2020-03-15','2020-12-31'),
-        'window': 7, 'attributes': 'IRD',
+        'window': 7, 'weekly': False, 'attributes': 'IRD',
         'initial': {'E':.1,'I':.1,'R':0,'D':0},
         'emission': {'I':(1,1),'R':(1,1),'D':(1,1)},
         **config}
@@ -88,6 +88,7 @@ def run(region, N = 1000):
     # parse
     dates = [datetime.strptime(d, "%Y-%m-%d") for d in config['dates']]
     window = config['window']
+    weekly = config.get('weekly', False)
     attributes = config['attributes'].upper()
     initial = [1-sum(config['initial'].values()), # S
                config['initial'].get('E',0), # E
@@ -100,8 +101,7 @@ def run(region, N = 1000):
     # optimize
     params = optimize_spline(
         region, dates, initial=initial, attributes=attributes,
-        emission=emission, window=window)
-    print(params)
+        emission=emission, window=window, weekly = weekly)
     # simulate result
     (sim_lat,sim_obs),last_values = posterior.simulate_posterior(
         region=region, params=params, dates=dates, N=N, initial=initial,
@@ -113,7 +113,8 @@ if __name__ == '__main__':
     # countries
     #run('CZ')
     #run('SE')
-    run('IT')
+    #run('IT')
+    #run('PL')
     # CZ regions
     #run('CZ010')
     #run('CZ020')
@@ -148,27 +149,46 @@ if __name__ == '__main__':
     #run('SE312')
     #run('SE313')
     #run('SE321')
+    run('SE322')
     #run('SE331')
     #run('SE332')
     # IT regions
-    run('ITC1')
-    run('ITC2')
-    run('ITC3')
-    run('ITC4')
-    run('ITF1')
-    run('ITF2')
-    run('ITF3')
-    run('ITF4')
-    run('ITF5')
-    run('ITF6')
-    run('ITG1')
-    run('ITG2')
-    run('ITH10')
-    run('ITH20')
-    run('ITH3')
-    run('ITH4')
-    run('ITH5')
-    run('ITI1')
-    run('ITI2')
-    run('ITI3')
-    run('ITI4')
+    #run('ITC1')
+    #run('ITC2')
+    #run('ITC3')
+    #run('ITC4')
+    #run('ITF1')
+    #run('ITF2')
+    #run('ITF3')
+    #run('ITF4')
+    #run('ITF5')
+    #run('ITF6')
+    #run('ITG1')
+    #run('ITG2')
+    #run('ITH10')
+    #run('ITH20')
+    #run('ITH3')
+    #run('ITH4')
+    #run('ITH5')
+    #run('ITI1')
+    #run('ITI2')
+    #run('ITI3')
+    #run('ITI4')
+    # PL regions
+    #run('PL71')
+    #run('PL72')
+    #run('PL21')
+    #run('PL22')
+    #run('PL81')
+    #run('PL82')
+    #run('PL84')
+    #run('PL41')
+    #run('PL42')
+    #run('PL43')
+    #run('PL51')
+    #run('PL52')
+    #run('PL61')
+    #run('PL62')
+    #run('PL63')
+    #run('PL9')
+    

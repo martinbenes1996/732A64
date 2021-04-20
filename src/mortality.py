@@ -1,4 +1,5 @@
 
+from datetime import datetime
 import math
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -218,6 +219,20 @@ def test_country_age_equal(c1, years = [2020]):
     print("* F-test %.5f [%s]" % (fpi, 'Y' if fpi > .05 else 'N'))
     print("* T-test %.5f [%s]" % (tpi, 'Y' if tpi > .05 else 'N'))
 
+def CZ_mortality():
+    x = _mortality_data()
+    print(x)
+    x = x[x.region == 'CZ']\
+        .groupby(['year','week'])\
+        .aggregate({'deaths':'sum'})\
+        .reset_index()
+    x = x[x.week <= 53]
+    x['date'] = x.apply(lambda r: datetime.strptime(f'{r.year}-{r.week}-1','%Y-%W-%w'), axis=1)
+    
+    print(x)
+    x.plot(x = 'date', y = 'deaths')
+    plt.show()
+    
     
 #plot_mortality_violin()
 #plt.show()
@@ -229,9 +244,11 @@ def test_country_age_equal(c1, years = [2020]):
 #test_countries_equal('SE','CZ')
 #test_countries_equal('PL','CZ')
 
-test_country_age_equal('IT')
-test_country_age_equal('SE')
-test_country_age_equal('PL')
-test_country_age_equal('CZ')
+#CZ_mortality()
+
+#test_country_age_equal('IT')
+#test_country_age_equal('SE')
+#test_country_age_equal('PL')
+#test_country_age_equal('CZ')
 
 #plot_mortality_population

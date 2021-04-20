@@ -1,8 +1,9 @@
 
+import math
 import matplotlib.pyplot as plt
 import pandas as pd
 import re
-from scipy.stats import multinomial
+from scipy.stats import multinomial, t, f
 import seaborn as sns
 import eurostat_deaths
 
@@ -117,11 +118,64 @@ def plot_population_violin(df = None, save = False, name = 'img/demographic/popu
     sns.violinplot(x="country", y="age", hue="sex", data = cases)
     if save: plt.savefig(name)
 
+#pops = _populations_data()
+#pops.population = pops.population / 1000
+def test_countries_equal(c1, c2):
+    # fetch data
+    df = _populations_data()\
+        .groupby(['age','region','age_start','age_end'])\
+        .aggregate({'population': 'sum'})\
+        .reset_index()
+    df['population'] = df.population / 1e4
+    # filter country data
+    country1 = df[df.region == c1]
+    country2 = df[df.region == c2]
+    # country statistics
+    n1 = country1.population.sum()
+    n2 = country2.population.sum()
+    x1 = (country1.age_end + country1.age_start) / 2
+    x2 = (country2.age_end + country2.age_start) / 2
+    mu1 = (country1.population @ x1) / n1
+    mu2 = (country2.population @ x2) / n2
+    var1 = (country1.population @ (x1 - mu1)**2) / n1
+    var2 = (country2.population @ (x2 - mu2)**2) / n2
+    var_pooled = ((n1-1)*var1 + (n2-1)*var2) / (n1+n2-2)
+    
+    # f test
+    if var1 > var2:
+        f_df1,f_df2 = n1-1,n2-1
+        fstat = var1 / var2
+    else:
+        f_df1,f_df2 = n2-1,n1-1
+        fstat = var2 / var1
+    # f test pi value
+    fpi = 1 - f.cdf(fstat, f_df1, f_df2)
+    
+    # t test
+    if fpi > .05:
+        tstat = abs(mu1 - mu2) / math.sqrt(var_pooled * (n1+n2)/n1/n2)
+        t_df = n1 + n2 - 2
+    else:
+        tstat = abs(mu1 - mu2) / math.sqrt(var1 / n1 + var2 / n2)
+        t_df = (var1**2/n1 + var2**2/n2)**2 / ((var1/n1)**2/(n1-1) + (var2/n2)**2/(n2-1))
+    # t test pi value
+    tpi = 1 - t.cdf(tstat, t_df)
+    print("Countries %s - %s" % (c1, c2))
+    print("* F-test %.5f [%s]" % (fpi, 'Y' if fpi > .05 else 'N'))
+    print("* T-test %.5f [%s]" % (tpi, 'Y' if tpi > .05 else 'N'))
+
 if __name__ == '__main__':
     #plot_population_violin()
     #plt.show()
     #x = population(save = True)
     #print(x)
-    x = get_population('SE124')
-    print(x)
+    test_countries_equal('CZ','PL')
+    test_countries_equal('CZ','SE')
+    test_countries_equal('CZ','IT')
+    test_countries_equal('PL','SE')
+    test_countries_equal('PL','IT')
+    test_countries_equal('SE','IT')
+    
+    #x = get_population('SE124')
+    #print(x)
     

@@ -79,7 +79,6 @@ def plot_param_distribution2(path, save = False):
     fx = [beta.pdf(i, *prior['SI']['params'][:2]) for i in xgrid]
     ax.plot(xgrid,fx,label='Prior')
     ax.legend()
-    #if save: fig.savefig(f'{path}/params.png')
 
 def plot_param_distribution(path, save = False):
     # load
@@ -90,20 +89,14 @@ def plot_param_distribution(path, save = False):
     fig,ax = plt.subplots()
     ax.hist(x.param_d.unique(), bins=150, label='Optimized', alpha=.5, density=True)
     # prior density
-    #with open('data/distr/prior.json') as fp:
-    #    prior = json.load(fp)
     xgrid = np.linspace(0,.1,1000)
     fx = [beta.pdf(i, *beta_fit) for i in xgrid]
-    print(beta_fit)
     ax.plot(xgrid,fx,label='Prior')
     ax.legend()
 
 def plot(path):
     plot_param_distribution(path, save = True)
     plt.show()
-    #plot_params(path, save = True)
-    #plot_eird(path, save = True)
-    #plot_s(path, save = True)
 
 if __name__ == '__main__':
     try:
