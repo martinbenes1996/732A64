@@ -28,7 +28,7 @@ def optimize_segment(region, dates, initial, attributes, weekly):
         'crossover_type':'uniform',
         'max_iteration_without_improv': 40
     }
-    varbound = np.array([[0,.25],[0,.1],[0,.1]])
+    varbound = np.array([[0,.5],[0,.2],[0,.2]])
     model = ga(function=_obj,
                dimension=sum([i is None for i in fixparams]),
                variable_type='real',
@@ -79,7 +79,7 @@ def run(region, N = 1000):
         _config = json.load(fp)
     config = _config[region]
     config = {
-        'dates': ('2020-03-15','2020-12-31'),
+        'dates': ('2020-08-01','2021-02-28'),
         'window': 7, 'weekly': False, 'attributes': 'IRD',
         'initial': {'E':.1,'I':.1,'R':0,'D':0},
         'emission': {'I':(1,1),'R':(1,1),'D':(1,1)},
@@ -131,27 +131,27 @@ if __name__ == '__main__':
     #run('CZ072')
     #run('CZ080')
     # SE regions
-    #run('SE110')
-    #run('SE121')
-    #run('SE122')
-    #run('SE123')
-    #run('SE124')
-    #run('SE125')
-    #run('SE211')
-    #run('SE212')
-    #run('SE213')
-    #run('SE214')
-    #run('SE221')
-    #run('SE224')
-    #run('SE231')
-    #run('SE232')
-    #run('SE311')
-    #run('SE312')
-    #run('SE313')
-    #run('SE321')
+    run('SE110')
+    run('SE121')
+    run('SE122')
+    run('SE123')
+    run('SE124')
+    run('SE125')
+    run('SE211')
+    run('SE212')
+    run('SE213')
+    run('SE214')
+    run('SE221')
+    run('SE224')
+    run('SE231')
+    run('SE232')
+    run('SE311')
+    run('SE312')
+    run('SE313')
+    run('SE321')
     run('SE322')
-    #run('SE331')
-    #run('SE332')
+    run('SE331')
+    run('SE332')
     # IT regions
     #run('ITC1')
     #run('ITC2')

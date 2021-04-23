@@ -19,6 +19,8 @@ def get_path(dates, region, now = None, create_if_not_exists = True):
         try: os.makedirs(path) 
         except OSError as error: pass
     projdir = f'results/{now}/{region}_{date_start}_{date_end}'
+    #projdir = f'results/{region}w/{region}_{date_start}_{date_end}'
+    
     if create_if_not_exists:
         _create_path(projdir)
     return projdir
@@ -125,12 +127,40 @@ def plot_characteristics(dates, region, now=None, par='r0', crop_last=0):
         ax1.plot(dt, incubation, label=par)
     if par.lower() == 'ifr':
         ax1.plot(dt, ifr, label=par)
-    if par.lower() == 'Symptom duration':
+    if par.lower() == 'symptom duration':
         ax1.plot(dt, symptoms, label=par)
     ax1.set_xlabel('Date')
     ax1.set_ylabel('Value')
     #plt.yscale('log')
     plt.legend()
+
+def _savefig(path):
+    try:
+        os.remove(path)
+    except:
+        pass
+    plt.savefig(path)
+def plot_weekly_results(dates, region, now=None):
+    # path
+    path = get_path(dates, region, now=now, create_if_not_exists=False)
+    # load
+    x = posterior._posterior_data(region, dates, weekly=True)
+    (sim_mean,sim_obs_mean),dt,region,params = load_result(dates, region, now)
+    # plot
+    posterior._plot_confirmed((sim_mean,sim_obs_mean),None,x)
+    _savefig(f'{path}/confirmed.png')
+    posterior._plot_recovered((sim_mean,sim_obs_mean),None,x)
+    _savefig(f'{path}/recovered.png')
+    posterior._plot_deaths((sim_mean,sim_obs_mean),None,x)
+    _savefig(f'{path}/deaths.png')
+    plot_characteristics(dates, region, datetime.now(), par='R0')
+    _savefig(f'{path}/R0.png')
+    plot_characteristics(dates, region, datetime.now(), par='Incubation period')
+    _savefig(f'{path}/incubation.png')
+    plot_characteristics(dates, region, datetime.now(), par='IFR')
+    _savefig(f'{path}/ifr.png')
+    plot_characteristics(dates, region, datetime.now(), par='Symptom duration')
+    _savefig(f'{path}/symptom.png') 
 
 def plotSusceptible_SE224_Weekly():
     (sim_mean,sim_obs_mean),dates,region,params = load_result(
@@ -166,3 +196,7 @@ def plotSusceptible_PL_Weekly():
     #posterior._plot_deaths((sim_mean,sim_obs_mean),None,x)
     #plt.show()
 #plotSusceptible_PL_Weekly()
+
+if __name__ == '__main__':
+    plot_weekly_results((datetime(2020,8,1),datetime(2021,3,13)),
+                        'PL', datetime(2021,4,21))

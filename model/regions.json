@@ -1,14 +1,14 @@
 {
     "CZ": {
-        "dates": ["2020-03-10", "2021-03-31"],
+        "dates": ["2020-08-01", "2021-03-13"],
         "window": 28,
         "weekly": true,
         "attributes": "IRD",
-        "initial": {"E": 1e-5, "I": 1e-5},
+        "initial": {"E": 0.01, "I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "CZ010": {
-        "dates": ["2020-08-01", "2021-03-31"],
+        "dates": ["2020-08-01", "2021-03-13"],
         "window": 28,
         "weekly": true,
         "attributes": "IRD",
@@ -16,7 +16,7 @@
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "CZ020": {
-        "dates": ["2020-08-01", "2021-03-31"],
+        "dates": ["2020-08-01", "2021-03-13"],
         "window": 28,
         "weekly": true,
         "attributes": "IRD",
@@ -24,7 +24,7 @@
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "CZ031": {
-        "dates": ["2020-08-01", "2021-03-31"],
+        "dates": ["2020-08-01", "2021-03-13"],
         "window": 28,
         "weekly": true,
         "attributes": "IRD",
@@ -32,7 +32,7 @@
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "CZ032": {
-        "dates": ["2020-08-01", "2021-03-31"],
+        "dates": ["2020-08-01", "2021-03-13"],
         "window": 28,
         "weekly": true,
         "attributes": "IRD",
@@ -40,7 +40,7 @@
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "CZ041": {
-        "dates": ["2020-08-01", "2021-03-31"],
+        "dates": ["2020-08-01", "2021-03-13"],
         "window": 28,
         "weekly": true,
         "attributes": "IRD",
@@ -48,7 +48,7 @@
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "CZ042": {
-        "dates": ["2020-08-01", "2021-03-31"],
+        "dates": ["2020-08-01", "2021-03-13"],
         "window": 28,
         "weekly": true,
         "attributes": "IRD",
@@ -56,7 +56,7 @@
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "CZ051": {
-        "dates": ["2020-08-01", "2021-03-31"],
+        "dates": ["2020-08-01", "2021-03-13"],
         "window": 28,
         "weekly": true,
         "attributes": "IRD",
@@ -64,7 +64,7 @@
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "CZ052": {
-        "dates": ["2020-08-01", "2021-03-31"],
+        "dates": ["2020-08-01", "2021-03-13"],
         "window": 28,
         "weekly": true,
         "attributes": "IRD",
@@ -72,7 +72,7 @@
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "CZ053": {
-        "dates": ["2020-08-01", "2021-03-31"],
+        "dates": ["2020-08-01", "2021-03-13"],
         "window": 28,
         "weekly": true,
         "attributes": "IRD",
@@ -80,7 +80,7 @@
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "CZ063": {
-        "dates": ["2020-08-01", "2021-03-31"],
+        "dates": ["2020-08-01", "2021-03-13"],
         "window": 28,
         "weekly": true,
         "attributes": "IRD",
@@ -88,7 +88,7 @@
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "CZ064": {
-        "dates": ["2020-08-01", "2021-03-31"],
+        "dates": ["2020-08-01", "2021-03-13"],
         "window": 28,
         "weekly": true,
         "attributes": "IRD",
@@ -96,7 +96,7 @@
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "CZ071": {
-        "dates": ["2020-08-01", "2021-03-31"],
+        "dates": ["2020-08-01", "2021-03-13"],
         "window": 28,
         "weekly": true,
         "attributes": "IRD",
@@ -104,7 +104,7 @@
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "CZ072": {
-        "dates": ["2020-08-01", "2021-03-31"],
+        "dates": ["2020-08-01", "2021-03-13"],
         "window": 28,
         "weekly": true,
         "attributes": "IRD",
@@ -112,7 +112,7 @@
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "CZ080": {
-        "dates": ["2020-08-01", "2021-03-15"],
+        "dates": ["2020-08-01", "2021-03-13"],
         "window": 28,
         "weekly": true,
         "attributes": "IRD",
@@ -120,430 +120,491 @@
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "SE": {
-        "dates": ["2020-03-05", "2021-03-15"],
+        "dates": ["2020-08-01", "2021-03-13"],
         "window": 28,
+        "weekly": true,
         "attributes": "ID",
-        "initial": {"E": 0.1, "I": 0.1},
+        "initial": {"E": 0.01, "I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "SE110": {
-        "dates": ["2020-07-01", "2021-03-15"],
+        "dates": ["2020-08-01", "2021-03-13"],
         "window": 28,
+        "weekly": true,
         "attributes": "ID",
         "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "SE121": {
-        "dates": ["2020-07-01", "2021-03-15"],
+        "dates": ["2020-08-01", "2021-03-13"],
         "window": 28,
+        "weekly": true,
         "attributes": "ID",
         "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "SE122": {
-        "dates": ["2020-07-01", "2021-03-15"],
+        "dates": ["2020-08-01", "2021-03-13"],
         "window": 28,
+        "weekly": true,
         "attributes": "ID",
         "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "SE123": {
-        "dates": ["2020-07-01", "2021-03-15"],
+        "dates": ["2020-08-01", "2021-03-13"],
         "window": 28,
+        "weekly": true,
         "attributes": "ID",
         "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "SE124": {
-        "dates": ["2020-07-01", "2021-03-15"],
+        "dates": ["2020-08-01", "2021-03-13"],
         "window": 28,
+        "weekly": true,
         "attributes": "ID",
         "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "SE125": {
-        "dates": ["2020-07-01", "2021-03-15"],
+        "dates": ["2020-08-01", "2021-03-13"],
         "window": 28,
+        "weekly": true,
         "attributes": "ID",
         "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "SE211": {
-        "dates": ["2020-07-01", "2021-03-15"],
+        "dates": ["2020-08-01", "2021-03-13"],
         "window": 28,
+        "weekly": true,
         "attributes": "ID",
         "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "SE212": {
-        "dates": ["2020-07-01", "2021-03-15"],
+        "dates": ["2020-08-01", "2021-03-13"],
         "window": 28,
+        "weekly": true,
         "attributes": "ID",
         "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "SE213": {
-        "dates": ["2020-07-01", "2021-03-15"],
+        "dates": ["2020-08-01", "2021-03-13"],
         "window": 28,
+        "weekly": true,
         "attributes": "ID",
         "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "SE214": {
-        "dates": ["2020-07-01", "2021-03-15"],
+        "dates": ["2020-08-01", "2021-03-13"],
         "window": 28,
+        "weekly": true,
         "attributes": "ID",
         "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "SE221": {
-        "dates": ["2020-07-01", "2021-03-15"],
+        "dates": ["2020-08-01", "2021-03-13"],
         "window": 28,
+        "weekly": true,
         "attributes": "ID",
         "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "SE224": {
-        "dates": ["2020-07-01", "2021-03-15"],
+        "dates": ["2020-08-01", "2021-03-13"],
         "window": 28,
+        "weekly": true,
         "attributes": "ID",
         "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "SE231": {
-        "dates": ["2020-07-01", "2021-03-15"],
+        "dates": ["2020-08-01", "2021-03-13"],
         "window": 28,
+        "weekly": true,
         "attributes": "ID",
         "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "SE232": {
-        "dates": ["2020-07-01", "2021-03-15"],
+        "dates": ["2020-08-01", "2021-03-13"],
         "window": 28,
+        "weekly": true,
         "attributes": "ID",
         "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "SE311": {
-        "dates": ["2020-07-01", "2021-03-15"],
+        "dates": ["2020-08-01", "2021-03-13"],
         "window": 28,
+        "weekly": true,
         "attributes": "ID",
         "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "SE312": {
-        "dates": ["2020-07-01", "2021-03-15"],
+        "dates": ["2020-08-01", "2021-03-13"],
         "window": 28,
+        "weekly": true,
         "attributes": "ID",
         "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "SE313": {
-        "dates": ["2020-07-01", "2021-03-15"],
+        "dates": ["2020-08-01", "2021-03-13"],
         "window": 28,
+        "weekly": true,
         "attributes": "ID",
         "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "SE321": {
-        "dates": ["2020-07-01", "2021-03-15"],
+        "dates": ["2020-08-01", "2021-03-13"],
         "window": 28,
+        "weekly": true,
         "attributes": "ID",
         "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "SE322": {
-        "dates": ["2020-07-01", "2021-03-15"],
+        "dates": ["2020-08-01", "2021-03-13"],
         "window": 28,
+        "weekly": true,
         "attributes": "ID",
         "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "SE331": {
-        "dates": ["2020-07-01", "2021-03-15"],
+        "dates": ["2020-08-01", "2021-03-13"],
         "window": 28,
+        "weekly": true,
         "attributes": "ID",
         "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "SE332": {
-        "dates": ["2020-07-01", "2021-03-15"],
+        "dates": ["2020-08-01", "2021-03-13"],
         "window": 28,
+        "weekly": true,
         "attributes": "ID",
         "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "IT": {
-        "dates": ["2020-03-01", "2021-03-31"],
-        "window": 7,
+        "dates": ["2020-08-01", "2021-03-13"],
+        "window": 28,
+        "weekly": true,
         "attributes": "ID",
-        "initial": {"E": 0.1,"I": 0.1},
+        "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "ITC1": {
-        "dates": ["2020-03-01", "2021-03-31"],
-        "window": 7,
+        "dates": ["2020-08-01", "2021-03-13"],
+        "window": 28,
+        "weekly": true,
         "attributes": "IRD",
-        "initial": {"E": 0.1,"I": 0.1},
+        "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "ITC2": {
-        "dates": ["2020-03-01", "2021-03-31"],
-        "window": 7,
+        "dates": ["2020-08-01", "2021-03-13"],
+        "window": 28,
+        "weekly": true,
         "attributes": "IRD",
-        "initial": {"E": 0.1,"I": 0.1},
+        "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "ITC3": {
-        "dates": ["2020-03-01", "2021-03-31"],
-        "window": 7,
+        "dates": ["2020-08-01", "2021-03-13"],
+        "window": 28,
+        "weekly": true,
         "attributes": "IRD",
-        "initial": {"E": 0.1,"I": 0.1},
+        "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "ITC4": {
-        "dates": ["2020-03-01", "2021-03-31"],
-        "window": 7,
+        "dates": ["2020-08-01", "2021-03-13"],
+        "window": 28,
+        "weekly": true,
         "attributes": "IRD",
-        "initial": {"E": 0.1,"I": 0.1},
+        "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "ITF1": {
-        "dates": ["2020-03-01", "2021-03-31"],
-        "window": 7,
+        "dates": ["2020-08-01", "2021-03-13"],
+        "window": 28,
+        "weekly": true,
         "attributes": "IRD",
-        "initial": {"E": 0.1,"I": 0.1},
+        "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "ITF2": {
-        "dates": ["2020-03-01", "2021-03-31"],
-        "window": 7,
+        "dates": ["2020-08-01", "2021-03-13"],
+        "window": 28,
+        "weekly": true,
         "attributes": "IRD",
-        "initial": {"E": 0.1,"I": 0.1},
+        "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "ITF3": {
-        "dates": ["2020-03-01", "2021-03-31"],
-        "window": 7,
+        "dates": ["2020-08-01", "2021-03-13"],
+        "window": 28,
+        "weekly": true,
         "attributes": "IRD",
-        "initial": {"E": 0.1,"I": 0.1},
+        "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "ITF4": {
-        "dates": ["2020-03-01", "2021-03-31"],
-        "window": 7,
+        "dates": ["2020-08-01", "2021-03-13"],
+        "window": 28,
+        "weekly": true,
         "attributes": "IRD",
-        "initial": {"E": 0.1,"I": 0.1},
+        "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "ITF5": {
-        "dates": ["2020-03-01", "2021-03-31"],
-        "window": 7,
+        "dates": ["2020-08-01", "2021-03-13"],
+        "window": 28,
+        "weekly": true,
         "attributes": "IRD",
-        "initial": {"E": 0.1,"I": 0.1},
+        "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "ITF6": {
-        "dates": ["2020-03-01", "2021-03-31"],
-        "window": 7,
+        "dates": ["2020-08-01", "2021-03-13"],
+        "window": 28,
+        "weekly": true,
         "attributes": "IRD",
-        "initial": {"E": 0.1,"I": 0.1},
+        "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "ITG1": {
-        "dates": ["2020-03-01", "2021-03-31"],
-        "window": 7,
+        "dates": ["2020-08-01", "2021-03-13"],
+        "window": 28,
+        "weekly": true,
         "attributes": "IRD",
-        "initial": {"E": 0.1,"I": 0.1},
+        "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "ITG2": {
-        "dates": ["2020-03-01", "2021-03-31"],
-        "window": 7,
+        "dates": ["2020-08-01", "2021-03-13"],
+        "window": 28,
+        "weekly": true,
         "attributes": "IRD",
-        "initial": {"E": 0.1,"I": 0.1},
+        "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "ITH10": {
-        "dates": ["2020-03-01", "2021-03-31"],
-        "window": 7,
+        "dates": ["2020-08-01", "2021-03-13"],
+        "window": 28,
+        "weekly": true,
         "attributes": "IRD",
-        "initial": {"E": 0.1,"I": 0.1},
+        "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "ITH20": {
-        "dates": ["2020-03-01", "2021-03-31"],
-        "window": 7,
+        "dates": ["2020-08-01", "2021-03-13"],
+        "window": 28,
+        "weekly": true,
         "attributes": "IRD",
-        "initial": {"E": 0.1,"I": 0.1},
+        "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "ITH3": {
-        "dates": ["2020-03-01", "2021-03-31"],
-        "window": 7,
+        "dates": ["2020-08-01", "2021-03-13"],
+        "window": 28,
+        "weekly": true,
         "attributes": "IRD",
-        "initial": {"E": 0.1,"I": 0.1},
+        "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "ITH4": {
-        "dates": ["2020-03-01", "2021-03-31"],
-        "window": 7,
+        "dates": ["2020-08-01", "2021-03-13"],
+        "window": 28,
+        "weekly": true,
         "attributes": "IRD",
-        "initial": {"E": 0.1,"I": 0.1},
+        "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "ITH5": {
-        "dates": ["2020-03-01", "2021-03-31"],
-        "window": 7,
+        "dates": ["2020-08-01", "2021-03-13"],
+        "window": 28,
+        "weekly": true,
         "attributes": "IRD",
-        "initial": {"E": 0.1,"I": 0.1},
+        "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "ITI1": {
-        "dates": ["2020-03-01", "2021-03-31"],
-        "window": 7,
+        "dates": ["2020-08-01", "2021-03-13"],
+        "window": 28,
+        "weekly": true,
         "attributes": "IRD",
-        "initial": {"E": 0.1,"I": 0.1},
+        "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "ITI2": {
-        "dates": ["2020-03-01", "2021-03-31"],
-        "window": 7,
+        "dates": ["2020-08-01", "2021-03-13"],
+        "window": 28,
+        "weekly": true,
         "attributes": "IRD",
-        "initial": {"E": 0.1,"I": 0.1},
+        "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "ITI3": {
-        "dates": ["2020-03-01", "2021-03-31"],
-        "window": 7,
+        "dates": ["2020-08-01", "2021-03-13"],
+        "window": 28,
+        "weekly": true,
         "attributes": "IRD",
-        "initial": {"E": 0.1,"I": 0.1},
+        "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "ITI4": {
-        "dates": ["2020-03-01", "2021-03-31"],
-        "window": 7,
+        "dates": ["2020-08-01", "2021-03-13"],
+        "window": 28,
+        "weekly": true,
         "attributes": "IRD",
-        "initial": {"E": 0.1,"I": 0.1},
+        "initial": {"E": 0.01,"I": 0.01},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "PL": {
-        "dates": ["2020-03-03", "2021-04-16"],
-        "window": 7,
+        "dates": ["2020-08-01", "2021-03-13"],
+        "window": 28,
+        "weekly": true,
         "attributes": "IRD",
-        "initial": {"E": 0.1,"I": 0.1},
+        "initial": {"E": 1e-3,"I": 1e-3},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "PL71": {
-        "dates": ["2020-03-04", "2021-04-17"],
-        "window": 7,
+        "dates": ["2020-08-01", "2021-03-13"],
+        "window": 28,
+        "weekly": true,
         "attributes": "ID",
-        "initial": {"E": 0.1,"I": 0.1},
+        "initial": {"E": 1e-3,"I": 1e-3},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "PL72": {
-        "dates": ["2020-03-04", "2021-04-17"],
-        "window": 7,
+        "dates": ["2020-08-01", "2021-03-13"],
+        "window": 28,
+        "weekly": true,
         "attributes": "ID",
-        "initial": {"E": 0.1,"I": 0.1},
+        "initial": {"E": 1e-3,"I": 1e-3},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "PL21": {
-        "dates": ["2020-03-04", "2021-04-17"],
-        "window": 7,
+        "dates": ["2020-08-01", "2021-03-13"],
+        "window": 28,
+        "weekly": true,
         "attributes": "ID",
-        "initial": {"E": 0.1,"I": 0.1},
+        "initial": {"E": 1e-3,"I": 1e-3},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "PL22": {
-        "dates": ["2020-03-04", "2021-04-17"],
-        "window": 7,
+        "dates": ["2020-08-01", "2021-03-13"],
+        "window": 28,
+        "weekly": true,
         "attributes": "ID",
-        "initial": {"E": 0.1,"I": 0.1},
+        "initial": {"E": 1e-3,"I": 1e-3},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "PL81": {
-        "dates": ["2020-03-04", "2021-04-17"],
-        "window": 7,
+        "dates": ["2020-08-01", "2021-03-13"],
+        "window": 28,
+        "weekly": true,
         "attributes": "ID",
-        "initial": {"E": 0.1,"I": 0.1},
+        "initial": {"E": 1e-3,"I": 1e-3},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "PL82": {
-        "dates": ["2020-03-04", "2021-04-17"],
-        "window": 7,
+        "dates": ["2020-08-01", "2021-03-13"],
+        "window": 28,
+        "weekly": true,
         "attributes": "ID",
-        "initial": {"E": 0.1,"I": 0.1},
+        "initial": {"E": 1e-3,"I": 1e-3},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "PL84": {
-        "dates": ["2020-03-04", "2021-04-17"],
-        "window": 7,
+        "dates": ["2020-08-01", "2021-03-13"],
+        "window": 28,
+        "weekly": true,
         "attributes": "ID",
-        "initial": {"E": 0.1,"I": 0.1},
+        "initial": {"E": 1e-3,"I": 1e-3},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "PL41": {
-        "dates": ["2020-03-04", "2021-04-17"],
-        "window": 7,
+        "dates": ["2020-08-01", "2021-03-13"],
+        "window": 28,
+        "weekly": true,
         "attributes": "ID",
-        "initial": {"E": 0.1,"I": 0.1},
+        "initial": {"E": 1e-3,"I": 1e-3},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "PL42": {
-        "dates": ["2020-03-04", "2021-04-17"],
-        "window": 7,
+        "dates": ["2020-08-01", "2021-03-13"],
+        "window": 28,
+        "weekly": true,
         "attributes": "ID",
-        "initial": {"E": 0.1,"I": 0.1},
+        "initial": {"E": 1e-3,"I": 1e-3},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "PL43": {
-        "dates": ["2020-03-04", "2021-04-17"],
-        "window": 7,
+        "dates": ["2020-08-01", "2021-03-13"],
+        "window": 28,
+        "weekly": true,
         "attributes": "ID",
-        "initial": {"E": 0.1,"I": 0.1},
+        "initial": {"E": 1e-3,"I": 1e-3},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "PL51": {
-        "dates": ["2020-03-04", "2021-04-17"],
-        "window": 7,
+        "dates": ["2020-08-01", "2021-03-13"],
+        "window": 28,
+        "weekly": true,
         "attributes": "ID",
-        "initial": {"E": 0.1,"I": 0.1},
+        "initial": {"E": 1e-3,"I": 1e-3},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "PL52": {
-        "dates": ["2020-03-04", "2021-04-17"],
-        "window": 7,
+        "dates": ["2020-08-01", "2021-03-13"],
+        "window": 28,
+        "weekly": true,
         "attributes": "ID",
-        "initial": {"E": 0.1,"I": 0.1},
+        "initial": {"E": 1e-3,"I": 1e-3},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "PL61": {
-        "dates": ["2020-03-04", "2021-04-17"],
-        "window": 7,
+        "dates": ["2020-08-01", "2021-03-13"],
+        "window": 28,
+        "weekly": true,
         "attributes": "ID",
-        "initial": {"E": 0.1,"I": 0.1},
+        "initial": {"E": 1e-3,"I": 1e-3},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "PL62": {
-        "dates": ["2020-03-04", "2021-04-17"],
-        "window": 7,
+        "dates": ["2020-08-01", "2021-03-13"],
+        "window": 28,
+        "weekly": true,
         "attributes": "ID",
-        "initial": {"E": 0.1,"I": 0.1},
+        "initial": {"E": 1e-3,"I": 1e-3},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "PL63": {
-        "dates": ["2020-03-04", "2021-04-17"],
-        "window": 7,
+        "dates": ["2020-08-01", "2021-03-13"],
+        "window": 28,
+        "weekly": true,
         "attributes": "ID",
-        "initial": {"E": 0.1,"I": 0.1},
+        "initial": {"E": 1e-3,"I": 1e-3},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     },
     "PL9": {
-        "dates": ["2020-03-04", "2021-04-17"],
-        "window": 7,
+        "dates": ["2020-08-01", "2021-03-13"],
+        "window": 28,
+        "weekly": true,
         "attributes": "ID",
-        "initial": {"E": 0.1,"I": 0.1},
+        "initial": {"E": 1e-3,"I": 1e-3},
         "emission": {"I": [1,10], "R": [1,10], "D": [1,1]} 
     }
 }

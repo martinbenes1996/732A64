@@ -163,14 +163,14 @@ def _plot_confirmed(mean, ci, x):
     sim_ci,sim_obs_ci = ci if ci is not None else (None,None)
     # plot
     fig1, ax1 = plt.subplots()
-    ax1.plot(x.date, sim_mean[2,:], color='orange', label='Infected (latent)')
+    ax1.plot(x.date, sim_mean[2,:], color='orange', label='Infected z[t]')
     if sim_ci is not None:
         ax1.fill_between(x.date, sim_ci[0,2,:], sim_ci[1,2,:], color = 'orange', alpha = .25)
-    ax1.plot(x.date, sim_obs_mean[2,:], color='red', label='Infected (observed)')
+    ax1.plot(x.date, sim_obs_mean[2,:], color='red', label='Infected x[t]')
     if sim_obs_ci is not None:
         ax1.fill_between(x.date, sim_obs_ci[0,2,:], sim_obs_ci[1,2,:], color = 'red', alpha = .1)
     if 'confirmed' in x.columns:
-        ax1.plot(x.date, x.confirmed, color = 'blue', label='Confirmed')
+        ax1.plot(x.date, x.confirmed, color = 'blue', label='Data')
     ax1.set_xlabel('Date')
     ax1.set_ylabel('Infected')
     plt.yscale('log')
@@ -183,14 +183,14 @@ def _plot_recovered(mean, ci, x):
     sim_ci,sim_obs_ci = ci if ci is not None else (None,None)
     # plot
     fig1, ax1 = plt.subplots()
-    ax1.plot(x.date, sim_mean[3,:], color='orange', label='Recovered (latent)')
+    ax1.plot(x.date, sim_mean[3,:], color='orange', label='Recovered z[t]')
     if sim_ci is not None:
         ax1.fill_between(x.date, sim_ci[0,3,:], sim_ci[1,3,:], color = 'orange', alpha = .25)
-    ax1.plot(x.date, sim_obs_mean[3,:], color='red', label='Recovered (observed)')
+    ax1.plot(x.date, sim_obs_mean[3,:], color='red', label='Recovered x[t]')
     if sim_obs_ci is not None:
         ax1.fill_between(x.date, sim_obs_ci[0,3,:], sim_obs_ci[1,3,:], color = 'red', alpha = .1)
     if 'recovered' in x.columns:
-        ax1.plot(x.date, x.recovered.cumsum(), color = 'blue', label='Recovered')
+        ax1.plot(x.date, x.recovered.cumsum(), color = 'blue', label='Recovered (data)')
     ax1.set_xlabel('Date')
     ax1.set_ylabel('Recovered')
     plt.yscale('log')
@@ -203,14 +203,14 @@ def _plot_deaths(mean, ci, x):
     sim_ci,sim_obs_ci = ci if ci is not None else (None,None)
     # plot
     fig1, ax1 = plt.subplots()
-    ax1.plot(x.date, sim_mean[4,:], color='red', label='Deaths (latent)')
+    ax1.plot(x.date, sim_mean[4,:], color='red', label='Deaths z[t]')
     if sim_ci is not None:
         ax1.fill_between(x.date, sim_ci[0,4,:], sim_ci[1,4,:], color = 'red', alpha = .25)
-    ax1.plot(x.date, sim_obs_mean[4,:], color='orange', label='Deaths (observed)')
+    ax1.plot(x.date, sim_obs_mean[4,:], color='orange', label='Deaths x[t]')
     if sim_obs_ci is not None:
         ax1.fill_between(x.date, sim_obs_ci[0,4,:], sim_obs_ci[1,4,:], color = 'orange', alpha = .1)
     if 'deaths' in x.columns:
-        ax1.plot(x.date, x.deaths.cumsum(), color = 'blue', label='Deaths')
+        ax1.plot(x.date, x.deaths.cumsum(), color = 'blue', label='Deaths (data)')
     ax1.set_xlabel('Date')
     ax1.set_ylabel('Deaths')
     plt.yscale('log')
