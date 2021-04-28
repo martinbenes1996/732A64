@@ -98,6 +98,9 @@ def _CZ_data(level = 1):
     """"""
     # read cache
     cz = cache.read(country='CZ', level=level)
+    #cz['week'] = cz.date.apply(lambda dt: int(datetime.strftime(dt, '%W')))
+    #cz['year'] = cz.date.apply(lambda dt: int(datetime.strftime(dt, '%Y')))
+    #cz['date'] = cz.apply(lambda r: datetime.strptime('%04d-%02d-1'%(r.year,r.week), '%Y-%W-%w'), axis=1)
     if cz is not None: return cz
     # aggregation
     def _aggregator(keys):
@@ -128,7 +131,8 @@ def _CZ_data(level = 1):
         .merge(cz_deaths, how='outer', on=on_cols)\
         .merge(cz_recovered, how='outer', on=on_cols)\
         .sort_values(on_cols)
-    cz.reset_index(drop=True).to_csv('here.csv')
+    cz['week'] = cz.date.apply(lambda dt: int(datetime.strftime(dt, '%W')))
+    #cz.reset_index(drop=True).to_csv('here.csv')
     if level == 1:
         cz['region'] = 'CZ'
     cache.write(cz, country='CZ', level=level)
@@ -367,13 +371,16 @@ def get_data(region, weekly=False):
     # weekly
     if weekly:
         x['year'] = x.date.apply(lambda d: int(datetime.strftime(d, '%Y')))
+        x['date'] = x.apply(lambda r: datetime.strptime(f'{r.year}-{r.week}-1', '%Y-%W-%w'), axis=1)
         x = x\
-            .drop('date', axis=1)\
-            .groupby(['year','week','region'])\
+            .groupby(['date','region'])\
             .sum()\
             .reset_index(drop=False)
-        x['date'] = x.apply(lambda r: datetime.strptime(f'{r.year}-{r.week}-1', '%Y-%W-%w'), axis=1)
+        x['year'] = x.date.apply(lambda d: int(datetime.strftime(d, '%Y')))
+        x['week'] = x.date.apply(lambda d: int(datetime.strftime(d, '%W')))
+        
     return x
 
-#x = _CZ_data(level = 2)
+#x = get_data(region='CZ010', weekly=True)
+#x = x[(x.date >= datetime(2020,12,28)) & (x.date <= datetime(2021,1,7))]
 #print(x)

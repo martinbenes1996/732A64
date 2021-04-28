@@ -137,10 +137,12 @@ def simulate_posterior(region, params, dates, initial, N = 1000, weekly = False,
     # denormalize probability
     #sim_lat[1:5,:,:] = sim_lat[1:5,:,:] * POP
     #sim_obs[1:5,:,:] = sim_obs[1:5,:,:] * POP
+    
     #sim_lat[0,:,:] = POP - sim_lat[1:5,:,:].sum(axis = 0)
     sim_lat[1:3,:,:] = sim_lat[1:3,:,:] * x.tests.to_numpy()
     sim_lat[3:5,:,:] = sim_lat[3:5,:,:] * x.cumtests.to_numpy()#x.tests.to_numpy()#
     #sim_lat[3:5,:,:] = np.diff(sim_lat[3:5,:,:], axis=2, prepend=sim_lat[3:5,:,0:1])
+    
     #sim_obs[0,:,:] = POP - sim_obs[1:5,:,:].sum(axis = 0)
     sim_obs[1:3,:,:] = sim_obs[1:3,:,:] * x.tests.to_numpy()
     sim_obs[3:5,:,:] = sim_obs[3:5,:,:] * x.cumtests.to_numpy()#x.tests.to_numpy()#

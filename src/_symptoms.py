@@ -24,6 +24,15 @@ def continuous():
         'gamma': gamma.fit(x, floc=0)
     }
 
+def data_summary():
+    """"""
+    x = continuous()['x']
+    return {
+        'mean': x.mean(),
+        'ci95': np.quantile(x,[.025,.975]),
+        'ci50': np.quantile(x,[.25,.75])
+    }
+
 def continuous_plot(save = False, name = 'img/parameters/symptoms.png'):
     """"""
     # get distribution
@@ -88,8 +97,9 @@ def discrete_plot(N = 40, save = False, name = 'img/parameters/symptoms_discrete
     if save: plt.savefig(name)
 
 if __name__ == '__main__':
-    continuous_plot(save=True)
-    plt.show()
+    print(data_summary())
+    #continuous_plot(save=True)
+    #plt.show()
 #discrete_plot(save = True)
 #print(continuous())
 #print(distribution_aic())

@@ -1,6 +1,7 @@
 
 from datetime import datetime,timedelta
 import functools as F
+from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy.integrate import odeint
@@ -113,7 +114,40 @@ def transition(POP, initial_values, parameters, random_params = False):
     # return result
     return result
 
+def simulate_epidemic1():
+    parameters = pd.DataFrame({
+        'start':[datetime(2020,3,1)],
+        'end':[datetime(2020,5,31)],
+        'a':[.8],'c':[.3],'b':[.3],'d':[.05]
+    })
+    x = transition(POP=1e4, parameters=parameters,
+                   initial_values=(1-.02,.01,.01,0,0))
+    x = pd.melt(x[['date','S','E','I','R','D']],
+                id_vars='date', var_name='Variable', value_name='Value')
+    fig, ax = plt.subplots(figsize=(10,6))
+    for label,df in x.groupby('Variable'):
+        ax.plot(df.date, df.Value, label=label)
+    plt.legend()
+    plt.show()
+def simulate_epidemic2():
+    parameters = pd.DataFrame({
+        'start':[datetime(2020,3,1),datetime(2020,4,15),datetime(2020,6,1)],
+        'end':[datetime(2020,4,15),datetime(2020,5,30),datetime(2020,8,31)],
+        'a':[.4,.15,.6],'c':.4,'b':.2,'d':.05
+    })
+    x = transition(POP=1e4, parameters=parameters,
+                   initial_values=(1-2/1000,1/1000,1/1000,0,0))
+    x = pd.melt(x[['date','S','E','I','R','D']],
+                id_vars='date', var_name='Variable', value_name='Value')
+    fig, ax = plt.subplots(figsize=(10,6))
+    for label,df in x.groupby('Variable'):
+        ax.plot(df.date, df.Value, label=label)
+    ax.axvline(datetime(2020,4,15), color='grey', alpha=.4)
+    ax.axvline(datetime(2020,5,30), color='grey', alpha=.4)
+    plt.legend()
+    plt.show()
 
-
+if __name__ == '__main__':
+    simulate_epidemic2()
 
 
