@@ -7,6 +7,7 @@ import pandas as pd
 import seaborn as sns
 import sys
 sys.path.append('src')
+import population
 import posterior
 
 _cache = None
@@ -25,14 +26,19 @@ def _load_data(dates):
         x = posterior._posterior_data(reg,dates,weekly=True)
         if dateaxis is None:
             dateaxis = x.date
+        POP = population.get_population(reg)
+        # normalize by popylation
+        x['I1K'] = x.confirmed / POP * 1e3
+        x['D1K'] = x.deaths / POP * 1e3
         # confirmed
-        c = x.confirmed.to_numpy().reshape((1,-1))
+        c = x.I1K.to_numpy().reshape((1,-1))
         data_c = np.concatenate([data_c,c],axis=0) if data_c is not None else c
         # deaths
-        d = x.deaths.to_numpy().reshape((1,-1))
+        d = x.D1K.to_numpy().reshape((1,-1))
         data_d = np.concatenate([data_d,d],axis=0) if data_d is not None else d
         # recovered
         if 'recovered' in x:
+            x['R1K'] = x.recovered / POP * 1e3
             r = x.recovered.to_numpy().reshape((1,-1))
             data_r = np.concatenate([data_r,r],axis=0) if data_r is not None else r
             regions_r.append(reg)
@@ -64,7 +70,6 @@ def plot_recovered():
     data,dates,cols = _load_data((datetime(2020,8,1),datetime(2021,3,15)))
     _plot_clusters(data[2], dates, cols[2])
     plt.show()
-
 
 if __name__ == '__main__':
     plot_confirmed()

@@ -91,21 +91,61 @@ def parameters(regions, delta=None, weekly=False):
     pars['Date'] = pars.apply(lambda r: '%04d-%02d' % (r.Year,r.Month), axis=1)
     return pars
 
+def get_country_R0(countries, log=True):
+    # get parameters
+    x = None
+    for country in countries:
+        print(country)
+        pars = parameters([country])
+        susc = pd.DataFrame({country: load_result(country)[0][0,:]})
+        susc = pd.melt(susc,var_name='region',value_name='S')
+        pars = pd.concat([pars, susc[['S']]], axis=1)
+        pars['Country'] = country
+        pars['POP'] = pars.Region.apply(population.get_population)
+        if x is None: x = pars
+        else: x = pd.concat([x,pars])
+    # compute reproduction number
+    x['R0'] = x.a / x.b * x.S
+    
+    res = {'Country': [], 'Year': [], 'Month': [], 'Date': [],
+           'Mean': [], 'Low': [], 'High': []}
+    for (c,y,m,dt),df in x.groupby(['Country','Year','Month','Date']):
+        res['Country'].append(c)
+        res['Year'].append(y)
+        res['Month'].append(m)
+        res['Date'].append(dt)
+        #print(df)
+        res['Mean'].append(df.R0.mean())
+        res['Low'].append(df.R0.quantile(.05))
+        res['High'].append(df.R0.quantile(.95))
+
+    res = pd.DataFrame(res)
+    fig, ax = plt.subplots(figsize=(10, 6))
+    if log is True: ax.set(yscale="log")
+    print(res)
+    colors=['black','green','blue','red']
+    for (g,d),col in zip(res.groupby('Country'),colors):
+        ax.plot(d.Date, d.Mean, label=g, color=col)
+    ax.set_xlabel('Date')
+    ax.set_ylabel('R0')
+    ax.legend()
+    plt.show()
+
 def get_R0(countries, log=True):
     # get parameters
     x = None
     regions = []
-    if 'CZ' in countries: regions.append(['CZ',*CZ_regions])
-    if 'PL' in countries: regions.append(['PL',*PL_regions])
-    if 'SE' in countries: regions.append(['SE',*SE_regions])
-    if 'IT' in countries: regions.append(['IT',*IT_regions])
+    if 'CZ' in countries: regions.append(CZ_regions)
+    if 'PL' in countries: regions.append(PL_regions)
+    if 'SE' in countries: regions.append(SE_regions)
+    if 'IT' in countries: regions.append(IT_regions)
     for country in regions: # TODO
         pars = parameters(country)
         susc = pd.DataFrame({region: load_result(region)[0][0,:]
                              for region in country})
         susc = pd.melt(susc,var_name='region',value_name='S')
         pars = pd.concat([pars, susc[['S']]], axis=1)
-        pars['Country'] = country[0]
+        pars['Country'] = country[0][:2]
         pars['POP'] = pars.Region.apply(population.get_population)
         if x is None: x = pars
         else: x = pd.concat([x,pars])
@@ -144,17 +184,17 @@ def plot_R0(countries, log=True):
     # get parameters
     x = None
     regions = []
-    if 'CZ' in countries: regions.append(['CZ',*CZ_regions])
-    if 'PL' in countries: regions.append(['PL',*PL_regions])
-    if 'SE' in countries: regions.append(['SE',*SE_regions])
-    if 'IT' in countries: regions.append(['IT',*IT_regions])
+    if 'CZ' in countries: regions.append(CZ_regions)
+    if 'PL' in countries: regions.append(PL_regions)
+    if 'SE' in countries: regions.append(SE_regions)
+    if 'IT' in countries: regions.append(IT_regions)
     for country in regions: # TODO
         pars = parameters(country)
         susc = pd.DataFrame({region: load_result(region)[0][0,:]
                              for region in country})
         susc = pd.melt(susc,var_name='region',value_name='S')
         pars = pd.concat([pars, susc[['S']]], axis=1)
-        pars['Country'] = country[0]
+        pars['Country'] = country[0][:2]
         pars['POP'] = pars.Region.apply(population.get_population)
         if x is None: x = pars
         else: x = pd.concat([x,pars])
@@ -172,13 +212,13 @@ def get_IFR(countries, log=True):
     # get parameters
     x = None
     regions = []
-    if 'CZ' in countries: regions.append(['CZ',*CZ_regions])
-    if 'PL' in countries: regions.append(['PL',*PL_regions])
-    if 'SE' in countries: regions.append(['SE',*SE_regions])
-    if 'IT' in countries: regions.append(['IT',*IT_regions])
+    if 'CZ' in countries: regions.append(CZ_regions)
+    if 'PL' in countries: regions.append(PL_regions)
+    if 'SE' in countries: regions.append(SE_regions)
+    if 'IT' in countries: regions.append(IT_regions)
     for country in regions: # TODO
         pars = parameters(country)
-        pars['Country'] = country[0]
+        pars['Country'] = country[0][:2]
         if x is None: x = pars
         else: x = pd.concat([x,pars])
     # compute reproduction number
@@ -213,17 +253,57 @@ def get_IFR(countries, log=True):
     ax.legend()
     plt.show()
 
+def get_country_IFR(countries, log=True):
+    # get parameters
+    x = None
+    for country in countries:
+        print(country)
+        pars = parameters([country])
+        susc = pd.DataFrame({country: load_result(country)[0][0,:]})
+        susc = pd.melt(susc,var_name='region',value_name='S')
+        pars = pd.concat([pars, susc[['S']]], axis=1)
+        pars['Country'] = country
+        pars['POP'] = pars.Region.apply(population.get_population)
+        if x is None: x = pars
+        else: x = pd.concat([x,pars])
+    # compute reproduction number
+    x['IFR'] = x.d
+    
+    res = {'Country': [], 'Year': [], 'Month': [], 'Date': [],
+           'Mean': [], 'Low': [], 'High': []}
+    for (c,y,m,dt),df in x.groupby(['Country','Year','Month','Date']):
+        res['Country'].append(c)
+        res['Year'].append(y)
+        res['Month'].append(m)
+        res['Date'].append(dt)
+        #print(df)
+        res['Mean'].append(df.IFR.mean())
+        res['Low'].append(df.IFR.quantile(.05))
+        res['High'].append(df.IFR.quantile(.95))
+
+    res = pd.DataFrame(res)
+    fig, ax = plt.subplots(figsize=(10, 6))
+    if log is True: ax.set(yscale="log")
+    print(res)
+    colors=['black','green','blue','red']
+    for (g,d),col in zip(res.groupby('Country'),colors):
+        ax.plot(d.Date, d.Mean, label=g, color=col)
+    ax.set_xlabel('Date')
+    ax.set_ylabel('IFR')
+    ax.legend()
+    plt.show()
+
 def plot_IFR(countries, log=True):
     # get parameters
     x = None
     regions = []
-    if 'CZ' in countries: regions.append(['CZ',*CZ_regions])
-    if 'PL' in countries: regions.append(['PL',*PL_regions])
-    if 'SE' in countries: regions.append(['SE',*SE_regions])
-    if 'IT' in countries: regions.append(['IT',*IT_regions])
+    if 'CZ' in countries: regions.append(CZ_regions)
+    if 'PL' in countries: regions.append(PL_regions)
+    if 'SE' in countries: regions.append(SE_regions)
+    if 'IT' in countries: regions.append(IT_regions)
     for country in regions: # TODO
         pars = parameters(country)
-        pars['Country'] = country[0]
+        pars['Country'] = country[0][:2]
         if x is None: x = pars
         else: x = pd.concat([x,pars])
     # compute reproduction number
@@ -235,17 +315,102 @@ def plot_IFR(countries, log=True):
     #ax.axhline(1, ls='--', color='grey', alpha=.5)
     plt.show()
 
+def get_symptoms(countries, log=True):
+    # get parameters
+    x = None
+    regions = []
+    if 'CZ' in countries: regions.append(CZ_regions)
+    if 'PL' in countries: regions.append(PL_regions)
+    if 'SE' in countries: regions.append(SE_regions)
+    if 'IT' in countries: regions.append(IT_regions)
+    for country in regions: # TODO
+        pars = parameters(country)
+        pars['Country'] = country[0][:2]
+        if x is None: x = pars
+        else: x = pd.concat([x,pars])
+    # compute reproduction number
+    x['Symptoms'] = 1 / x.b
+    
+    res = {'Country': [], 'Year': [], 'Month': [], 'Date': [],
+           'Mean': [], 'Low': [], 'High': []}
+    for (c,y,m,dt),df in x.groupby(['Country','Year','Month','Date']):
+        res['Country'].append(c)
+        res['Year'].append(y)
+        res['Month'].append(m)
+        res['Date'].append(dt)
+        #print(df)
+        res['Mean'].append(df.Symptoms.mean())
+        res['Low'].append(df.Symptoms.quantile(.05))
+        res['High'].append(df.Symptoms.quantile(.95))
+        #break
+    
+    res = pd.DataFrame(res)
+    fig, ax = plt.subplots(figsize=(10, 6))
+    if log is True: ax.set(yscale="log")
+    #sns.lineplot(x="Date", y="mean", hue='Country', data=x, ax=ax)
+    
+    print(res)
+    colors=['black','green','blue','red']
+    for (g,d),col in zip(res.groupby('Country'),colors):
+        ax.plot(d.Date, d.Mean, label=g, color=col)
+        #ax.fill_between(d.Date, d.Low, d.High, alpha=.1, color=col)
+    #ax.axhline(1, ls='--', color='grey', alpha=.5)
+    ax.set_xlabel('Date')
+    ax.set_ylabel('Symptoms')
+    ax.legend()
+    plt.show()
+
+def get_country_symptoms(countries, log=True):
+    # get parameters
+    x = None
+    for country in countries:
+        print(country)
+        pars = parameters([country])
+        susc = pd.DataFrame({country: load_result(country)[0][0,:]})
+        susc = pd.melt(susc,var_name='region',value_name='S')
+        pars = pd.concat([pars, susc[['S']]], axis=1)
+        pars['Country'] = country
+        pars['POP'] = pars.Region.apply(population.get_population)
+        if x is None: x = pars
+        else: x = pd.concat([x,pars])
+    # compute reproduction number
+    x['symptoms'] = 1 / x.b
+    
+    res = {'Country': [], 'Year': [], 'Month': [], 'Date': [],
+           'Mean': [], 'Low': [], 'High': []}
+    for (c,y,m,dt),df in x.groupby(['Country','Year','Month','Date']):
+        res['Country'].append(c)
+        res['Year'].append(y)
+        res['Month'].append(m)
+        res['Date'].append(dt)
+        #print(df)
+        res['Mean'].append(df.symptoms.mean())
+        res['Low'].append(df.symptoms.quantile(.05))
+        res['High'].append(df.symptoms.quantile(.95))
+
+    res = pd.DataFrame(res)
+    fig, ax = plt.subplots(figsize=(10, 6))
+    if log is True: ax.set(yscale="log")
+    print(res)
+    colors=['black','green','blue','red']
+    for (g,d),col in zip(res.groupby('Country'),colors):
+        ax.plot(d.Date, d.Mean, label=g, color=col)
+    ax.set_xlabel('Date')
+    ax.set_ylabel('Duration of symptoms')
+    ax.legend()
+    plt.show()
+
 def plot_symptoms(countries, log=True):
     # get parameters
     x = None
     regions = []
-    if 'CZ' in countries: regions.append(['CZ',*CZ_regions])
-    if 'PL' in countries: regions.append(['PL',*PL_regions])
-    if 'SE' in countries: regions.append(['SE',*SE_regions])
-    if 'IT' in countries: regions.append(['IT',*IT_regions])
+    if 'CZ' in countries: regions.append(CZ_regions)
+    if 'PL' in countries: regions.append(PL_regions)
+    if 'SE' in countries: regions.append(SE_regions)
+    if 'IT' in countries: regions.append(IT_regions)
     for country in regions: # TODO
         pars = parameters(country)
-        pars['Country'] = country[0]
+        pars['Country'] = country[0][:2]
         if x is None: x = pars
         else: x = pd.concat([x,pars])
     # compute reproduction number
@@ -261,10 +426,10 @@ def plot_correlation_heatmap(countries, delta=timedelta(days=60)):
     # initialize
     pars = {'Country': [], 'Date': [], 'S': [], 'E': [], 'I': [], 'R': [], 'D': []}
     regions = []
-    if 'CZ' in countries: regions = [*regions, 'CZ', *CZ_regions]
-    if 'PL' in countries: regions = [*regions, 'PL', *PL_regions]
-    if 'SE' in countries: regions = [*regions, 'SE', *SE_regions]
-    if 'IT' in countries: regions = [*regions, 'IT', *IT_regions]
+    if 'CZ' in countries: regions = [*regions, *CZ_regions]
+    if 'PL' in countries: regions = [*regions, *PL_regions]
+    if 'SE' in countries: regions = [*regions, *SE_regions]
+    if 'IT' in countries: regions = [*regions, *IT_regions]
     for region in regions: # TODO
         # load and crop
         lat,dt,_ = load_result(region=region)
@@ -305,26 +470,17 @@ def plot_correlation_distribution(countries, delta=timedelta(days=60), weekly=Tr
     # regions
     x = None
     regions = []
-    if 'CZ' in countries: regions.append(['CZ',*CZ_regions])
-    if 'PL' in countries: regions.append(['PL',*PL_regions])
-    if 'SE' in countries: regions.append(['SE',*SE_regions])
-    if 'IT' in countries: regions.append(['IT',*IT_regions])
+    if 'CZ' in countries: regions.append(CZ_regions)
+    if 'PL' in countries: regions.append(PL_regions)
+    if 'SE' in countries: regions.append(SE_regions)
+    if 'IT' in countries: regions.append(IT_regions)
     # compute correlations
     for country in regions:
-        components = 'ID' if country[0] in {'PL','SE'} else 'IRD'
+        components = 'ID' if country[0][:2] in {'PL','SE'} else 'IRD'
         corrs = prediction_data_correlation(country, components, delta=delta, weekly=weekly)
-        corrs['Country'] = country[0]
+        corrs['Country'] = country[0][:2]
         if x is None: x = corrs
         else: x = pd.concat([x,corrs])
-    #
-    #xgrid = np.linspace(-1,1,41)
-    #bars = np.array([[xgrid[i],xgrid[i+1]] for i in range(xgrid.shape[0]-1)])
-    #x['I'] = x.I.apply()
-    #xx = .99
-    #b = (bars[:,0] < xx) & (bars[:,1] >= xx)
-    #print(b)
-    #print(bars[np.argmax(b),:])
-    #return
     # plot
     #fig, ax = plt.subplots(figsize=(8, 6))
     sns.displot(x, x="D", hue="Country", element="step", multiple="stack", bins=20)
@@ -350,11 +506,14 @@ if __name__ == '__main__':
     #plot_correlation_distribution(['CZ','SE','PL','IT'])
     #plt.show()
     
-    plot_R0(['CZ','PL','IT','SE'], log=True)
-    #get_symptoms(['IT','CZ'],#['CZ','PL','IT','SE'],
-    #             log=False)
-    plot_symptoms(['CZ','PL','IT','SE'], log=True)
-    plot_IFR(['CZ','PL','IT','SE'], log=True)
+    #plot_R0(['CZ','PL','IT','SE'], log=True)
+    get_country_symptoms(['CZ','PL','IT','SE'], log=True)
+    print('Regional')
+    get_symptoms(['CZ','PL','IT','SE'], log=True)
+    plot_symptoms(['CZ','PL','IT','SE'],log=True)
+    #plot_symptoms(['CZ','PL','IT','SE'], log=True)
+    #get_symptoms(['CZ','PL','IT','SE'], log=True)
+    #plot_IFR(['CZ','PL','IT','SE'], log=True)
     #plot_symptoms(['CZ','PL','IT','SE'], log=True)
     
     #plot_correlation_heatmap(['CZ','PL','IT','SE'])

@@ -13,8 +13,9 @@ CZ,2020-06-22,Up,Public events,Public events up to 1000 people,https://web.archi
 CZ,2020-07-01,Up,Masks,No mask required,https://web.archive.org/web/20200625205131/https://koronavirus.mzcr.cz/uvolnovani-opatreni/
 CZ,2020-07-26,Special,Correction,Correction of statistics,https://www.seznamzpravy.cz/clanek/vlada-s-nami-nehraje-kolem-koronavirovych-statistik-rovnou-hru-rika-reditel-hlidace-statu-113800
 CZ,2020-09-10,Down,Masks,Masks in interiors,https://www.mzcr.cz/tiskove-centrum-mz/od-ctvrtka-budou-povinne-rousky-ve-vnitrnich-prostorach-budov-v-cele-cr/
-CZ,2020-10-06,Special,Elections,Regional elections,https://www.mvcr.cz/clanek/volby-2020-zastupitelstva-kraju-a-senat.aspx
+CZ,2020-10-06,Special,Elections,Regional elections,https://www.volby.cz/pls/kz2020/kz?xjazyk=CZ
 CZ,2020-10-09,Down,Businesses,Closed businesses,https://www.mzcr.cz/tiskove-centrum-mz/vlada-kvuli-sireni-epidemie-covid-19-omezi-sportovni-kulturni-a-spolecenske-akce-cinnost-uradu-i-skol-rodicum-prodlouzi-osetrovne/
+CZ,2020-10-18,Special,Demonstration,Demonstration against the restrictions,https://www.irozhlas.cz/zpravy-domov/praha-protesty-koronavirus-fotbalovy-fanousci-demonstrace-staromestske-namesti_2010181508_tkr
 CZ,2020-10-28,Down,Night lockdown,Lockdown during night,https://www.mzcr.cz/tiskove-centrum-mz/vlada-prodlouzi-program-podpory-zamestnavatelu-antivirus-b-do-konce-roku-vyhlasila-take-dalsi-krizova-opatreni/
 CZ,2020-11-13,Down,Shops limit,People in shops limited,https://www.ceskenoviny.cz/zpravy/cesko-je-ve-ctvrtem-stupni-rizika-z-peti-opatreni-se-nemeni/1957669
 CZ,2020-11-25,Up,Schools,Schools partially reopened,https://www.mzcr.cz/tiskove-centrum-mz/vlada-rozhodla-o-prodlouzeni-nouzoveho-stavu-do-12-prosince-od-pondeli-dojde-k-dilcimu-zmirneni-nekterych-opatreni/
@@ -23,6 +24,9 @@ CZ,2020-12-15,Down,Businesses,Businesses closed,https://www.mzcr.cz/tiskove-cent
 CZ,2020-12-24,Special,Christmas,Christmas Eve,
 CZ,2020-12-27,Down,Lockdown,National lockdown,https://www.mzcr.cz/tiskove-centrum-mz/vlada-prodlouzila-nouzovy-stav-o-dalsich-30-dnu-prisnejsi-opatreni-zacnou-platit-od-27-prosince/
 CZ,2020-12-31,Special,New Year,New Year Eve,
+CZ,2020-02-11,Down,Regional lockdown,Several regions isolated,https://www.novinky.cz/domaci/clanek/vlada-uzavrela-tri-okresy-40350640
+CZ,2020-02-19,Down,Masks,FFP2 masks required,https://ct24.ceskatelevize.cz/domaci/3272168-provoz-vsech-obchodu-vlada-od-pondeli-nepovoli-informoval-ministr-havlicek
+CZ,2020-02-26,Down,Lockdown,National lockdown with municipality isolation,https://ct24.ceskatelevize.cz/3275916-vladni-brifink-o-prodlouzeni-nouzoveho-stavu-a-zprisneni-opatreni-z-26-unora
 PL,2020-03-12,Down,Schools,,https://samorzad.pap.pl/kategoria/aktualnosci/weszlo-w-zycie-rozporzadzenie-w-sprawie-zamkniecia-szkol-i-przedszkoli
 PL,2020-03-15,Down,Movement limited,Borders locked and public transport restrictions,https://www.onet.pl/?utm_source=pl.wikipedia.org_viasg_wiadomosci&utm_medium=referal&utm_campaign=leo_automatic&srcc=ucs&pid=3c04a10e-5daa-4eb9-9e60-6ae2317cc442&sid=b177a2c9-166f-4113-9b28-185bbe554807&utm_v=2
 PL,2020-03-15,Down,Businesses closed,"Business closed (restaurants,malls)",https://www.forbes.pl/gospodarka/koronawirus-zamkniecie-granic-od-15-marca-zamkniecie-galerii-handlowych-i-restauracji/n5nl3g1
@@ -35,7 +39,7 @@ PL,2020-05-18,Up,Business (3),"Restaurants, hairdressers, public transport",http
 PL,2020-05-30,Up,Crowd limit,Events (150),https://www.gov.pl/web/koronawirus/4-etap-odmrazania
 PL,2020-06-06,Up,Business (4),"Weddings (150), theater, fitness",https://www.gov.pl/web/koronawirus/4-etap-odmrazania
 PL,2020-06-28,Up,Elections,1st round of presidential election,"https://prawo.gazetaprawna.pl/artykuly/1482352,wybory-prezydenckie-2020-zasady-glosowania-pierwsza-druga-tura.html"
-PL,2020-07-12,Up,Elections,2nd round of presidential election,"https://tvn24.pl/wybory-prezydenckie-2020/wybory-prezydenckie-2020-druga-tura-relacja-na-zywo-4635501"
+PL,2020-07-12,Up,Elections,2nd round of presidential election,https://tvn24.pl/wybory-prezydenckie-2020/wybory-prezydenckie-2020-druga-tura-relacja-na-zywo-4635501
 PL,2020-08-08,Special,Regionalization,Restrictions in regions by infection,https://www.gov.pl/web/zdrowie/dodatkowe-obostrzenia-w-powiatach-z-najwiekszym-przyrostem-zakazen
 PL,2020-09-01,Special,School,Schools open,https://www.money.pl/gospodarka/otwarcie-szkol-ekspert-najbardziej-prawdopodobne-ze-nauczanie-zdalne-wroci-po-2-4-tygodniach-6547567865514624a.html
 PL,2020-10-10,Down,Masks,Masks to more regions,https://samorzad.pap.pl/kategoria/aktualnosci/jakie-obostrzenia-dla-powiatow-czerwonych-i-zoltych-od-10-pazdziernika-2020-r
@@ -47,6 +51,8 @@ PL,2020-11-09,Down,Schools,All schools closed,https://www.gov.pl/web/koronawirus
 PL,2020-12-24,Special,Christmas,Christmas Eve,
 PL,2020-12-28,Down,Ski resorts,Ski resorts and hotels closed,"https://www.infor.pl/prawo/nowosci-prawne/5155118,Jakie-obostrzenia-od-28-grudnia-2020-r.html"
 PL,2020-12-31,Special,New Year,New Year Eve,
+PL,2021-01-18,Up,Schools,Schools reopened,https://www.gov.pl/web/edukacja-i-nauka/powrot-uczniow-do-szkol--wytyczne-dla-klas-i-iii
+PL,2021-03-25,Down,Businesses,Businesses closed,https://www.rp.pl/Koronawirus-SARS-CoV-2/210329640-PILNE-Koronawirus-w-Polsce-Jakie-nowe-obostrzenia-wprowadza-rzad.html
 SE,2020-03-11,Down,Gatherings,Gatherings limited to 500 people,https://www.thelocal.se/20200311/sweden-to-ban-large-public-gatherings-over-coronavirus/
 SE,2020-03-18,Down,Schools,Schools closed,https://www.medrxiv.org/content/10.1101/2020.10.13.20211359v3.full
 SE,2020-03-19,Down,Borders,Borders closed for non-EU/EEA countries,https://www.garda.com/crisis24/news-alerts/324111/sweden-government-to-close-borders-effective-march-19-update-2
@@ -58,10 +64,10 @@ SE,2020-12-24,Down,Alcohol,Alcohol serving limited by time,https://www.thelocal.
 SE,2020-12-24,Special,Christmas,Christmas Eve,
 SE,2020-12-31,Special,New Year,New Year Eve,
 SE,2021-01-10,Down,Restrictions,Recommendations replaced with restrictions,https://sverigesradio.se/artikel/7637186
-IT,2020-02-25,Down,Regional restrictions,Local locdowns,https://metro.co.uk/2020/02/25/towns-italy-lockdown-coronavirus-12298246/
+IT,2020-02-25,Down,Regional restrictions,Local lockdowns,https://metro.co.uk/2020/02/25/towns-italy-lockdown-coronavirus-12298246/
 IT,2020-03-04,Down,Schools,Closing schools,https://www.gazzettaufficiale.it/eli/id/2020/03/04/20A01475/sg
 IT,2020-03-09,Down,Lockdown,Regional lockdown (limited movement),https://www.gazzettaufficiale.it/eli/id/2020/03/09/20A01558/sg
-IT,2020-03-11,Down,Gatherings,"Gathering restrictions "#IoRestoaCasa Decree",http://www.salute.gov.it/portale/nuovocoronavirus/dettaglioNotizieNuovoCoronavirus.jsp?lingua=italiano&id=4186
+IT,2020-03-11,Down,Gatherings,"Gathering restrictions #IoRestoaCasa Decree""",http://www.salute.gov.it/portale/nuovocoronavirus/dettaglioNotizieNuovoCoronavirus.jsp?lingua=italiano&id=4186
 IT,2020-03-22,Down,Lockdown,No leaving of home,https://www.gazzettaufficiale.it/eli/id/2020/03/22/20A01807/sg
 IT,2020-04-12,Special,Easter,Easter Sunday,
 IT,2020-05-04,Up,Relaxation,Relaxation round of presidential relaxation,https://www.bbc.com/news/world-europe-52435273
