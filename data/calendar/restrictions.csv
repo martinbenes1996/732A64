@@ -24,9 +24,9 @@ CZ,2020-12-15,Down,Businesses,Businesses closed,https://www.mzcr.cz/tiskove-cent
 CZ,2020-12-24,Special,Christmas,Christmas Eve,
 CZ,2020-12-27,Down,Lockdown,National lockdown,https://www.mzcr.cz/tiskove-centrum-mz/vlada-prodlouzila-nouzovy-stav-o-dalsich-30-dnu-prisnejsi-opatreni-zacnou-platit-od-27-prosince/
 CZ,2020-12-31,Special,New Year,New Year Eve,
-CZ,2020-02-11,Down,Regional lockdown,Several regions isolated,https://www.novinky.cz/domaci/clanek/vlada-uzavrela-tri-okresy-40350640
-CZ,2020-02-19,Down,Masks,FFP2 masks required,https://ct24.ceskatelevize.cz/domaci/3272168-provoz-vsech-obchodu-vlada-od-pondeli-nepovoli-informoval-ministr-havlicek
-CZ,2020-02-26,Down,Lockdown,National lockdown with municipality isolation,https://ct24.ceskatelevize.cz/3275916-vladni-brifink-o-prodlouzeni-nouzoveho-stavu-a-zprisneni-opatreni-z-26-unora
+CZ,2021-02-11,Down,Regional lockdown,Several regions isolated,https://www.novinky.cz/domaci/clanek/vlada-uzavrela-tri-okresy-40350640
+CZ,2021-02-19,Down,Masks,FFP2 masks required,https://ct24.ceskatelevize.cz/domaci/3272168-provoz-vsech-obchodu-vlada-od-pondeli-nepovoli-informoval-ministr-havlicek
+CZ,2021-02-26,Down,Lockdown,National lockdown with municipality isolation,https://ct24.ceskatelevize.cz/3275916-vladni-brifink-o-prodlouzeni-nouzoveho-stavu-a-zprisneni-opatreni-z-26-unora
 PL,2020-03-12,Down,Schools,,https://samorzad.pap.pl/kategoria/aktualnosci/weszlo-w-zycie-rozporzadzenie-w-sprawie-zamkniecia-szkol-i-przedszkoli
 PL,2020-03-15,Down,Movement limited,Borders locked and public transport restrictions,https://www.onet.pl/?utm_source=pl.wikipedia.org_viasg_wiadomosci&utm_medium=referal&utm_campaign=leo_automatic&srcc=ucs&pid=3c04a10e-5daa-4eb9-9e60-6ae2317cc442&sid=b177a2c9-166f-4113-9b28-185bbe554807&utm_v=2
 PL,2020-03-15,Down,Businesses closed,"Business closed (restaurants,malls)",https://www.forbes.pl/gospodarka/koronawirus-zamkniecie-granic-od-15-marca-zamkniecie-galerii-handlowych-i-restauracji/n5nl3g1
@@ -38,8 +38,8 @@ PL,2020-05-04,Up,Business (2),"Hotels, museums, libraries",https://www.gov.pl/we
 PL,2020-05-18,Up,Business (3),"Restaurants, hairdressers, public transport",https://www.gov.pl/web/koronawirus/3etap
 PL,2020-05-30,Up,Crowd limit,Events (150),https://www.gov.pl/web/koronawirus/4-etap-odmrazania
 PL,2020-06-06,Up,Business (4),"Weddings (150), theater, fitness",https://www.gov.pl/web/koronawirus/4-etap-odmrazania
-PL,2020-06-28,Up,Elections,1st round of presidential election,"https://prawo.gazetaprawna.pl/artykuly/1482352,wybory-prezydenckie-2020-zasady-glosowania-pierwsza-druga-tura.html"
-PL,2020-07-12,Up,Elections,2nd round of presidential election,https://tvn24.pl/wybory-prezydenckie-2020/wybory-prezydenckie-2020-druga-tura-relacja-na-zywo-4635501
+PL,2020-06-28,Special,Elections,1st round of presidential election,"https://prawo.gazetaprawna.pl/artykuly/1482352,wybory-prezydenckie-2020-zasady-glosowania-pierwsza-druga-tura.html"
+PL,2020-07-12,Special,Elections,2nd round of presidential election,https://tvn24.pl/wybory-prezydenckie-2020/wybory-prezydenckie-2020-druga-tura-relacja-na-zywo-4635501
 PL,2020-08-08,Special,Regionalization,Restrictions in regions by infection,https://www.gov.pl/web/zdrowie/dodatkowe-obostrzenia-w-powiatach-z-najwiekszym-przyrostem-zakazen
 PL,2020-09-01,Special,School,Schools open,https://www.money.pl/gospodarka/otwarcie-szkol-ekspert-najbardziej-prawdopodobne-ze-nauczanie-zdalne-wroci-po-2-4-tygodniach-6547567865514624a.html
 PL,2020-10-10,Down,Masks,Masks to more regions,https://samorzad.pap.pl/kategoria/aktualnosci/jakie-obostrzenia-dla-powiatow-czerwonych-i-zoltych-od-10-pazdziernika-2020-r
