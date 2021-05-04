@@ -264,8 +264,9 @@ def plot_0_4(country):
                                                     '%Y-%W-%w'), axis=1)
     x['Deaths per 100K'] = x.deaths / x.population * 1e5
     # plot
-    g = sns.FacetGrid(x, col="age")
+    g = sns.FacetGrid(x, col="age", col_order=['0_4','5_9','10_14','15_19'])
     g.map(sns.lineplot, 'week', 'Deaths per 100K', 'year')
+    plt.ylim(0,3)
     plt.legend()
     plt.savefig(f'img/discussion/age_{country}.png')
     plt.show()
@@ -327,11 +328,11 @@ def test_PL_0_4_greater():
 
 
 if __name__ == '__main__':
-    test_PL_0_4_greater()
-    #plot_0_4('PL')
-    #plot_0_4('CZ')
-    #plot_0_4('IT')
-    #plot_0_4('SE')
+    #test_PL_0_4_greater()
+    plot_0_4('PL')
+    plot_0_4('CZ')
+    plot_0_4('IT')
+    plot_0_4('SE')
     #plot_0_4('FR')
     #plot_0_4('DE')
     
