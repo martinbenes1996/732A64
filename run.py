@@ -2,6 +2,38 @@ import matplotlib.pyplot as plt
 import sys
 sys.path.append('src')
 
+# settings
+save_plots = False
+show_plots = False
+
+# === parameters ===
+import covid19
+# IFR
+print("Covid-19 IFR.")
+if show_plots or save_plots:
+    covid19.ifr.plot(save=save_plots)
+    print("- Plot of simulation.")
+    if show_plots: plt.show()
+print("")
+# Incubation period
+print("Covid-19 incubation period.")
+print("- Distributions.")
+distr = covid19.incubation.continuous()
+print(distr)
+print("- Distributions' MSEs.")
+MSEs = covid19.incubation.mse()
+print(MSEs)
+if show_plots:
+    covid19.incubation.plot.continuous(save=save_plots)
+    print("- Plot of continuous distribtuions.")
+    if show_plots: plt.show()
+    covid19.incubation.plot.discretized(save=save_plots)
+    print("- Plot of discretized Gamma.")
+    if show_plots: plt.show()
+print("")
+
+
+exit()
 # # === prior ===
 # import prior
 # # prior c (EI)

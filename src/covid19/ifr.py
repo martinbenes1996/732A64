@@ -2,13 +2,17 @@
 """IFR internal module.
 
 Module containing operation for IFR (infection fatality ratio).
+IFR is modelled with a Uniform distribution, by default U(.004,.01).
 
 Example:
-    Examples can be given using either the ``Example`` or ``Examples``
-    sections. Sections support any reStructuredText formatting, including
-    literal blocks::
-
-        $ python example_google.py
+    Module constructs the plot of IFR with
+    
+        ifr.plot()
+        
+    It is also possible to get simulations of IFR
+    
+        sim100 = ifr.rvs(100)
+        
 
 Section breaks are created by resuming unindented text. Section breaks
 are also implicitly created anytime a new section starts.
@@ -44,7 +48,7 @@ def rvs(size=1e4, a=.004, b=.01):
     Returns:
         np.array: IFR sample.
     """
-    sample = uniform.rvs(a, b - a, size = size, random_state=12345)
+    sample = uniform.rvs(a, b - a, size = int(size), random_state=12345)
     return sample
 
 def pdf(size=1e4, a=.004, b=.01):
@@ -57,11 +61,19 @@ def pdf(size=1e4, a=.004, b=.01):
         np.array: Grid of x-axis.
         np.array: Values of U(a,b) PDF for the grid.
     """
-    xgrid = np.linspace(a - (b-a)/4, b + (b-a)/4, num=size)
+    xgrid = np.linspace(a - (b-a)/4, b + (b-a)/4, num=int(size))
     fx = uniform.pdf(xgrid, a, b - a)
     return xgrid, fx
 
-def plot_ifr(save = False, name = 'img/sir/ifr.png'):
+def plot(save = False, name = 'img/sir/ifr.png'):
+    """Plots IFR simulation together with the theoretical density.
+    
+    After call, use `plt.show()` to show the figure.
+    
+    Args:
+        save (bool, optional): Whether to save the figure, defaultly not.
+        name (str, optional): Path to save the plot to.
+    """
     # simulate
     draws = rvs()
     # get density
@@ -74,6 +86,3 @@ def plot_ifr(save = False, name = 'img/sir/ifr.png'):
     ax1.set_ylabel('Density')
     if save: fig1.savefig(name)
 
-if __name__ == "__main__":
-    plot_ifr(save = True)
-    plt.show()
