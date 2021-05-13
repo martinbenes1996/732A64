@@ -4,16 +4,16 @@ sys.path.append('src')
 
 # settings
 save_plots = False
-show_plots = False
+show_plots = True
 
-# === parameters ===
+# === covid19 parameters ===
 import covid19
 # IFR
 print("Covid-19 IFR.")
-if show_plots or save_plots:
-    covid19.ifr.plot(save=save_plots)
-    print("- Plot of simulation.")
-    if show_plots: plt.show()
+#if show_plots or save_plots:
+#    covid19.ifr.plot(save=save_plots)
+#    print("- Plot of simulation.")
+#    if show_plots: plt.show()
 print("")
 # Incubation period
 print("Covid-19 incubation period.")
@@ -23,17 +23,47 @@ print(distr)
 print("- Distributions' MSEs.")
 MSEs = covid19.incubation.mse()
 print(MSEs)
-if show_plots:
-    covid19.incubation.plot.continuous(save=save_plots)
-    print("- Plot of continuous distribtuions.")
-    if show_plots: plt.show()
-    covid19.incubation.plot.discretized(save=save_plots)
-    print("- Plot of discretized Gamma.")
-    if show_plots: plt.show()
+#if show_plots or save_plots:
+#    covid19.incubation.plot.continuous(save=save_plots)
+#    print("- Plot of continuous distributions.")
+#    if show_plots: plt.show()
+#    covid19.incubation.plot.discrete(save=save_plots)
+#    print("- Plot of discrete Gamma.")
+#    if show_plots: plt.show()
 print("")
+# Symptoms duration
+print("Covid-19 symptoms' duration")
+print("- Distributions.")
+distr = covid19.symptoms.continuous()
+print(distr)
+print("- Data summary.")
+data_summary = covid19.symptoms.data_summary()
+print(data_summary)
+print("- AIC.")
+aic = covid19.symptoms.aic()
+print(aic)
+#if show_plots or save_plots:
+#    print("- Plot of continuous distributions.")
+#    covid19.symptoms.plot.continuous(save=save_plots)
+#    if show_plots: plt.show()
+#    print("- Plot of discrete Gamma.")
+#    covid19.symptoms.plot.discrete(save=save_plots)
+#    if show_plots: plt.show()
+# Tests
+print("Covid-19 tests.")
+print("- Fetch tests data.")
+tests = covid19.tests.get()
+print(tests)
+#if show_plots or save_plots:
+#    print("- Plot of positive tests' ratio.")
+#    covid19.tests.plot_positive_test_ratio()
+#    if show_plots: plt.show()
 
+# === demographics ===
+# Mortality
 
 exit()
+
 # # === prior ===
 # import prior
 # # prior c (EI)

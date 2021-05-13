@@ -1,27 +1,31 @@
+# -*- coding: utf-8 -*-
+"""Population mortality internal module.
 
+Module containing operations with population.
+Population comes from Eurostat database.
+
+Example:
+    List distributions with its parameters by
+
+        distr = incubation.continuous()
+        
+"""
 from datetime import datetime
+import eurostat_deaths as eurostat
 import math
 import matplotlib.pyplot as plt
 import pandas as pd
 import re
 from scipy.stats import multinomial, ttest_ind, f, t
 import seaborn as sns
-
-import eurostat_deaths as eurostat
-
-import sys
-sys.path.append('src')
-import population
-
-#import logging
-#logging.basicConfig(level = logging.INFO)
+from . import population
 
 def _mortality_data():
-    try:
-        df = pd.read_csv('data/deaths.csv')
-    except:
-        # fetch
-        df = eurostat.deaths()
+    """"""
+    # fetch
+    try: df = pd.read_csv('tmp/cache/deaths.csv')
+    except: df = eurostat.deaths()
+    # filter
     df = df[df.region.isin(['CZ','PL','SE','IT']) &
             df.sex.isin(['M','F']) &
             ~df.age.isin(['TOTAL','UNK'])]\
@@ -37,11 +41,17 @@ def _mortality_data():
         x = re.match(r'(90)|\d+_(\d+)', i)
         return 99 if x[1] is not None else int(x[2])
     df['age_end'] = df.age.apply(get_age_end)
-    # write
-    df.to_csv('data/deaths.csv', index = False)
+    # write and return
+    df.to_csv('tmp/cache/deaths.csv', index = False)
     return df
 
 def _upsample_mortality(years = None, regions = None):
+    """
+    
+    Args:
+        years ():
+        regions ():
+    """
     # get data
     x = _mortality_data()
     # filter poland
@@ -69,6 +79,12 @@ def _upsample_mortality(years = None, regions = None):
     return cases
 
 def plot_mortality_violin(save = False, name = 'img/demographic/mortality.png'):
+    """
+    
+    Args:
+        save ():
+        name ():
+    """
     # fetch
     cases = _upsample_mortality(years = [2020])
     # plot
@@ -78,6 +94,13 @@ def plot_mortality_violin(save = False, name = 'img/demographic/mortality.png'):
     if save: plt.savefig(name)
 
 def plot_poland_years(years = None, save = False, name = 'img/demographic/mortality.png'):
+    """
+    
+    Args:
+        years ():
+        save ():
+        name ():
+    """
     # fetch
     cases = _upsample_mortality(regions = ['PL'])
     # plot
@@ -92,6 +115,12 @@ def plot_poland_years(years = None, save = False, name = 'img/demographic/mortal
     if save: plt.savefig(name)
 
 def plot_poland_0_5(save = False, name = 'img/demographic/mortality.png'):
+    """
+    
+    Args:
+        save ():
+        name ():
+    """
     # get data
     x = _mortality_data()
     # filter poland
@@ -115,6 +144,11 @@ def plot_poland_0_5(save = False, name = 'img/demographic/mortality.png'):
     if save: plt.savefig(name)
 
 def plot_mortality_population(years = [2020]):
+    """
+    
+    Args:
+        years ():
+    """
     # fetch data
     df = _mortality_data()
     # filter year
@@ -123,14 +157,20 @@ def plot_mortality_population(years = [2020]):
     df = df\
         .merge(pops, on=['region','sex','age_start','age_end','age'], suffixes=('','_2'))
     df.deaths = df.deaths / df.population
-    
 
+# cache pops
 pops = population._populations_data()
 pops.population = pops.population / 1000
 def test_countries_equal(c1, c2, years = [2020]):
-    # fetch data
+    """
+    
+    Args:
+        c1 ():
+        c2 ():
+        years ():
+    """
+    # fetch data, filter by year
     df = _mortality_data()
-    # filter year
     df = df[df.year.isin(years)]
     # join population
     df = df\
@@ -149,7 +189,6 @@ def test_countries_equal(c1, c2, years = [2020]):
     var1 = (country1.deaths @ (x1 - mu1)**2) / n1
     var2 = (country2.deaths @ (x2 - mu2)**2) / n2
     var_pooled = ((n1-1)*var1 + (n2-1)*var2) / (n1+n2-2)
-    
     # f test
     if var1 > var2:
         f_df1,f_df2 = n1-1,n2-1
@@ -157,9 +196,7 @@ def test_countries_equal(c1, c2, years = [2020]):
     else:
         f_df1,f_df2 = n2-1,n1-1
         fstat = var2 / var1
-    # f test pi value
-    fpi = 1 - f.cdf(fstat, f_df1, f_df2)
-    
+    fpi = 1 - f.cdf(fstat, f_df1, f_df2) # f test pi value
     # t test
     if fpi > .05:
         tstat = abs(mu1 - mu2) / math.sqrt(var_pooled * (n1+n2)/n1/n2)
@@ -167,13 +204,26 @@ def test_countries_equal(c1, c2, years = [2020]):
     else:
         tstat = abs(mu1 - mu2) / math.sqrt(var1 / n1 + var2 / n2)
         t_df = (var1**2/n1 + var2**2/n2)**2 / ((var1/n1)**2/(n1-1) + (var2/n2)**2/(n2-1))
-    # t test pi value
-    tpi = 1 - t.cdf(tstat, t_df)
-    print("Countries %s - %s" % (c1, c2))
-    print("* F-test %.5f [%s]" % (fpi, 'Y' if fpi > .05 else 'N'))
-    print("* T-test %.5f [%s]" % (tpi, 'Y' if tpi > .05 else 'N'))
+    tpi = 1 - t.cdf(tstat, t_df) # t test pi value
+    return {
+        'country1': c1,
+        'country2': c2,
+        'f_pi': fpi,
+        'f_accept': 'Y' if fpi > .05 else 'N',
+        't_pi': tpi,
+        't_accept': 'Y' if tpi > .05 else 'N'
+    }
+    #print("Countries %s - %s" % (c1, c2))
+    #print("* F-test %.5f [%s]" % (fpi, 'Y' if fpi > .05 else 'N'))
+    #print("* T-test %.5f [%s]" % (tpi, 'Y' if tpi > .05 else 'N'))
 
 def test_country_age_equal(c1, years = [2020]):
+    """
+    
+    Args:
+        c1 ():
+        years ():
+    """
     # fetch data
     df = _mortality_data()
     # filter year
@@ -195,7 +245,6 @@ def test_country_age_equal(c1, years = [2020]):
     var1 = (df1.deaths @ (x1 - mu1)**2) / n1
     var2 = (df2.deaths @ (x2 - mu2)**2) / n2
     var_pooled = ((n1-1)*var1 + (n2-1)*var2) / (n1+n2-2)
-    
     # f test
     if var1 > var2:
         f_df1,f_df2 = n1-1,n2-1
@@ -203,9 +252,7 @@ def test_country_age_equal(c1, years = [2020]):
     else:
         f_df1,f_df2 = n2-1,n1-1
         fstat = var2 / var1
-    # f test pi value
-    fpi = 1 - f.cdf(fstat, f_df1, f_df2)
-    
+    fpi = 1 - f.cdf(fstat, f_df1, f_df2) # f test pi value
     # t test
     if fpi > .05:
         tstat = (mu1 - mu2) / math.sqrt(var_pooled * (n1+n2)/n1/n2)
@@ -213,13 +260,20 @@ def test_country_age_equal(c1, years = [2020]):
     else:
         tstat = (mu1 - mu2) / math.sqrt(var1 / n1 + var2 / n2)
         t_df = (var1**2/n1 + var2**2/n2)**2 / ((var1/n1)**2/(n1-1) + (var2/n2)**2/(n2-1))
-    # t test pi value
-    tpi = 1 - t.cdf(tstat, t_df)
-    print("Country %s" % (c1))
-    print("* F-test %.5f [%s]" % (fpi, 'Y' if fpi > .05 else 'N'))
-    print("* T-test %.5f [%s]" % (tpi, 'Y' if tpi > .05 else 'N'))
+    tpi = 1 - t.cdf(tstat, t_df) # t test pi value
+    return {
+        'country': c1,
+        'f_pi': fpi,
+        'f_accept': 'Y' if fpi > .05 else 'N',
+        't_pi': tpi,
+        't_accept': 'Y' if tpi > .05 else 'N'
+    }
+    #print("Country %s" % (c1))
+    #print("* F-test %.5f [%s]" % (fpi, 'Y' if fpi > .05 else 'N'))
+    #print("* T-test %.5f [%s]" % (tpi, 'Y' if tpi > .05 else 'N'))
 
 def CZ_mortality():
+    """"""
     x = _mortality_data()
     print(x)
     x = x[x.region == 'CZ']\
@@ -234,6 +288,7 @@ def CZ_mortality():
     plt.show()
 
 def plot_0_4(country):
+    """"""
     # get data
     print(country)
     x = _mortality_data()
@@ -272,6 +327,7 @@ def plot_0_4(country):
     plt.show()
 
 def test_PL_0_4_greater():
+    """"""
     # get data
     x = _mortality_data()
     # filter poland

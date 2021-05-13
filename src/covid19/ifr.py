@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-"""IFR internal module.
+"""Covid-19 IFR internal module.
 
-Module containing operation for IFR (infection fatality ratio).
+Module containing operations with IFR (infection fatality ratio).
 IFR is modelled with a Uniform distribution, by default U(.004,.01).
 
 Example:
@@ -13,31 +13,10 @@ Example:
     
         sim100 = ifr.rvs(100)
         
-
-Section breaks are created by resuming unindented text. Section breaks
-are also implicitly created anytime a new section starts.
-
-Attributes:
-    module_level_variable1 (int): Module level variables may be documented in
-        either the ``Attributes`` section of the module docstring, or in an
-        inline docstring immediately following the variable.
-
-        Either form is acceptable, but the two should not be mixed. Choose
-        one convention to document module level variables and be consistent
-        with it.
-
-Todo:
-    * For module TODOs
-    * You have to also use ``sphinx.ext.todo`` extension
-
-.. _Google Python Style Guide:
-   http://google.github.io/styleguide/pyguide.html
-
 """
-
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.stats import uniform,bernoulli
+from scipy.stats import uniform
 
 def rvs(size=1e4, a=.004, b=.01):
     """Draw a random sample of IFR.
@@ -85,4 +64,3 @@ def plot(save = False, name = 'img/sir/ifr.png'):
     ax1.set_xlabel('IFR')
     ax1.set_ylabel('Density')
     if save: fig1.savefig(name)
-

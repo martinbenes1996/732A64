@@ -1,49 +1,32 @@
 # -*- coding: utf-8 -*-
-"""Incubation internal module.
+"""Covid-19 incubation internal module.
 
-Module containing operation for incubation period.
+Module containing operations with incubation period.
 Incubation is modelled with Gamma distribution Gamma(5.807,).
 
 Example:
-    Module constructs the plot of IFR with
-    
-        ifr.plot()
+    List distributions with its parameters by
+
+        distr = incubation.continuous()
         
-    It is also possible to get simulations of IFR
-    
-        sim100 = ifr.rvs(100)
+    Compute the quantile MSE of distributions to compare them
+
+        MSEs = incubation.mse()
         
-
-Section breaks are created by resuming unindented text. Section breaks
-are also implicitly created anytime a new section starts.
-
-Attributes:
-    module_level_variable1 (int): Module level variables may be documented in
-        either the ``Attributes`` section of the module docstring, or in an
-        inline docstring immediately following the variable.
-
-        Either form is acceptable, but the two should not be mixed. Choose
-        one convention to document module level variables and be consistent
-        with it.
-
-Todo:
-    * For module TODOs
-    * You have to also use ``sphinx.ext.todo`` extension
-
-.. _Google Python Style Guide:
-   http://google.github.io/styleguide/pyguide.html
-
+    Module constructs the plot of IFR distributions with
+    
+        incubation.plot.continuous()
+        
+    The discretized distribution of IFR is plotted by
+    
+        incubation.plot.discretized()
+        
 """
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy.stats import lognorm,gamma,erlang
-import scipy
-#plt.rcParams["figure.figsize"] = (12,10)
-#plt.rcParams.update({'font.size': 18})
 
-# Weibull
 class weibull:
     """Implementation of Weibull in style of `scipy.stats` module."""
     def pdf(x, n, a):
@@ -116,9 +99,10 @@ def discretized(N = 21):
     return distribution
 
 class plot:
+    """Plotting of the module."""
     @staticmethod
     def continuous(save = False, name = 'img/parameters/incubation.png'):
-        """Plot incubation period fitted distributions.
+        """Plot incubation period distributions.
         
         After call, use `plt.show()` to show the figure.
     
@@ -126,6 +110,7 @@ class plot:
             save (bool, optional): Whether to save the figure, defaultly not.
             name (str, optional): Path to save the plot to.
         """
+        def _pars(a,b): return '%.3f,%.3f' % (a,b)
         # grid
         xgrid = np.linspace(0, 14, 1000)
         # distributions
@@ -136,17 +121,21 @@ class plot:
         erlang_pdf = erlang.pdf(xgrid, *distr['erlang'])
         # plot
         fig1, ax1 = plt.subplots()
-        ax1.plot(xgrid, lognorm_pdf, label='LN(1.621,0.418)')
-        ax1.plot(xgrid, gamma_pdf, label='Gamma(5.807,0.948)')
-        ax1.plot(xgrid, weibull_pdf, label='W(2.453,6.258)')
-        ax1.plot(xgrid, erlang_pdf, label='E(6,0.88)')
+        ax1.plot(xgrid, lognorm_pdf,
+                 label=f"LN({_pars(np.log(distr['lognorm'][2]),distr['lognorm'][0])}^2)")#'LN(1.621,0.418)')
+        ax1.plot(xgrid, gamma_pdf,
+                 label=f"Gamma({_pars(distr['gamma'][0],1/distr['gamma'][2])})")
+        ax1.plot(xgrid, weibull_pdf,
+                 label=f"W({_pars(*distr['weibull'])})")
+        ax1.plot(xgrid, erlang_pdf,
+                 label=f"E({_pars(distr['erlang'][0],distr['erlang'][2])})")
         ax1.set_xlabel('Incubation period')
         ax1.set_ylabel('Density')
         ax1.legend()
         if save: fig1.savefig(name)
 
     @staticmethod
-    def discretized(N = 21, save = False, name = 'img/parameters/incubation_discrete.png'):
+    def discrete(N = 21, save = False, name = 'img/parameters/incubation_discrete.png'):
         """Plot incubation period discretized Gamma distribution fit.
         
         After call, use `plt.show()` to show the figure.
@@ -156,7 +145,9 @@ class plot:
             save (bool, optional): Whether to save the figure, defaultly not.
             name (str, optional): Path to save the plot to.
         """
+        def _pars(a,b): return '%5.3f,%5.3f' % (a,b)
         # get distribution
+        distr = continuous()
         distribution = discretized(N = N)
         # grid
         xgrid = np.linspace(0, distribution.shape[0] - 1, 1000)
@@ -168,7 +159,8 @@ class plot:
         grid_probs = pd.Series(xgrid).apply(find_X)
         # plot
         fig1, ax1 = plt.subplots()
-        ax1.plot(xgrid, grid_probs, label='Discretized Gamma(5.807,0.948)')
+        ax1.plot(xgrid, grid_probs,
+                 label=f"Discretized Gamma({_pars(distr['gamma'][0],1/distr['gamma'][2])})")
         ax1.set_xlabel('Incubation period')
         ax1.set_ylabel('Density')
         ax1.legend()

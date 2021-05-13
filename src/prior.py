@@ -6,24 +6,16 @@ import pandas as pd
 from scipy.stats import lognorm,norm,gamma,beta,norm,uniform,dweibull,argus,triang
 from sklearn.utils import resample
 import sys
-
-#plt.rcParams["figure.figsize"] = (10,8)
-#plt.rcParams.update({'font.size': 10})
 sys.path.append('src')
-
-import _ifr
-import _incubation
-import _src
-import _symptoms
-import _testing
-import population
+from covid19 import ifr,incubation,src,symptoms,testing
+from demographic import population
 
 def EI():
     """"""
     # seed
     np.random.seed(seed=12345)
     # draw from incubation period
-    pars = _incubation.continuous()['gamma']
+    pars = incubation.continuous()['gamma']
     draws = gamma.rvs(*pars, size = 1000000, random_state = 12345)
     # fit beta to 1/draw
     samples = 1 / draws
@@ -37,9 +29,9 @@ def IR():
     # seed
     np.random.seed(seed=12345)
     # draw from symptoms period
-    pars = _symptoms.continuous()['gamma']
+    pars = symptoms.continuous()['gamma']
     draws = gamma.rvs(*pars, size = 100000, random_state = 54321)
-    draws_ifr = _ifr.rvs(size = 100000)
+    draws_ifr = ifr.rvs(size = 100000)
     # fit beta to 1 / draw
     samples = 1 / draws #(1 - draws_ifr) / draws
     samples = samples[(samples > 0) & (samples < 1)]
@@ -52,9 +44,9 @@ def ID():
     # seed
     np.random.seed(seed=12345)
     # draw from symptoms period
-    pars = _symptoms.continuous()['gamma']
+    pars = symptoms.continuous()['gamma']
     draws = gamma.rvs(*pars, size = 100000, random_state = 54321)
-    draws_ifr = _ifr.rvs(size = 100000)
+    draws_ifr = ifr.rvs(size = 100000)
     # fit beta to 1 / draw
     samples = draws_ifr / draws
     samples = samples[(samples > 0) & (samples < 1)]
@@ -229,7 +221,7 @@ def test_prior(save = False, name = 'data/distr/testratio.csv'):
     """"""
     # get data
     pop = population.countries()
-    tests = _testing.tests()
+    tests = testing.tests()
     # group
     iso3_iso2 = {'CZE':'CZ','SWE':'SE','POL':'PL','ITA':'IT'}
     for country3 in tests.country.unique():
@@ -265,8 +257,8 @@ def confirmed_prior(save = False, name = 'data/distr/confirmedratio.csv'):
     """"""
     # get data
     pop = population.countries()
-    df = _src.get_data()
-    tests = _testing.tests()
+    df = src.get_data()
+    tests = testing.tests()
     # group
     iso3_iso2 = {'CZE':'CZ','SWE':'SE','POL':'PL','ITA':'IT'}
     for country3 in df.iso_alpha_3.unique():
