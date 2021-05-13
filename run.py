@@ -60,8 +60,12 @@ print(tests)
 #    if show_plots: plt.show()
 
 # === demographics ===
+import demographic
 # Mortality
-
+print("Mortality.")
+print("- Fetching mortality data.")
+mortality = demographic.mortality.data()
+print(mortality)
 exit()
 
 # # === prior ===

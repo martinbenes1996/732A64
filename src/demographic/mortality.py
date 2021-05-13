@@ -20,8 +20,8 @@ from scipy.stats import multinomial, ttest_ind, f, t
 import seaborn as sns
 from . import population
 
-def _mortality_data():
-    """"""
+def data():
+    """Fetch mortality data. By default uses cached version."""
     # fetch
     try: df = pd.read_csv('tmp/cache/deaths.csv')
     except: df = eurostat.deaths()
@@ -41,23 +41,24 @@ def _mortality_data():
         x = re.match(r'(90)|\d+_(\d+)', i)
         return 99 if x[1] is not None else int(x[2])
     df['age_end'] = df.age.apply(get_age_end)
-    # write and return
+    # writeback to cache and return
     df.to_csv('tmp/cache/deaths.csv', index = False)
     return df
 
 def _upsample_mortality(years = None, regions = None):
-    """
+    """Returns deaggregated (per-case) mortality for density plots.
     
     Args:
-        years ():
-        regions ():
+        years (list, optional): List with years to contain. All by default.
+        regions (list, optional): List with years to contain. All by default.
+    Returns:
+        (pandas.DataFrame): Upsampled per-case mortality data.
     """
     # get data
-    x = _mortality_data()
-    # filter poland
+    x = data()
+    # filter
     if regions is not None:
         x = x[x.region.isin(regions)]
-    #x = x[(x.region == 'PL')]
     if years is not None:
         x = x[x.year.isin(years)]
     # upsample
@@ -122,7 +123,7 @@ def plot_poland_0_5(save = False, name = 'img/demographic/mortality.png'):
         name ():
     """
     # get data
-    x = _mortality_data()
+    x = data()
     # filter poland
     x = x[(x.region == 'SE') & (x.age.isin(['5_9'])) &
           (x.year < 2021) & (x.week < 54)]\
@@ -150,7 +151,7 @@ def plot_mortality_population(years = [2020]):
         years ():
     """
     # fetch data
-    df = _mortality_data()
+    df = data()
     # filter year
     df = df[df.year.isin(years)]
     # join population
@@ -170,7 +171,7 @@ def test_countries_equal(c1, c2, years = [2020]):
         years ():
     """
     # fetch data, filter by year
-    df = _mortality_data()
+    df = data()
     df = df[df.year.isin(years)]
     # join population
     df = df\
@@ -225,7 +226,7 @@ def test_country_age_equal(c1, years = [2020]):
         years ():
     """
     # fetch data
-    df = _mortality_data()
+    df = data()
     # filter year
     df = df[df.year.isin(years)]
     # join population
@@ -274,7 +275,7 @@ def test_country_age_equal(c1, years = [2020]):
 
 def CZ_mortality():
     """"""
-    x = _mortality_data()
+    x = data()
     print(x)
     x = x[x.region == 'CZ']\
         .groupby(['year','week'])\
@@ -291,7 +292,7 @@ def plot_0_4(country):
     """"""
     # get data
     print(country)
-    x = _mortality_data()
+    x = data()
     # filter poland
     age_groups = ['0_4','5_9','10_14','15_19']
     x = x[x.region.apply(lambda r: r[:2] == country) &#x.region.apply(lambda r: len(r) == 2) &
@@ -329,7 +330,7 @@ def plot_0_4(country):
 def test_PL_0_4_greater():
     """"""
     # get data
-    x = _mortality_data()
+    x = data()
     # filter poland
     age_groups = ['0_4','5_9','10_14','15_19']
     x = x[x.region.isin(['CZ','PL','SE','IT']) &
