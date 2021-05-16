@@ -6,8 +6,7 @@ import numpy as np
 import pandas as pd
 import sys
 sys.path.append('src')
-
-import population
+from demographic import population
 import posterior
 import _results
 

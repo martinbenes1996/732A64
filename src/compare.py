@@ -6,7 +6,7 @@ import pandas as pd
 import seaborn as sns
 import sys
 sys.path.append('src')
-import population
+from demographic import population
 import posterior
 
 CZ_regions = ['CZ010','CZ020','CZ031','CZ032','CZ041','CZ042','CZ051',

@@ -1,4 +1,8 @@
+
+from datetime import datetime
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 import sys
 sys.path.append('src')
 
@@ -164,36 +168,92 @@ for i in range(4):
 
 # === Plots ===
 import plots
+print("\nPlots.")
 
-if show_plots or save_plots:
-    print("- Plot linear spline.")
-    plots.linear_spline(save=save_plots)
-    if show_plots: plt.show()
+#if show_plots or save_plots:
+#    print("- Plot linear spline.")
+#    plots.linear_spline(save=save_plots)
+#    if show_plots: plt.show()
 
-if show_plots or save_plots:
-    print("- Plot cubic spline with deg2.")
-    plots.cubic_spline_deg2(save=save_plots)
-    if show_plots: plt.show()
+#if show_plots or save_plots:
+#    print("- Plot cubic spline with deg2.")
+#    plots.cubic_spline_deg2(save=save_plots)
+#    if show_plots: plt.show()
 
-if show_plots or save_plots:
-    print("- Plot cubic spline with deg0.")
-    plots.cubic_spline_deg0(save=save_plots)
-    if show_plots: plt.show()
+#if show_plots or save_plots:
+#    print("- Plot cubic spline with deg0.")
+#    plots.cubic_spline_deg0(save=save_plots)
+#    if show_plots: plt.show()
 
-if show_plots or save_plots:
-    print("- Trace plot of confirmed.")
-    plots.covid_confirmed(save=save_plots)
-    if show_plots: plt.show()
+#if show_plots or save_plots:
+#    print("- Trace plot of confirmed.")
+#    plots.covid_confirmed(save=save_plots)
+#    if show_plots: plt.show()
 
-if show_plots or save_plots:
-    print("- Trace plot of deaths.")
-    plots.covid_deaths(save=save_plots)
-    if show_plots: plt.show()
+#if show_plots or save_plots:
+#    print("- Trace plot of deaths.")
+#    plots.covid_deaths(save=save_plots)
+#    if show_plots: plt.show()
     
-if show_plots or save_plots:
-    print("- Trace plot of recovered.")
-    plots.covid_recovered(save=save_plots)
-    if show_plots: plt.show()
+#if show_plots or save_plots:
+#    print("- Trace plot of recovered.")
+#    plots.covid_recovered(save=save_plots)
+#    if show_plots: plt.show()
+
+# === Transition ===
+import transition
+print("\Transition.")
+
+print("- Execute transition procedure.")
+df_transition = transition.transition(
+    POP=1e4,
+    initial_values=(1-.02,.01,.01,0,0),
+    parameters=pd.DataFrame({
+        'start': [datetime(2020,3,1)],
+        'end': [datetime(2021,5,31)],
+        'a':[.8],'c':[.3],'b':[.3],'d':[.05]
+    })
+)
+print(df_transition)
+
+#if show_plots or save_plots:
+#    print("- Simulate single-segment transition.")
+#    transition.simulate_epidemic1(save=save_plots)
+#    if show_plots: plt.show()
+
+#if show_plots or save_plots:
+#    print("- Simulate transition.")
+#    transition.simulate_epidemic2(save=save_plots)
+#    if show_plots: plt.show()
+
+# === Emission ===
+import emission
+print("\nEmission.")
+
+print("- Apply emission posterior.")
+df_emission = emission.emission(
+    xbar = np.array([.3,.4,.4,.3,.3]),
+    T = np.array([20,30,35,30,35]),
+    a = 2,
+    b = 3
+)
+print(df_emission)
+
+print("- Get emission posterior nlogL.")
+score_emission = emission.emission_objective(
+    reported = np.array([.3,.4,.4,.3,.3]),
+    xbar = np.array([.3,.4,.4,.3,.3]),
+    T = np.array([20,30,35,30,35]),
+    a = 2,
+    b = 3
+)
+print(score_emission)
+
+#if show_plots or save_plots:
+#    print("- Plot of emission with MA transition.")
+#    emission.plot_MA(save=save_plots)
+#    if show_plots: plt.show()
+
 
 exit()
 

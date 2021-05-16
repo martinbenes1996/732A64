@@ -6,10 +6,8 @@ import pandas as pd
 import sys
 pd.options.mode.chained_assignment = None
 sys.path.append('src')
-
 from covid19 import src
 from demographic import population
-
 from emission import emission,emission_objective
 from transition import transition
 

@@ -8,7 +8,6 @@ import pandas as pd
 from sklearn.neighbors import KNeighborsRegressor
 from scipy.stats import beta
 import sys
-
 plt.rcParams["figure.figsize"] = (10,8)
 plt.rcParams.update({'font.size': 10})
 

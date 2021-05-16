@@ -1,4 +1,30 @@
+# -*- coding: utf-8 -*-
+"""Model transition component.
 
+Module containing operations of transition component in HMM.
+
+Example:
+    Transition model is executed with
+    
+        transition.transition(
+            POP=1e4,
+            initial_values=(1-.02,.01,.01,0,0),
+            parameters=pd.DataFrame({
+                'start': [datetime.datetime(2020,3,1)],
+                'end': [datetime.datetime(2021,5,31)],
+                'a':[.8],'c':[.3],'b':[.3],'d':[.05]
+            })
+        )
+    
+    Simulate single segment transition with
+    
+        simulate_epidemic1()
+    
+    Simulate pandemic with
+    
+        simulate_epidemic2()
+        
+"""
 from datetime import datetime,timedelta
 import functools as F
 from matplotlib import pyplot as plt
@@ -48,7 +74,7 @@ from covid19 import incubation as _incubation, symptoms as _symptoms
 #    symptoms()\
 #        .to_csv('data/distr/symptoms.csv', index = False, header = False)
 
-def seird(y, t, POP, a, c, b, d):
+def _seird(y, t, POP, a, c, b, d):
     """SEIRD model step.
     
     Args:
@@ -69,7 +95,7 @@ def seird(y, t, POP, a, c, b, d):
     dDdt = b*d*I
     return dSdt, dEdt, dIdt, dRdt, dDdt
 
-def parse_const_params(a, c, b, d):
+def _parse_const_params(a, c, b, d):
     """Interprets parameters as constant.
     
     Args:
@@ -80,7 +106,7 @@ def parse_const_params(a, c, b, d):
     # return parameters
     return a,c,b,d
 
-def parse_random_params(prior_a, prior_c, prior_b, prior_d):
+def _parse_random_params(prior_a, prior_c, prior_b, prior_d):
     """Interprets parameters as random variables of parameters.
     
     Args:
@@ -106,7 +132,7 @@ def transition(POP, initial_values, parameters, random_params = False):
         parameters (tuple): Dataframe of parameters: start, end, a, c, b, d.
     """
     assert(len(initial_values) == 5)
-    parse_params = parse_const_params if not random_params else parse_random_params
+    parse_params = _parse_const_params if not random_params else _parse_random_params
     # iterate over time slots
     result = {'date': [], 'S': [], 'E': [], 'I': [], 'R': [], 'D': []}
     for i,row in enumerate(parameters.itertuples()):
@@ -114,7 +140,7 @@ def transition(POP, initial_values, parameters, random_params = False):
         t = np.linspace(0, D, D+1)
         # integrate
         a,c,b,d = parse_params(row.a, row.c, row.b, row.d)
-        r,_ = odeint(seird, initial_values, t, args=(POP, a, c, b, d), full_output = 1)
+        r,_ = odeint(_seird, initial_values, t, args=(POP, a, c, b, d), full_output = 1)
         # accumulate
         for dt in pd.date_range(row.start, row.end-timedelta(days=1)):
             result['date'].append(dt)
@@ -136,7 +162,14 @@ def transition(POP, initial_values, parameters, random_params = False):
     # return
     return pd.DataFrame(result)
 
-def simulate_epidemic1():
+def simulate_epidemic1(save=False, name = 'img/results/transition1.png'):
+    """Simulate single-segment transition of epidemic.
+    
+    Args:
+        save (bool, optional): Whether to save the figure, defaultly not.
+        name (str, optional): Path to save the plot to.
+    """
+    # transition
     parameters = pd.DataFrame({
         'start':[datetime(2020,3,1)],
         'end':[datetime(2020,5,31)],
@@ -146,13 +179,21 @@ def simulate_epidemic1():
                    initial_values=(1-.02,.01,.01,0,0))
     x = pd.melt(x[['date','S','E','I','R','D']],
                 id_vars='date', var_name='Variable', value_name='Value')
+    # plot
     fig, ax = plt.subplots(figsize=(10,6))
     for label,df in x.groupby('Variable'):
         ax.plot(df.date, df.Value, label=label)
-    plt.legend()
-    plt.show()
+    ax.legend()
+    if save: fig.savefig(name)
     
-def simulate_epidemic2():
+def simulate_epidemic2(save=False, name = 'img/results/transition2.png'):
+    """Simulate two-waves transition of epidemic.
+    
+    Args:
+        save (bool, optional): Whether to save the figure, defaultly not.
+        name (str, optional): Path to save the plot to.
+    """
+    # transition
     parameters = pd.DataFrame({
         'start':[datetime(2020,3,1),datetime(2020,4,15),datetime(2020,6,1)],
         'end':[datetime(2020,4,15),datetime(2020,5,30),datetime(2020,8,31)],
@@ -162,10 +203,11 @@ def simulate_epidemic2():
                    initial_values=(1-2/1000,1/1000,1/1000,0,0))
     x = pd.melt(x[['date','S','E','I','R','D']],
                 id_vars='date', var_name='Variable', value_name='Value')
+    # plot
     fig, ax = plt.subplots(figsize=(10,6))
     for label,df in x.groupby('Variable'):
         ax.plot(df.date, df.Value, label=label)
     ax.axvline(datetime(2020,4,15), color='grey', alpha=.4)
     ax.axvline(datetime(2020,5,30), color='grey', alpha=.4)
-    plt.legend()
-    plt.show()
+    ax.legend()
+    if save: fig.savefig(name)

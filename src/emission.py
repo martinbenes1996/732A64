@@ -1,10 +1,46 @@
+# -*- coding: utf-8 -*-
+"""Model emission component.
 
+Module containing operations of emission component in HMM.
+
+Example:
+    Emission model is executed with
+    
+        emission.emission(
+            xbar = np.array([.3,.4,.4,.3,.3]),
+            T = np.array([20,30,35,30,35]),
+            a = 2,
+            b = 3
+        )
+    
+    Get emission model negative log likelihood with
+    
+        emission.emission_objective(
+            xbar = np.array([.3,.4,.4,.3,.3]),
+            T = np.array([20,30,35,30,35]),
+            a = 2,
+            b = 3
+        )
+        
+    Construct plot of emission model with moving average transition with
+    
+        emission.plot_MA()
+        
+"""
 import numpy as np
 from matplotlib import pyplot as plt
 from scipy.stats import beta
 from statsmodels.tsa.arima_process import ArmaProcess
 
 def emission(xbar, T, a, b):
+    """
+    
+    Args:
+        xbar ():
+        T ():
+        a ():
+        b ():
+    """
     # parameters
     alpha_ = (a + T * xbar)
     beta_ = (b + T * (1 - xbar))
@@ -21,6 +57,15 @@ def emission(xbar, T, a, b):
     return draw
 
 def emission_objective(reported, xbar, T, a, b):
+    """
+    
+    Args:
+        reported ():
+        xbar ():
+        T ():
+        a ():
+        b ():
+    """
     # parameters
     alpha_ = (a + T * xbar)
     beta_ = (b + T * (1 - xbar))
@@ -32,7 +77,16 @@ def emission_objective(reported, xbar, T, a, b):
     # result
     return -logL
 
-def plot_MA_emission(maxit = 100, N = 365, T = 1000):
+def plot_MA(maxit = 100, N = 365, T = 1000, save=False, name='img/results/emission.png'):
+    """
+    
+    Args:
+        maxit (int): Number of samples
+        N (int): Size of time range.
+        T (int): Constant test size.
+        save (bool, optional): Whether to save the figure, defaultly not.
+        name (str, optional): Path to save the plot to.
+    """
     # create model    
     MA = ArmaProcess(ma = [.2,-.4,.2,-.7])
     # iterate
@@ -58,6 +112,5 @@ def plot_MA_emission(maxit = 100, N = 365, T = 1000):
     ax1.fill_between(range(N), x_ci[0,:], x_ci[1,:], color = 'blue', alpha = .1)
     ax1.set_xlabel('Time')
     ax1.set_ylabel('Value')
-    plt.legend()
-    plt.show()
-
+    ax1.legend()
+    if save: fig1.savefig(name)

@@ -7,7 +7,7 @@ import pandas as pd
 import seaborn as sns
 import sys
 sys.path.append('src')
-import population
+from demographic import population
 import posterior
 
 _cache = None
