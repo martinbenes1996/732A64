@@ -33,13 +33,12 @@ from scipy.stats import beta
 from statsmodels.tsa.arima_process import ArmaProcess
 
 def emission(xbar, T, a, b):
-    """
+    """Simulation of emission model.
     
     Args:
-        xbar ():
-        T ():
-        a ():
-        b ():
+        xbar (np.array): Confirmed tests ratio.
+        T (np.array): Number of performed tests
+        a,b (float): Prior parameters.
     """
     # parameters
     alpha_ = (a + T * xbar)
@@ -56,15 +55,14 @@ def emission(xbar, T, a, b):
     # result
     return draw
 
-def emission_objective(reported, xbar, T, a, b):
-    """
+def emission_objective(infected, xbar, T, a, b):
+    """Objective value of emission model for `infected`.
     
     Args:
-        reported ():
-        xbar ():
-        T ():
-        a ():
-        b ():
+        infected (np.array): Infected to be tested against the emission.
+        xbar (np.array): Confirmed tests ratio.
+        T (np.array): Number of performed tests
+        a,b (float): Prior parameters.
     """
     # parameters
     alpha_ = (a + T * xbar)
@@ -73,12 +71,17 @@ def emission_objective(reported, xbar, T, a, b):
     D = T.shape[0]
     logL = 0
     for i in range(D):
-        logL += beta.logpdf(reported[i] + 1e-11, alpha_[i], beta_[i])
+        logL += beta.logpdf(infected[i] + 1e-11, # log stability
+                            alpha_[i], beta_[i])
     # result
     return -logL
 
 def plot_MA(maxit = 100, N = 365, T = 1000, save=False, name='img/results/emission.png'):
-    """
+    """Generate emission model output with transition replaced with MA.
+    
+    Transition model is defined as
+    
+        z_t = z_{t-1} + 3*sin(2*pi*t/T)
     
     Args:
         maxit (int): Number of samples

@@ -1,4 +1,5 @@
 
+from . import deaths
 from . import ifr
 from . import incubation
 from . import symptoms

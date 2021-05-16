@@ -1,4 +1,34 @@
+# -*- coding: utf-8 -*-
+"""Module with main functionality for model.
 
+Module containing main model functionality.
+
+Example:
+    Load calendar of events with
+
+        posterior.posterior_objective()
+        
+    TODO
+    
+        posterior.simulate_posterior()
+    
+    TODO
+    
+        posterior.plot_posterior()
+        
+    TODO
+    
+        posterior.compute_sim_mean()
+    
+    TODO
+    
+        posterior.compute_sim_ci()
+        
+    TODO
+    
+        posterior.run_covid_characteristics()
+
+"""
 from datetime import datetime,timedelta
 from matplotlib import pyplot as plt
 import numpy as np
@@ -12,6 +42,12 @@ from emission import emission,emission_objective
 from transition import transition
 
 def _parse_params(params, fixparams):
+    """
+    
+    Args:
+        params ():
+        fixparams ():
+    """
     # no fixparams set
     if fixparams is None:
         return params
@@ -40,6 +76,13 @@ def _parse_params(params, fixparams):
 
 _data = {}
 def _posterior_data(region, dates, weekly=False):
+    """
+    
+    Args:
+        region ():
+        dates ():
+        weekly (bool, optional):
+    """
     global _data
     # get data
     if region not in _data:
@@ -55,10 +98,22 @@ def _posterior_data(region, dates, weekly=False):
         .fillna(0)
     return x
 
-import time
 def posterior_objective(params, region, dates, initial, fixparams = None, weekly=False,
                         attributes = 'IRD', parI = (1,1), parR = (1,1), parD = (1,1)):
-    """"""
+    """
+    
+    Args:
+        params ():
+        region ():
+        dates ():
+        initial ():
+        fixparams ():
+        weekly ():
+        attributes ():
+        parI ():
+        parR ():
+        parD ():
+    """
     x = _posterior_data(region, dates, weekly=weekly)
     POP = population.get_population(region)
     # construct params dataframe
@@ -84,7 +139,20 @@ def posterior_objective(params, region, dates, initial, fixparams = None, weekly
 
 def simulate_posterior(region, params, dates, initial, N = 1000, weekly = False,
                        parI = (1,1), parR = (1,1),parD = (1,1), random_params = False):
-    """"""
+    """
+    
+    Args:
+        region ():
+        params ():
+        dates ():
+        initial ():
+        N ():
+        weekly ():
+        parI ():
+        parR ():
+        parD ():
+        random_params ():
+    """
     x = _posterior_data(region, dates, weekly=weekly)\
         .reset_index(drop = True)
     POP = population.get_population(region)
@@ -127,14 +195,34 @@ def simulate_posterior(region, params, dates, initial, N = 1000, weekly = False,
 
 def plot_posterior(region, params, dates, initial, N = 1000,
                    parI = (1,1), parR = (1,1), parD = (1,1), random_params=False):
-    """"""
+    """
+    
+    Args:
+        region ():
+        params ():
+        dates ():
+        initial ():
+        N ():
+        parI ():
+        parR ():
+        parD ():
+        random_params ():
+    """
     # run simulation
     (sim_lat,sim_obs),_ = simulate_posterior(
         region=region, params=params, dates=dates, N=N, initial=initial,
-        parI=parI, parR=parR, parD=parD, random_params=random_params)
+        parI=parI, parR=parR, parD=parD, random_params=random_params
+    )
     _plot_posterior(sim=(sim_lat,sim_obs), region=region, dates=dates)
 
 def _plot_confirmed(mean, ci, x):
+    """
+    
+    Args:
+        mean ():
+        ci ():
+        x ():
+    """
     # data
     sim_mean,sim_obs_mean = mean
     if ci is None: ci = (None,None)
@@ -151,10 +239,17 @@ def _plot_confirmed(mean, ci, x):
         ax1.plot(x.date, x.confirmed, color = 'blue', label='Data')
     ax1.set_xlabel('Date')
     ax1.set_ylabel('Infected')
-    plt.yscale('log')
-    plt.legend()
+    ax1.set_yscale('log')
+    ax1.legend()
 
 def _plot_recovered(mean, ci, x):
+    """
+    
+    Args:
+        mean ():
+        ci ():
+        x ():
+    """
     # data
     sim_mean,sim_obs_mean = mean
     if ci is None: ci = (None,None)
@@ -175,6 +270,13 @@ def _plot_recovered(mean, ci, x):
     plt.legend()
 
 def _plot_deaths(mean, ci, x):
+    """
+    
+    Args:
+        mean ():
+        ci ():
+        x ():
+    """
     # data
     sim_mean,sim_obs_mean = mean
     if ci is None: ci = (None,None)
@@ -195,17 +297,36 @@ def _plot_deaths(mean, ci, x):
     plt.legend()
 
 def compute_sim_mean(sim):
+    """
+    
+    Args:
+        sim ():
+    """
     sim_lat,sim_obs = sim
     sim_mean = sim_lat.mean(axis=1)
     sim_obs_mean = sim_obs.mean(axis=1)
     return sim_mean,sim_obs_mean
+
 def compute_sim_ci(sim):
+    """
+    
+    Args:
+        sim ():
+    """
     sim_lat,sim_obs = sim
     sim_ci = np.quantile(sim_lat, [.025,.975], axis = 1)
     sim_obs_ci = np.quantile(sim_obs, [.025,.975], axis = 1)
     return sim_ci,sim_obs_ci 
 
 def _plot_posterior(sim=None, region=None, dates=None, sim_mean=None):
+    """
+    
+    Args:
+        sim ():
+        region ():
+        dates ():
+        sim_mean ():
+    """
     assert(region is not None)
     assert(dates is not None)
     # fetch data
@@ -225,8 +346,8 @@ def _plot_posterior(sim=None, region=None, dates=None, sim_mean=None):
     _plot_deaths((sim_mean,sim_obs_mean),(sim_ci,sim_obs_ci),x)
     plt.show()
 
-
 def run_covid_characteristics():
+    """"""
     params = pd.DataFrame({
         'start': [datetime(2020,3,1)],
         'end': [datetime(2020,9,30)],
@@ -238,9 +359,6 @@ def run_covid_characteristics():
     plot_posterior(
         'PL', N=1000, params=params, dates=(datetime(2020,3,1),datetime(2020,9,30)), 
         initial=(700/1000,150/1000,150/1000,0,0),
-        parI=(1,1e3), parR=(1,1e3), parD=(1,1), random_params=True)
+        parI=(1,1e3), parR=(1,1e3), parD=(1,1), random_params=True
+    )
 
-
-
-if __name__ == '__main__':
-    run_covid_characteristics()

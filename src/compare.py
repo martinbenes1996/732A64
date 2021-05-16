@@ -1,4 +1,14 @@
+# -*- coding: utf-8 -*-
+"""Component performing regional comparison of simulation results.
 
+Module containing operations to compare regional simulation results.
+
+Example:
+    Italian covid deaths can be fetched with
+    
+        covid_deaths_it = deaths.covid19italy.covid_deaths()
+    
+"""
 from datetime import datetime,timedelta
 from matplotlib import pyplot as plt
 import numpy as np
@@ -9,6 +19,7 @@ sys.path.append('src')
 from demographic import population
 import posterior
 
+# Regions of countries
 CZ_regions = ['CZ010','CZ020','CZ031','CZ032','CZ041','CZ042','CZ051',
               'CZ052','CZ053','CZ063','CZ064','CZ071','CZ072','CZ080']
 IT_regions = ['ITC1','ITC2','ITC3','ITC4','ITF1','ITF2','ITF3','ITF4',
@@ -20,9 +31,19 @@ SE_regions = ['SE','SE110','SE121','SE122','SE123','SE124','SE125','SE211',
               'SE212','SE213','SE214','SE221','SE224','SE231','SE232','SE311',
               'SE312','SE313','SE321','SE322','SE331','SE332']
 def get_path(region):
+    """
+    
+    Args:
+        region ():
+    """
     return f'results/{region[:2]}w/{region}'
 
 def load_result(region):
+    """
+    
+    Args:
+        region ():
+    """
     path = get_path(region)
     # load
     x = pd.read_csv(f'{path}/data.csv')
@@ -37,6 +58,14 @@ def load_result(region):
     return lat,x.date,params
 
 def prediction_data_correlation(regions, components, delta=None, weekly=False):
+    """
+    
+    Args:
+        regions ():
+        components ():
+        delta ():
+        weekly ():
+    """
     # initialize
     corrs = {'region': regions}
     for c in components: corrs[c] = []
@@ -62,6 +91,13 @@ def prediction_data_correlation(regions, components, delta=None, weekly=False):
     return corrs
 
 def parameters(regions, delta=None, weekly=False):
+    """
+    
+    Args:
+        regions ():
+        delta ():
+        weekly ():
+    """
     # initialize
     pars = {'Region': [], 'Year': np.array([]), 'Month': np.array([]),
             'a': np.array([]), 'c': np.array([]), 'b': np.array([]), 'd': np.array([])}
@@ -91,7 +127,15 @@ def parameters(regions, delta=None, weekly=False):
     pars['Date'] = pars.apply(lambda r: '%04d-%02d' % (r.Year,r.Month), axis=1)
     return pars
 
-def get_country_R0(countries, log=True):
+def get_country_R0(countries, log=True, save=False, name='TODO'):
+    """
+    
+    Args:
+        countries ():
+        log ():
+        save ():
+        name ():
+    """
     # get parameters
     x = None
     for country in countries:
@@ -106,7 +150,6 @@ def get_country_R0(countries, log=True):
         else: x = pd.concat([x,pars])
     # compute reproduction number
     x['R0'] = x.a / x.b * x.S
-    
     res = {'Country': [], 'Year': [], 'Month': [], 'Date': [],
            'Mean': [], 'Low': [], 'High': []}
     for (c,y,m,dt),df in x.groupby(['Country','Year','Month','Date']):
@@ -118,20 +161,26 @@ def get_country_R0(countries, log=True):
         res['Mean'].append(df.R0.mean())
         res['Low'].append(df.R0.quantile(.05))
         res['High'].append(df.R0.quantile(.95))
-
     res = pd.DataFrame(res)
     fig, ax = plt.subplots(figsize=(10, 6))
     if log is True: ax.set(yscale="log")
-    print(res)
     colors=['black','green','blue','red']
     for (g,d),col in zip(res.groupby('Country'),colors):
         ax.plot(d.Date, d.Mean, label=g, color=col)
     ax.set_xlabel('Date')
     ax.set_ylabel('R0')
     ax.legend()
-    plt.show()
+    if save: fig.savefig(name)
 
-def get_R0(countries, log=True):
+def get_R0(countries, log=True, save=False, name='TODO'):
+    """
+    
+    Args:
+        countries ():
+        log ():
+        save ():
+        name ():
+    """
     # get parameters
     x = None
     regions = []
@@ -151,7 +200,6 @@ def get_R0(countries, log=True):
         else: x = pd.concat([x,pars])
     # compute reproduction number
     x['R0'] = x.a / x.b * x.S
-    
     res = {'Country': [], 'Year': [], 'Month': [], 'Date': [],
            'Mean': [], 'Low': [], 'High': []}
     for (c,y,m,dt),df in x.groupby(['Country','Year','Month','Date']):
@@ -159,28 +207,29 @@ def get_R0(countries, log=True):
         res['Year'].append(y)
         res['Month'].append(m)
         res['Date'].append(dt)
-        #print(df)
         res['Mean'].append(df.R0.mean())
         res['Low'].append(df.R0.quantile(.05))
         res['High'].append(df.R0.quantile(.95))
-        #break
-    
     res = pd.DataFrame(res)
     fig, ax = plt.subplots(figsize=(10, 6))
     if log is True: ax.set(yscale="log")
-    #sns.lineplot(x="Date", y="mean", hue='Country', data=x, ax=ax)
-    print(res)
     colors=['black','green','blue','red']
     for (g,d),col in zip(res.groupby('Country'),colors):
         ax.plot(d.Date, d.Mean, label=g, color=col)
-        #ax.fill_between(d.Date, d.Low, d.High, alpha=.1, color=col)
-    #ax.axhline(1, ls='--', color='grey', alpha=.5)
     ax.set_xlabel('Date')
     ax.set_ylabel('R0')
     ax.legend()
-    plt.show()
+    if save: fig.savefig(name)
 
-def plot_R0(countries, log=True):
+def plot_R0(countries, log=True, save=False, name='TODO'):
+    """
+    
+    Args:
+        countries ():
+        log ():
+        save ():
+        name ():
+    """
     # get parameters
     x = None
     regions = []
@@ -206,9 +255,17 @@ def plot_R0(countries, log=True):
     if log is True: ax.set(yscale="log")
     ax = sns.boxplot(x="Date", y="R0", hue='Country', data=x, ax=ax)
     ax.axhline(1, ls='--', color='grey', alpha=.5)
-    plt.show()
+    if save: fig.savefig(name)
 
-def get_IFR(countries, log=True):
+def get_IFR(countries, log=True, save=False, name='TODO'):
+    """
+    
+    Args:
+        countries ():
+        log ():
+        save ():
+        name ():
+    """
     # get parameters
     x = None
     regions = []
@@ -223,7 +280,6 @@ def get_IFR(countries, log=True):
         else: x = pd.concat([x,pars])
     # compute reproduction number
     x['IFR'] = x.d
-    
     res = {'Country': [], 'Year': [], 'Month': [], 'Date': [],
            'Mean': [], 'Low': [], 'High': []}
     for (c,y,m,dt),df in x.groupby(['Country','Year','Month','Date']):
@@ -231,33 +287,32 @@ def get_IFR(countries, log=True):
         res['Year'].append(y)
         res['Month'].append(m)
         res['Date'].append(dt)
-        #print(df)
         res['Mean'].append(df.IFR.mean())
         res['Low'].append(df.IFR.quantile(.05))
         res['High'].append(df.IFR.quantile(.95))
-        #break
-    
     res = pd.DataFrame(res)
     fig, ax = plt.subplots(figsize=(10, 6))
     if log is True: ax.set(yscale="log")
-    #sns.lineplot(x="Date", y="mean", hue='Country', data=x, ax=ax)
-    
-    print(res)
     colors=['black','green','blue','red']
     for (g,d),col in zip(res.groupby('Country'),colors):
         ax.plot(d.Date, d.Mean, label=g, color=col)
-        #ax.fill_between(d.Date, d.Low, d.High, alpha=.1, color=col)
-    #ax.axhline(1, ls='--', color='grey', alpha=.5)
     ax.set_xlabel('Date')
     ax.set_ylabel('IFR')
     ax.legend()
-    plt.show()
+    if save: fig.savefig(name)
 
-def get_country_IFR(countries, log=True):
+def get_country_IFR(countries, log=True, save=False, name='TODO'):
+    """
+    
+    Args:
+        countries ():
+        log ():
+        save ():
+        name ():
+    """
     # get parameters
     x = None
     for country in countries:
-        print(country)
         pars = parameters([country])
         susc = pd.DataFrame({country: load_result(country)[0][0,:]})
         susc = pd.melt(susc,var_name='region',value_name='S')
@@ -268,7 +323,6 @@ def get_country_IFR(countries, log=True):
         else: x = pd.concat([x,pars])
     # compute reproduction number
     x['IFR'] = x.d
-    
     res = {'Country': [], 'Year': [], 'Month': [], 'Date': [],
            'Mean': [], 'Low': [], 'High': []}
     for (c,y,m,dt),df in x.groupby(['Country','Year','Month','Date']):
@@ -280,20 +334,26 @@ def get_country_IFR(countries, log=True):
         res['Mean'].append(df.IFR.mean())
         res['Low'].append(df.IFR.quantile(.05))
         res['High'].append(df.IFR.quantile(.95))
-
     res = pd.DataFrame(res)
     fig, ax = plt.subplots(figsize=(10, 6))
     if log is True: ax.set(yscale="log")
-    print(res)
     colors=['black','green','blue','red']
     for (g,d),col in zip(res.groupby('Country'),colors):
         ax.plot(d.Date, d.Mean, label=g, color=col)
     ax.set_xlabel('Date')
     ax.set_ylabel('IFR')
     ax.legend()
-    plt.show()
+    if save: fig.savefig(name)
 
-def plot_IFR(countries, log=True):
+def plot_IFR(countries, log=True, save=False, name='TODO'):
+    """
+    
+    Args:
+        countries ():
+        log ():
+        save ():
+        name ():
+    """
     # get parameters
     x = None
     regions = []
@@ -312,10 +372,17 @@ def plot_IFR(countries, log=True):
     fig, ax = plt.subplots(figsize=(8, 6))
     if log is True: ax.set(yscale="log")
     ax = sns.boxplot(x="Date", y="IFR", hue='Country', data=x, ax=ax)
-    #ax.axhline(1, ls='--', color='grey', alpha=.5)
-    plt.show()
+    if save: fig.savefig(name)
 
-def get_symptoms(countries, log=True):
+def get_symptoms(countries, log=True, save=False, name='TODO'):
+    """
+    
+    Args:
+        countries ():
+        log ():
+        save ():
+        name ():
+    """
     # get parameters
     x = None
     regions = []
@@ -330,7 +397,6 @@ def get_symptoms(countries, log=True):
         else: x = pd.concat([x,pars])
     # compute reproduction number
     x['Symptoms'] = 1 / x.b
-    
     res = {'Country': [], 'Year': [], 'Month': [], 'Date': [],
            'Mean': [], 'Low': [], 'High': []}
     for (c,y,m,dt),df in x.groupby(['Country','Year','Month','Date']):
@@ -338,29 +404,29 @@ def get_symptoms(countries, log=True):
         res['Year'].append(y)
         res['Month'].append(m)
         res['Date'].append(dt)
-        #print(df)
         res['Mean'].append(df.Symptoms.mean())
         res['Low'].append(df.Symptoms.quantile(.05))
         res['High'].append(df.Symptoms.quantile(.95))
-        #break
-    
     res = pd.DataFrame(res)
     fig, ax = plt.subplots(figsize=(10, 6))
     if log is True: ax.set(yscale="log")
-    #sns.lineplot(x="Date", y="mean", hue='Country', data=x, ax=ax)
-    
-    print(res)
     colors=['black','green','blue','red']
     for (g,d),col in zip(res.groupby('Country'),colors):
         ax.plot(d.Date, d.Mean, label=g, color=col)
-        #ax.fill_between(d.Date, d.Low, d.High, alpha=.1, color=col)
-    #ax.axhline(1, ls='--', color='grey', alpha=.5)
     ax.set_xlabel('Date')
     ax.set_ylabel('Symptoms')
     ax.legend()
-    plt.show()
+    if save: fig.savefig(name)
 
-def get_country_symptoms(countries, log=True):
+def get_country_symptoms(countries, log=True, save=False, name='TODO'):
+    """
+    
+    Args:
+        countries ():
+        log ():
+        save ():
+        name ():
+    """
     # get parameters
     x = None
     for country in countries:
@@ -375,7 +441,6 @@ def get_country_symptoms(countries, log=True):
         else: x = pd.concat([x,pars])
     # compute reproduction number
     x['symptoms'] = 1 / x.b
-    
     res = {'Country': [], 'Year': [], 'Month': [], 'Date': [],
            'Mean': [], 'Low': [], 'High': []}
     for (c,y,m,dt),df in x.groupby(['Country','Year','Month','Date']):
@@ -387,20 +452,26 @@ def get_country_symptoms(countries, log=True):
         res['Mean'].append(df.symptoms.mean())
         res['Low'].append(df.symptoms.quantile(.05))
         res['High'].append(df.symptoms.quantile(.95))
-
     res = pd.DataFrame(res)
     fig, ax = plt.subplots(figsize=(10, 6))
     if log is True: ax.set(yscale="log")
-    print(res)
     colors=['black','green','blue','red']
     for (g,d),col in zip(res.groupby('Country'),colors):
         ax.plot(d.Date, d.Mean, label=g, color=col)
     ax.set_xlabel('Date')
     ax.set_ylabel('Duration of symptoms')
     ax.legend()
-    plt.show()
+    if save: fig.savefig(name)
 
-def plot_symptoms(countries, log=True):
+def plot_symptoms(countries, log=True, save=False, name='TODO'):
+    """
+    
+    Args:
+        countries ():
+        log ():
+        save ():
+        name ():
+    """
     # get parameters
     x = None
     regions = []
@@ -419,10 +490,15 @@ def plot_symptoms(countries, log=True):
     fig, ax = plt.subplots(figsize=(8, 6))
     if log is True: ax.set(yscale="log")
     ax = sns.boxplot(x="Date", y="Duration of symptoms", hue='Country', data=x, ax=ax)
-    #ax.axhline(1, ls='--', color='grey', alpha=.5)
-    plt.show()
+    if save: fig.savefig(name)
 
 def plot_correlation_heatmap(countries, delta=timedelta(days=60)):
+    """
+    
+    Args:
+        countries ():
+        delta ():
+    """
     # initialize
     pars = {'Country': [], 'Date': [], 'S': [], 'E': [], 'I': [], 'R': [], 'D': []}
     regions = []
@@ -459,14 +535,16 @@ def plot_correlation_heatmap(countries, delta=timedelta(days=60)):
             corD = np.corrcoef(pars1.D, pars2.D)[1,0]
             i,j = reg_map[reg1],reg_map[reg2]
             corM[i,j] = (corS+corE+corI+corR+corD)/5
-    print(corM)
-    return        
-            #print(reg1, reg2, '=', corS, corE, corI, corR, corD)
-        #break
-    #print(pars.Country.unique())
-    #print(pars)
+    #print(corM)
 
 def plot_correlation_distribution(countries, delta=timedelta(days=60), weekly=True):
+    """
+    
+    Args:
+        countries ():
+        delta ():
+        weekly ():
+    """
     # regions
     x = None
     regions = []
@@ -482,21 +560,19 @@ def plot_correlation_distribution(countries, delta=timedelta(days=60), weekly=Tr
         if x is None: x = corrs
         else: x = pd.concat([x,corrs])
     # plot
-    #fig, ax = plt.subplots(figsize=(8, 6))
-    sns.displot(x, x="D", hue="Country", element="step", multiple="stack", bins=20)
-    #ax.hist(corrs['I'], bins=40, range=[-1,1], density=False)
-    plt.xlim([-1,1])
+    fig, ax = plt.subplots(figsize=(8, 6))
+    sns.displot(x, x="D", hue="Country", element="step", multiple="stack", bins=20, ax=ax)
+    ax.set_xlim([-1,1])
 
 def compare_60d():
-    prediction_data_correlation(['CZ',*CZ_regions],
-                                'IRD', timedelta(days=60))#(datetime(2020,8,1),datetime(2020,9,30)))
-    prediction_data_correlation(['SE',*SE_regions],
-                                'ID', timedelta(days=60))#(datetime(2020,7,6),datetime(2020,12,31)))
-    prediction_data_correlation(['PL',*PL_regions],
-                                'ID', timedelta(days=60))#(datetime(2020,3,4),datetime(2020,4,15)))
-    prediction_data_correlation(['IT',*IT_regions],
-                                'IRD', timedelta(days=60))#(datetime(2020,3,1),datetime(2020,4,30)))
+    """"""
+    prediction_data_correlation(['CZ',*CZ_regions],'IRD', timedelta(days=60))
+    prediction_data_correlation(['SE',*SE_regions],'ID', timedelta(days=60))
+    prediction_data_correlation(['PL',*PL_regions],'ID', timedelta(days=60))
+    prediction_data_correlation(['IT',*IT_regions],'IRD', timedelta(days=60))
+    
 def compare_all():
+    """"""
     prediction_data_correlation(['CZ',*CZ_regions], 'IRD')
     prediction_data_correlation(['SE',*SE_regions], 'ID')
     prediction_data_correlation(['PL',*PL_regions], 'ID')

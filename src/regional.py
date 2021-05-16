@@ -1,4 +1,10 @@
+"""TODO
 
+Example:
+    TODO
+
+        TODO
+"""
 from datetime import datetime
 import json
 from matplotlib import pyplot as plt
@@ -12,6 +18,11 @@ import posterior
 
 _cache = None
 def _load_data(dates):
+    """
+    
+    Args:
+        dates ():
+    """
     global _cache
     if _cache is not None:
         return _cache
@@ -42,11 +53,17 @@ def _load_data(dates):
             r = x.recovered.to_numpy().reshape((1,-1))
             data_r = np.concatenate([data_r,r],axis=0) if data_r is not None else r
             regions_r.append(reg)
-
     _cache = (data_c,data_d,data_r),dateaxis,(regions,regions,regions_r)
     return _cache
 
 def _plot_clusters(data, dates, regions):
+    """
+    
+    Args:
+        data ():
+        dates ():
+        regions ():
+    """
     sns.clustermap(
         data,
         metric="cosine",
@@ -59,19 +76,16 @@ def _plot_clusters(data, dates, regions):
     plt.yticks(fontsize=7)
 
 def plot_confirmed():
+    """"""
     data,dates,cols = _load_data((datetime(2020,8,1),datetime(2021,3,15)))
     _plot_clusters(data[0], dates, cols[0])
-    plt.show()
+    
 def plot_deaths():
+    """"""
     data,dates,cols = _load_data((datetime(2020,8,1),datetime(2021,3,15)))
     _plot_clusters(data[1], dates, cols[1])
-    plt.show()
+    
 def plot_recovered():
+    """"""
     data,dates,cols = _load_data((datetime(2020,8,1),datetime(2021,3,15)))
     _plot_clusters(data[2], dates, cols[2])
-    plt.show()
-
-if __name__ == '__main__':
-    plot_confirmed()
-    plot_deaths()
-    plot_recovered()

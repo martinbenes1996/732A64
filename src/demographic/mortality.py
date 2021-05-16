@@ -160,8 +160,7 @@ def plot_poland_0_4(save = False, name = 'img/demographic/mortality_pl_05.png'):
     if save: fig.savefig(name)
 
 # cache pops
-pops = population._populations_data()
-pops.population = pops.population / 1000
+pops = None
 def test_countries_equal(c1, c2, years = [2020]):
     """Hypothesis test of similarity of countries' mortality.
     
@@ -169,6 +168,10 @@ def test_countries_equal(c1, c2, years = [2020]):
         c1,c2 (str): Countries' iso2 codes to compare, codes are {'CZ','IT','PL','SE'}.
         years (list): List of years.
     """
+    global pops
+    if pops is None:
+        pops = population._populations_data()
+        pops.population = pops.population / 1000
     # fetch data, filter by year
     df = data()
     df = df[df.year.isin(years)]

@@ -1,4 +1,15 @@
+# -*- coding: utf-8 -*-
+"""Module with priors.
 
+Module containing functionality for model priors.
+
+Example:
+    Load calendar of events with
+
+        posterior.posterior_objective()
+
+"""
+from datetime import datetime
 import json
 import matplotlib.pyplot as plt
 import numpy as np
@@ -7,11 +18,11 @@ from scipy.stats import lognorm,norm,gamma,beta,norm,uniform,dweibull,argus,tria
 from sklearn.utils import resample
 import sys
 sys.path.append('src')
-from covid19 import ifr,incubation,src,symptoms,testing
+from covid19 import ifr,incubation,src,symptoms,tests as testing
 from demographic import population
 
 def EI():
-    """"""
+    """Get distributions for parameter c, connection E-I."""
     # seed
     np.random.seed(seed=12345)
     # draw from incubation period
@@ -25,7 +36,7 @@ def EI():
             'gamma': gamma.fit(samples, loc = .2, scale = 10)}
     
 def IR():
-    """"""
+    """Get distributions for parameter b, connection I-R."""
     # seed
     np.random.seed(seed=12345)
     # draw from symptoms period
@@ -40,7 +51,7 @@ def IR():
             'gamma': gamma.fit(samples)}
 
 def ID():
-    """"""
+    """Get distributions for parameter d, connection I-D."""
     # seed
     np.random.seed(seed=12345)
     # draw from symptoms period
@@ -55,38 +66,46 @@ def ID():
             'gamma': gamma.fit(samples)}
 
 def draw_R0(K):
+    """Draw samples from reproduction number R_0.
+    
+    Args:
+        K (int): Sample size.
+    """
     return uniform.rvs(2,2, size = K)
 
 def SI():
-    """"""
+    """Get distributions for parameter a, connection S-I."""
     # seed
     np.random.seed(seed=12345)
     # get ir
     fit_IR = IR()
-    #fit_ID = ID()
     # sample
     K = 100000
     r0 = draw_R0(K)
     ir = beta.rvs(*fit_IR['beta'][:2], size = K)
-    #id = beta.rvs(*fit_ID['beta'][:2], size = K)
-    # 
-    samples = r0 * (ir)#r0 * (ir + id)
-    #print(samples)
-    #samples = samples[samples < 1]
+    samples = r0 * (ir)
+    # fit
     return {'x': samples,
-            #'gamma': gamma.fit(samples),
             'beta': beta.fit(samples, floc = 0)}
 
 def _get_beta_label(params):
+    """Construct label for Beta distribution.
+    
+    Args:
+        params (tuple): Parameters (a,b,mu,sigma).
+    """
     # parameters
-    a = params[0]
-    b = params[1]
-    mu = params[2]
-    s = params[3]
+    a,b,mu,s = params
     # format
     label = 'Beta((X - %.3f)/%.3f ; a=%.3f, b=%.3f)'
     return label % (mu, s, a, b)
+
 def _get_gamma_label(params):
+    """Construct label for Gamma distribution.
+    
+    Args:
+        params (tuple): Parameters (a,b,mu,sigma).
+    """
     # parameters
     a = params[0]
     b = 1 / params[2]
@@ -96,6 +115,12 @@ def _get_gamma_label(params):
     return label % (mu, a, b)
 
 def plot_R0(save = False, name = 'img/parameters/R0.png'):
+    """Construct plot of simulated R0.
+    
+    Args:
+        save (bool, optional): Whether to save the figure, defaultly not.
+        name (str, optional): Path to save the plot to.
+    """
     # get fit
     r0 = draw_R0(10000)
     # generate curve
@@ -109,9 +134,14 @@ def plot_R0(save = False, name = 'img/parameters/R0.png'):
     ax1.set_ylabel('Density')
     # save plot
     if save: fig1.savefig(name)
-    
 
 def plot_SI(save = False, name = 'img/sir/SI.png'):
+    """Construct plot of simulated parameter a.
+    
+    Args:
+        save (bool, optional): Whether to save the figure, defaultly not.
+        name (str, optional): Path to save the plot to.
+    """
     # get fit
     fit = SI()
     # generate curve
@@ -128,7 +158,12 @@ def plot_SI(save = False, name = 'img/sir/SI.png'):
     if save: fig1.savefig(name)
 
 def plot_EI(save = False, name = 'img/sir/EI.png'):
-    """"""
+    """Construct plot of simulated parameter c.
+    
+    Args:
+        save (bool, optional): Whether to save the figure, defaultly not.
+        name (str, optional): Path to save the plot to.
+    """
     # get fit
     fit = EI()
     # generate curve
@@ -149,7 +184,12 @@ def plot_EI(save = False, name = 'img/sir/EI.png'):
     if save: fig1.savefig(name)
     
 def plot_IR(save = False, name = 'img/sir/IR.png'):
-    """"""
+    """Construct plot of simulated parameter b.
+    
+    Args:
+        save (bool, optional): Whether to save the figure, defaultly not.
+        name (str, optional): Path to save the plot to.
+    """
     # get fit
     fit = IR()
     # generate curve
@@ -166,7 +206,12 @@ def plot_IR(save = False, name = 'img/sir/IR.png'):
     if save: fig1.savefig(name)
 
 def plot_ID(save = False, name = 'img/sir/ID.png'):
-    """"""
+    """Construct plot of simulated parameter d.
+    
+    Args:
+        save (bool, optional): Whether to save the figure, defaultly not.
+        name (str, optional): Path to save the plot to.
+    """
     # get fit
     fit = ID()
     # generate curve
@@ -183,13 +228,20 @@ def plot_ID(save = False, name = 'img/sir/ID.png'):
     if save: fig1.savefig(name)
 
 def plot_parameters():
+    """Construct plots of all four parameters a,c,b,d."""
     plot_SI(save = True)
     plot_EI(save = True)
     plot_IR(save = True)
     plot_ID(save = True)
 
 def priors(save = False, name = 'data/distr/prior.json'):
-    """"""
+    """Construct plot of simulated parameter d.
+    
+    Args:
+        save (bool, optional): Whether to save the figure, defaultly not.
+        name (str, optional): Path to save the plot to.
+    """
+    # fit distributions
     _si = SI()['beta']
     _ei = EI()['beta']
     _ir = IR()['beta']
@@ -212,13 +264,22 @@ def priors(save = False, name = 'data/distr/prior.json'):
             'param': _id
         }
     }
+    # save & return
     if save:
         with open(name,'w') as fp:
             json.dump(prior_params, fp, indent = 2)
     return prior_params
 
 def test_prior(save = False, name = 'data/distr/testratio.csv'):
-    """"""
+    """
+    
+    Args:
+        save (bool, optional): Whether to save the figure, defaultly not.
+        name (str, optional): Path to save the plot to.
+    """
+    try:
+        return pd.read_csv(name)
+    except: pass
     # get data
     pop = population.countries()
     tests = testing.tests()
@@ -237,10 +298,16 @@ def test_prior(save = False, name = 'data/distr/testratio.csv'):
     return tests
 
 def tested(country = None, date_min = None, date_max = None):
+    """Fit distribution to test ratio.
+    
+    Args:
+        country (str): Country to fit data to.
+        date_min (datetime.datetime): Minimal date of the data.
+        date_max (datetime.datetime): Maximal date of the data.
+    """
     # get data
     df = test_prior()
     # filter by country and dates
-
     if country is not None:
         df = df[df.country == country]
     if date_min is not None:
@@ -254,7 +321,15 @@ def tested(country = None, date_min = None, date_max = None):
     }
 
 def confirmed_prior(save = False, name = 'data/distr/confirmedratio.csv'):
-    """"""
+    """Get ratio of confirmed cases.
+    
+    Args:
+        save (bool, optional): Whether to save the figure, defaultly not.
+        name (str, optional): Path to save the plot to.
+    """
+    try:
+        return pd.read_csv(name)
+    except: pass
     # get data
     pop = population.countries()
     df = src.get_data()
@@ -279,9 +354,17 @@ def confirmed_prior(save = False, name = 'data/distr/confirmedratio.csv'):
     if save: df.to_csv(name, index = False)
     return df
 
-def plot_test_prior(cmap = {}):
+def plot_test_prior(cmap = {}, save=False, name='TODO'):
+    """
+    
+    Args:
+        cmap (dict, optional): Color configuration.
+        save (bool, optional): Whether to save the figure, defaultly not.
+        name (str, optional): Path to save the plot to.
+    """
     # get ratio
     x = test_prior()
+    x['date'] = x.date.apply(lambda d: datetime.strptime(d, '%Y-%m-%d'))
     x['month'] = x.date.apply(lambda d: d.strftime("%Y-%m"))
     # estimate CI
     fig1, ax1 = plt.subplots()
@@ -311,37 +394,15 @@ def plot_test_prior(cmap = {}):
     ax1.legend()
     ax1.set_xlabel('Date')
     ax1.set_ylabel('P ( Tested )')
+    if save: fig1.savefig(name)
 
 def plot_test_ratio_all(save = False, name = 'img/parameters/test_ratio.png'):
+    """
+    
+    Args:
+        save (bool, optional): Whether to save the figure, defaultly not.
+        name (str, optional): Path to save the plot to.
+    """
     plot_test_prior(cmap = {'CZE': 'r','ITA': 'g', 'SWE': 'b'})
     if save: plt.savefig(name)
-
-#plot_SI()
-#plt.show()
-#priors(save = True)
-#test_prior(save = True)
-
-#confirmed_prior(save = True)
-
-if __name__ == "__main__":
-    plot_SI()
-    plt.show()
-    plot_EI()
-    plt.show()
-    plot_IR()
-    plt.show()
-    #plot_ID()
-    #plt.show()
-    #plot_parameters()
-    #priors(save = True)
-    #plot_parameters()
-    #test_prior(save = True)
-    #confirmed_prior(save = True)
-    #pr = tested(country = 'CZE')
-    #print(pr)
-    
-    #plot_test_ratio_all()
-    #plot_R0(save = False)
-    #plt.show()
-    
     

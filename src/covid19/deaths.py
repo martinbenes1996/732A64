@@ -1,19 +1,43 @@
+# -*- coding: utf-8 -*-
+"""Covid-19 deaths internal component.
 
+Module containing operations with Covid-19 deaths.
+
+Example:
+    Italian covid deaths can be fetched with
+    
+        covid_deaths_it = deaths.covid19italy.covid_deaths()
+
+    Get Covid-19 deaths for all countries with
+    
+        covid_deaths = deaths.get_data()
+    
+    Construct a violin plot of Covid-19 deaths with
+    
+        deaths.plot_violin()
+    
+    Test that age of dying on Covid-19 is greater than 60 with
+    
+        result_over60 = deaths.test_over60()
+    
+"""
 import covid19poland
 import covid19czechia
-from scipy import stats
+import io
+import matplotlib.pyplot as plt
 import pandas as pd
 import openpyxl
 import re
 import requests
-import io
+from scipy import stats
 import seaborn as sns
-import matplotlib.pyplot as plt
-plt.rcParams["figure.figsize"] = (12,10)
-plt.rcParams.update({'font.size': 20})
+#plt.rcParams["figure.figsize"] = (12,10)
+#plt.rcParams.update({'font.size': 20})
 
 class covid19italy:
+    """"""
     def covid_deaths():
+        """Fetch Covid-19 deaths for Italy."""
         # download
         url = 'https://www.epicentro.iss.it/coronavirus/open-data/covid_19-iss.xlsx'
         res = requests.get(url)
@@ -57,9 +81,11 @@ class covid19italy:
         cases['date'] = None
         return cases
 
-def _get_total_data():
+def get_data():
     """Get total Covid-19 data for CZ+IT+SE+PL."""
     def _region_to_country(x):
+        """Aggregate region data to country data."""
+        # aggregate
         return x\
             .groupby(['date','age','sex'])\
             .size()\
@@ -95,9 +121,14 @@ def _get_total_data():
     return df
 
 def plot_violin(save = False, name="img/parameters/covid_lethality.png"):
-    """Violinplot of Covid-19 deaths data per gender and age."""
+    """Violinplot of Covid-19 deaths data per gender and age.
+    
+    Args:
+        save (bool, optional): Whether to save the figure, defaultly not.
+        name (str, optional): Path to save the plot to.
+    """
     # get data
-    df = _get_total_data()
+    df = get_data()
     # plot
     fig1, ax1 = plt.subplots()
     sns.violinplot(x="country", y="age", hue="sex", data = df, ax = ax1)
@@ -107,7 +138,7 @@ def plot_violin(save = False, name="img/parameters/covid_lethality.png"):
 def test_over60():
     """Test that Covid-19 deaths are significantly greater for > 60 years."""
     # get data
-    df = _get_total_data()
+    df = get_data()
     # ttest
     def _ttest_greater(sample_data):
         t,p = stats.ttest_1samp(sample_data, 60)
@@ -120,4 +151,3 @@ def test_over60():
     for sex,df_sex in df.groupby('sex'):
         result['per_sex'][sex] = _ttest_greater(df_sex.age)
     return result
-    

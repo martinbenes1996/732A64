@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-"""Covid-19 IFR internal module.
+"""Module for miscellaneous plots.
 
-Module containing operations with IFR (infection fatality ratio).
-IFR is modelled with a Uniform distribution, by default U(.004,.01).
+Module containing operations for various plots used in the thesis.
 
 Example:
     Construct the plot of linear spline with

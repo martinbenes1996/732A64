@@ -1,4 +1,26 @@
+# -*- coding: utf-8 -*-
+"""Module to optimize the posterior.
 
+Module containing optimization of model parameters.
+
+Example:
+    Run the simulation with
+    
+        optimize.run('CZ', N = 1000)
+    
+    Optimize SEIRD in segments with
+
+        optimize.optimize_spline(
+            region='CZ',
+            dates=('2020-08-01','2021-03-13'),
+            initial={'E':.1,'I':.1,'R':0,'D':0},
+            emission = [(1,1),(1,1),(1,1)],
+            attributes = 'IRD',
+            window = 7,
+            weekly = False
+        )
+    
+"""
 from datetime import datetime,timedelta
 from geneticalgorithm import geneticalgorithm as ga
 import json
@@ -8,9 +30,18 @@ import sys
 sys.path.append('src')
 from demographic import population
 import posterior
-import _results
+import results as _results
 
-def optimize_segment(region, dates, initial, attributes, weekly):
+def _optimize_segment(region, dates, initial, attributes, weekly):
+    """Optimize parameters on segment using simulation.
+    
+    Args:
+        region (str): Region to run simulation for.
+        dates (tuple (2) of datetime.datetime): Limits of dates.
+        initial (tuple (5)): Initial values for (S,E,I,R,D).
+        attributes (str, optional): Attributes used for optimization, 'I', 'R' or 'D'.
+        weekly (bool, optional): Use weekly time slots if True, otherwise daily.
+    """
     fixparams = [None,.2,None,None]#.0064]
     def _obj(pars):
         return posterior.posterior_objective(
@@ -40,7 +71,19 @@ def optimize_segment(region, dates, initial, attributes, weekly):
     params = posterior._parse_params(model.output_dict['variable'], fixparams)
     return params
 
-def optimize_spline(region, dates, initial, emission = [(1,1),(1,1),(1,1)], attributes = 'IRD', window = 7, weekly = False):
+def optimize_spline(region, dates, initial, emission = [(1,1),(1,1),(1,1)],
+                    attributes = 'IRD', window = 7, weekly = False):
+    """Optimize parameters using simulation with a spline compartment model.
+    
+    Args:
+        region (str): Region to run simulation for.
+        dates (tuple (2) of datetime.datetime): Limits of dates.
+        initial (dict): Initial values in dict with keys S,E,I,R,D.
+        emission (list (3) of tuples (2)): Emission prior parameters.
+        attributes (str, optional): Attributes used for optimization, 'I', 'R' or 'D'.
+        window (int, optional): Size of window.
+        weekly (bool, optional): Use weekly time slots if True, otherwise daily.
+    """
     #fixparam = [None,.2,None,.0064]
     # iterate windows
     parameters = {'start': [], 'end': [], 'a': [], 'b': [], 'c': [], 'd': []}
@@ -49,7 +92,7 @@ def optimize_spline(region, dates, initial, emission = [(1,1),(1,1),(1,1)], attr
         if start == end: continue
         print("Segment", start, "to", end)
         # optimize
-        p = optimize_segment(region, (start,end), initial, attributes, weekly)
+        p = _optimize_segment(region, (start,end), initial, attributes, weekly)
         parameters['start'].append(start)
         parameters['end'].append(end)
         parameters['a'].append(p[0])
@@ -64,13 +107,17 @@ def optimize_spline(region, dates, initial, emission = [(1,1),(1,1),(1,1)], attr
         (sim_lat,sim_obs),last_values = posterior.simulate_posterior(
             region=region, params=segment_pars, dates=(start,end), N=1, weekly=weekly,
             initial=initial, parI=emission[0], parR=emission[1], parD=emission[2])
-        # plot
-        #posterior._plot_posterior(sim = (sim_lat,sim_obs), country = country, dates = (start,end))
         # change initial values
         initial_values = last_values
     return pd.DataFrame(parameters)
 
 def run(region, N = 1000):
+    """Run model simulation.
+    
+    Args:
+        region (str): Region to run the simulation for.
+        N (int, optional): Number of samples.
+    """
     region = region.upper().strip()
     print(region)
     # load config
@@ -78,7 +125,7 @@ def run(region, N = 1000):
         _config = json.load(fp)
     config = _config[region]
     config = {
-        'dates': ('2020-08-01','2021-02-28'),
+        'dates': ('2020-08-01','2021-03-13'),
         'window': 7, 'weekly': False, 'attributes': 'IRD',
         'initial': {'E':.1,'I':.1,'R':0,'D':0},
         'emission': {'I':(1,1),'R':(1,1),'D':(1,1)},
@@ -106,7 +153,7 @@ def run(region, N = 1000):
         region=region, params=params, dates=dates, N=N, initial=initial,
         parI=emission[0], parR=emission[1], parD=emission[2])
     # save result
-    _results.save_result((sim_lat,sim_obs), dates, region, params)
+    _results.save((sim_lat,sim_obs), dates, region, params)
 
 if __name__ == '__main__':
     # countries
@@ -130,68 +177,64 @@ if __name__ == '__main__':
     #run('CZ072')
     #run('CZ080')
     # SE regions
-    run('SE110')
-    run('SE121')
-    run('SE122')
-    run('SE123')
-    run('SE124')
-    run('SE125')
-    run('SE211')
-    run('SE212')
-    run('SE213')
-    run('SE214')
-    run('SE221')
-    run('SE224')
-    run('SE231')
-    run('SE232')
-    run('SE311')
-    run('SE312')
-    run('SE313')
-    run('SE321')
-    run('SE322')
-    run('SE331')
-    run('SE332')
+    #run('SE110')
+    #run('SE121')
+    #run('SE122')
+    #run('SE123')
+    #run('SE124')
+    #run('SE125')
+    #run('SE211')
+    #run('SE212')
+    #run('SE213')
+    #run('SE214')
+    #run('SE221')
+    #run('SE224')
+    #run('SE231')
+    #run('SE232')
+    #run('SE311')
+    #run('SE312')
+    #run('SE313')
+    #run('SE321')
+    #run('SE322')
+    #run('SE331')
+    #run('SE332')
     # IT regions
-    run('ITC1')
-    run('ITC2')
-    run('ITC3')
-    run('ITC4')
-    run('ITF1')
-    run('ITF2')
-    run('ITF3')
-    run('ITF4')
-    run('ITF5')
-    run('ITF6')
-    run('ITG1')
-    run('ITG2')
-    run('ITH10')
-    run('ITH20')
-    run('ITH3')
-    run('ITH4')
-    run('ITH5')
-    run('ITI1')
-    run('ITI2')
-    run('ITI3')
-    run('ITI4')
+    #run('ITC1')
+    #run('ITC2')
+    #run('ITC3')
+    #run('ITC4')
+    #run('ITF1')
+    #run('ITF2')
+    #run('ITF3')
+    #run('ITF4')
+    #run('ITF5')
+    #run('ITF6')
+    #run('ITG1')
+    #run('ITG2')
+    #run('ITH10')
+    #run('ITH20')
+    #run('ITH3')
+    #run('ITH4')
+    #run('ITH5')
+    #run('ITI1')
+    #run('ITI2')
+    #run('ITI3')
+    #run('ITI4')
     # PL regions
-    run('PL71')
-    run('PL72')
-    run('PL21')
-    run('PL22')
-    run('PL81')
-    run('PL82')
-    run('PL84')
-    run('PL41')
-    run('PL42')
-    run('PL43')
-    run('PL51')
-    run('PL52')
-    run('PL61')
-    run('PL62')
-    run('PL63')
-    run('PL9')
-    # countries
-    run('SE')
-    run('IT')
-    run('PL')
-    
+    #run('PL71')
+    #run('PL72')
+    #run('PL21')
+    #run('PL22')
+    #run('PL81')
+    #run('PL82')
+    #run('PL84')
+    #run('PL41')
+    #run('PL42')
+    #run('PL43')
+    #run('PL51')
+    #run('PL52')
+    #run('PL61')
+    #run('PL62')
+    #run('PL63')
+    #run('PL9')
+    pass

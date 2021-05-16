@@ -80,7 +80,11 @@ def aic():
     }
 
 def discrete(N = 40):
-    """"""
+    """Discretizes symptoms' duration.
+    
+    Args:
+        N (int): Number of time slots.
+    """
     # fit distributions
     fit = continuous()
     params = fit['gamma']
