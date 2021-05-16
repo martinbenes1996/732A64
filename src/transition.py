@@ -12,46 +12,56 @@ import warnings
 warnings.filterwarnings('ignore')
 
 sys.path.append('src')
-import _incubation
-import _symptoms
+from covid19 import incubation as _incubation, symptoms as _symptoms
 
-def _transitional_probability(probs):
-    """"""
-    assert(len(probs) > 0)
-    assert(abs(sum(probs) - 1) < 0.01)
-    trans_probabilities = [probs[0]]
-    for prob in probs[1:]:
-        trans = prob / F.reduce(lambda i,j: i*j, [1-p for p in trans_probabilities])
-        trans_probabilities.append(trans)
-    trans_probabilities[-1] = 1
-    return trans_probabilities #[t / trans_probabilities[-1] for t in trans_probabilities]
+#def _transitional_probability(probs):
+#    """"""
+#    assert(len(probs) > 0)
+#    assert(abs(sum(probs) - 1) < 0.01)
+#    trans_probabilities = [probs[0]]
+#    for prob in probs[1:]:
+#        trans = prob / F.reduce(lambda i,j: i*j, [1-p for p in trans_probabilities])
+#        trans_probabilities.append(trans)
+#    trans_probabilities[-1] = 1
+#    return trans_probabilities #[t / trans_probabilities[-1] for t in trans_probabilities]
 
-def incubation():
-    """Incubation period distribution."""
-    incubation = _incubation.discrete()\
-        .rename({'x': 'day', 'Px': 'probability'}, axis = 1)
-    incubation['transition'] = _transitional_probability(incubation.probability)
-    return incubation
+#def incubation():
+#    """Incubation period distribution."""
+#    incubation = _incubation.discrete()\
+#        .rename({'x': 'day', 'Px': 'probability'}, axis = 1)
+#    incubation['transition'] = _transitional_probability(incubation.probability)
+#    return incubation
 
-def symptoms():
-    """Symptom period distribution."""
-    symptoms = _symptoms.discrete()\
-        .rename({'x': 'day', 'Px': 'probability'}, axis = 1)
-    #symptoms = pd.read_csv('data/symptoms.csv', header = None, names = ['day','probability'])
-    symptoms['transition'] = _transitional_probability(symptoms.probability)
-    return symptoms
+#def symptoms():
+#    """Symptom period distribution."""
+#    symptoms = _symptoms.discrete()\
+#        .rename({'x': 'day', 'Px': 'probability'}, axis = 1)
+#    #symptoms = pd.read_csv('data/symptoms.csv', header = None, names = ['day','probability'])
+#    symptoms['transition'] = _transitional_probability(symptoms.probability)
+#    return symptoms
 
-def write_distributions():
-    """Write distributions."""
-    # featch and save
-    incubation()\
-        .to_csv('data/distr/incubation.csv', index = False, header = False)
-    symptoms()\
-        .to_csv('data/distr/symptoms.csv', index = False, header = False)
-
+#def write_distributions():
+#    """Write distributions."""
+#    # featch and save
+#    incubation()\
+#        .to_csv('data/distr/incubation.csv', index = False, header = False)
+#    symptoms()\
+#        .to_csv('data/distr/symptoms.csv', index = False, header = False)
 
 def seird(y, t, POP, a, c, b, d):
+    """SEIRD model step.
+    
+    Args:
+        y (float): States (S,E,I,R,D).
+        t (float): Time.
+        POP (int): Population size. 
+        a,c,b,d (float): SEIRD parameters.
+    Returns:
+        (tuple (5) of floats): Difference steps for S,E,I,R,D.
+    """
+    # states
     S, E, I, R, D = y
+    # model
     dSdt = - a*S*I
     dEdt = a*S*I - c*E
     dIdt = c*E - b*I - d*I
@@ -60,12 +70,31 @@ def seird(y, t, POP, a, c, b, d):
     return dSdt, dEdt, dIdt, dRdt, dDdt
 
 def parse_const_params(a, c, b, d):
+    """Interprets parameters as constant.
+    
+    Args:
+        a,c,b,d (float): Parameters' values.
+    Returns:
+        (tuple (4) of floats): Parameters a,c,b,d.
+    """
+    # return parameters
     return a,c,b,d
+
 def parse_random_params(prior_a, prior_c, prior_b, prior_d):
+    """Interprets parameters as random variables of parameters.
+    
+    Args:
+        prior_a,prior_c,prior_b (tuple of floats): Parameters of Beta random variables.
+        prior_d (tuple of floats): Parameters of Uniform random variable.
+    Returns:
+        (tuple (4) of floats): Parameters a,c,b,d.
+    """
+    # random draws
     a = beta.rvs(*prior_a, size = 1)[0]
     c = beta.rvs(*prior_c, size = 1)[0]
     b = beta.rvs(*prior_b, size = 1)[0]
     d = uniform.rvs(*prior_d, size = 1)[0]
+    # return parameters
     return a,c,b,d
     
 def transition(POP, initial_values, parameters, random_params = False):
@@ -104,15 +133,8 @@ def transition(POP, initial_values, parameters, random_params = False):
             result['I'].append(r.T[2,D])
             result['R'].append(r.T[3,D])
             result['D'].append(r.T[4,D])
-    # R,D to diff
-    result = pd.DataFrame(result)
-    result['dR'] = result['R'].diff()
-    result.loc[0,'dR'] = 0#result.loc[0,'R']
-    result['dD'] = result['D'].diff()
-    result.loc[0,'dD'] = 0#result.loc[0,'D']
-    #print(result)
-    # return result
-    return result
+    # return
+    return pd.DataFrame(result)
 
 def simulate_epidemic1():
     parameters = pd.DataFrame({
@@ -129,6 +151,7 @@ def simulate_epidemic1():
         ax.plot(df.date, df.Value, label=label)
     plt.legend()
     plt.show()
+    
 def simulate_epidemic2():
     parameters = pd.DataFrame({
         'start':[datetime(2020,3,1),datetime(2020,4,15),datetime(2020,6,1)],
@@ -146,8 +169,3 @@ def simulate_epidemic2():
     ax.axvline(datetime(2020,5,30), color='grey', alpha=.4)
     plt.legend()
     plt.show()
-
-if __name__ == '__main__':
-    simulate_epidemic2()
-
-

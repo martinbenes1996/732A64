@@ -113,20 +113,21 @@ class plot:
         y_lognorm = lognorm.pdf(xgrid, *fit['lognorm'])
         y_gamma = gamma.pdf(xgrid, *fit['gamma'])
         # plot
-        plt.hist(fit['x'], bins = 40, alpha = .6, density=True)
-        #label=f"LN({_pars(np.log(distr['lognorm'][2]),distr['lognorm'][0])}^2)")
-        plt.plot(xgrid, y_norm,
+        fig1, ax1 = plt.subplots()
+        ax1.hist(fit['x'], bins = 40, alpha = .6, density=True)
+        ax1.plot(xgrid, y_norm,
                  label=f"N({_pars(*fit['norm'][:2])})")
-        plt.plot(xgrid, y_lognorm,
+        ax1.plot(xgrid, y_lognorm,
                  label=f"LN({_pars(fit['lognorm'][0],fit['lognorm'][2])})")
                  #label = 'Lognorm(%.3f,%.3f)' % (fit['lognorm'][0],fit['lognorm'][2]))
-        plt.plot(xgrid, y_gamma,
+        ax1.plot(xgrid, y_gamma,
                  label=f"Gamma({_pars(fit['gamma'][0],fit['gamma'][2])})")
                  #label = 'Gamma(%.3f,%.3f)' % (fit['gamma'][0],fit['gamma'][2]))
-        plt.xlabel('Days from symptom onset')
-        plt.ylabel('Density')
-        plt.legend()
-        if save: plt.savefig(name)
+        ax1.xlabel('Days from symptom onset')
+        ax1.ylabel('Density')
+        ax1.legend()
+        if save: fig1.savefig(name)
+        
     @staticmethod
     def discrete(N = 40, save = False, name = 'img/parameters/symptoms_discrete.png'):
         """Plot symptoms' duration discretized Gamma distribution fit.
@@ -150,9 +151,10 @@ class plot:
             return prob
         grid_probs = pd.Series(xgrid).apply(find_X)
         # plot
-        plt.plot(xgrid, grid_probs,
+        fig1, ax1 = plt.subplots()
+        ax1.plot(xgrid, grid_probs,
                  label=f"Discretized Gamma({_pars(fit['gamma'][0],fit['gamma'][2])}")
-        plt.xlabel('Days from symptom onset')
-        plt.ylabel('Density')
-        plt.legend()
-        if save: plt.savefig(name)
+        ax1.xlabel('Days from symptom onset')
+        ax1.ylabel('Density')
+        ax1.legend()
+        if save: fig1.savefig(name)

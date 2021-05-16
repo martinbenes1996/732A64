@@ -24,9 +24,9 @@ def _get_populations():
     return eurostat_deaths.populations()
 
 def _filter_country(regional = False):
-    """Returns function to filter the regions."""
+    """Returns function to filter the regions (`regional` is True) or countries."""
     def _filter_f(s):
-        """Filters region."""
+        """Filters region `s`."""
         # regions
         if regional:
             res = False
@@ -79,7 +79,7 @@ def _populations_data():
     # return
     return x
 
-def countries():
+def _countries():
     """Fetches country populations data."""
     # get data
     x = _get_populations()
@@ -89,10 +89,9 @@ def countries():
     x = x[['geo\\time','2020']]\
         .reset_index(drop = True)\
         .rename({'geo\\time': 'region', '2020': 'population'}, axis = 1)
-    #x.columns = ['region','population']
     return x
 
-def regions():
+def _regions():
     """Fetches regions' populations data."""
     # get data
     x = _get_populations()
@@ -104,13 +103,19 @@ def regions():
         .rename({'geo\\time': 'region', '2020': 'population'}, axis = 1)
     return x
 
-def population(save = False, name = 'data/population.csv'):
+def population(save = False, name = 'tmp/cache/population.csv'):
+    """Get populations, both regional and country.
+    
+    Args:
+        save (bool, optional): Whether to cache or not.
+        name (str, optional): Path of caching.
+    """
     # load data
     try: return pd.read_csv(name)
     except: pass
     # get data
-    x_c = countries()
-    x_r = regions()
+    x_c = _countries()
+    x_r = _regions()
     # concat
     x = pd.concat([x_c, x_r])
     # save
@@ -118,17 +123,28 @@ def population(save = False, name = 'data/population.csv'):
     return x
 
 def get_population(region):
+    """Get population of a region.
+    
+    Args:
+        region (str): Region to get population of.
+    """
     x = population()
     return int(x.loc[x.region == region,'population'])
 
-def plot_population_violin(df = None, save = False, name = 'img/demographic/population.png'):
+def plot_violin(save = False, name = 'img/demographic/population.png'):
+    """Constructs a violin plot of population (so called demographic curve).
+    
+    Args:
+        save (bool, optional): Whether to cache or not.
+        name (str, optional): Path of caching.
+    """
     # fetch data
-    df = _populations_data() if df is None else df
+    df = _populations_data()
     # upsample
     cases = {'sex': [], 'age': [], 'country': []}
     for row in df.itertuples():
         age_cat = row.age_end - row.age_start + 1
-        random_pops = multinomial.rvs(int(row.population / 100), [1/age_cat]*age_cat)#, random_state = 12345)
+        random_pops = multinomial.rvs(int(row.population / 100), [1/age_cat]*age_cat)
         ages = list(range(row.age_start, row.age_end + 1))
         for age,deaths in zip(ages, random_pops):
             for _ in range(deaths):
@@ -139,13 +155,16 @@ def plot_population_violin(df = None, save = False, name = 'img/demographic/popu
         .sort_values(by = 'sex', ascending = False)
     cases['date'] = None
     # plot
-    plt.rcParams.update({'font.size': 20})
-    sns.violinplot(x="country", y="age", hue="sex", data = cases)
-    if save: plt.savefig(name)
+    fig1, ax1 = plt.subplots()
+    sns.violinplot(x="country", y="age", hue="sex", data = cases, ax=ax1)
+    if save: fig1.savefig(name)
 
-#pops = _populations_data()
-#pops.population = pops.population / 1000
 def test_countries_equal(c1, c2):
+    """Test countries' populations are equal.
+    
+    Args:
+        c1,c1 (str): Countries to compare.
+    """
     # fetch data
     df = _populations_data()\
         .groupby(['age','region','age_start','age_end'])\
@@ -165,7 +184,6 @@ def test_countries_equal(c1, c2):
     var1 = (country1.population @ (x1 - mu1)**2) / n1
     var2 = (country2.population @ (x2 - mu2)**2) / n2
     var_pooled = ((n1-1)*var1 + (n2-1)*var2) / (n1+n2-2)
-    
     # f test
     if var1 > var2:
         f_df1,f_df2 = n1-1,n2-1
@@ -173,9 +191,7 @@ def test_countries_equal(c1, c2):
     else:
         f_df1,f_df2 = n2-1,n1-1
         fstat = var2 / var1
-    # f test pi value
-    fpi = 1 - f.cdf(fstat, f_df1, f_df2)
-    
+    fpi = 1 - f.cdf(fstat, f_df1, f_df2) # f test pi value
     # t test
     if fpi > .05:
         tstat = abs(mu1 - mu2) / math.sqrt(var_pooled * (n1+n2)/n1/n2)
@@ -183,24 +199,10 @@ def test_countries_equal(c1, c2):
     else:
         tstat = abs(mu1 - mu2) / math.sqrt(var1 / n1 + var2 / n2)
         t_df = (var1**2/n1 + var2**2/n2)**2 / ((var1/n1)**2/(n1-1) + (var2/n2)**2/(n2-1))
-    # t test pi value
-    tpi = 1 - t.cdf(tstat, t_df)
-    print("Countries %s - %s" % (c1, c2))
-    print("* F-test %.5f [%s]" % (fpi, 'Y' if fpi > .05 else 'N'))
-    print("* T-test %.5f [%s]" % (tpi, 'Y' if tpi > .05 else 'N'))
-
-if __name__ == '__main__':
-    #plot_population_violin()
-    #plt.show()
-    #x = population(save = True)
-    #print(x)
-    test_countries_equal('CZ','PL')
-    test_countries_equal('CZ','SE')
-    test_countries_equal('CZ','IT')
-    test_countries_equal('PL','SE')
-    test_countries_equal('PL','IT')
-    test_countries_equal('SE','IT')
-    
-    #x = get_population('SE124')
-    #print(x)
-    
+    tpi = 1 - t.cdf(tstat, t_df) # t test pi value
+    return {
+        'country1': c1,
+        'country2': c2,
+        'f_pi': fpi, 'f_accept': 'Y' if fpi > .05 else 'N',
+        't_pi': tpi, 't_accept': 'Y' if tpi > .05 else 'N'
+    }

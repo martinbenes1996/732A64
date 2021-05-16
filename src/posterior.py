@@ -7,9 +7,10 @@ import sys
 pd.options.mode.chained_assignment = None
 sys.path.append('src')
 
-import _src
+from covid19 import src
+from demographic import population
+
 from emission import emission,emission_objective
-import population
 from transition import transition
 
 def _parse_params(params, fixparams):
@@ -44,8 +45,7 @@ def _posterior_data(region, dates, weekly=False):
     global _data
     # get data
     if region not in _data:
-        x = _src.get_data(region, weekly=weekly)
-        #print(x)
+        x = src.get_data(region, weekly=weekly)
         # parse tests
         x['cumtests'] = x.tests.cumsum()
         x['tests'] = x.tests.replace({0:1})
@@ -55,16 +55,6 @@ def _posterior_data(region, dates, weekly=False):
     # filter by dates
     x = x[(x.date >= dates[0]) & (x.date <= dates[1])]\
         .fillna(0)
-    #if x.date.min() > dates[0]:
-    #    dt = pd.date_range(dates[0],x.date.min())
-    #    x_init = pd.DataFrame({
-    #        'year': dt.apply(lambda d: int(d.strftime('%Y'))),
-    #        'week': dt.apply(lambda d: int(d.strftime('%W'))),
-    #        'date': dt,
-    #        'region': region,
-    #        'tests': 0,'confirmed': 0,'recovered': 0,'deaths': 0})
-    #    x = x.append(x_init)\
-    #        .sort_values('date')
     return x
 
 import time
@@ -82,8 +72,6 @@ def posterior_objective(params, region, dates, initial, fixparams = None, weekly
     score = 0
     latent = transition(POP, initial, params)
     latent.loc[latent.I < 0,'I'] = 0
-    #latent.loc[latent.dR < 0,'dR'] = 0
-    #latent.loc[latent.dD < 0,'dD'] = 0
     x = x.merge(latent, how='left', on=['date'])
     if 'I' in attributes:
         score += emission_objective(x.confirmed.to_numpy() / x.tests.to_numpy(),
@@ -118,8 +106,6 @@ def simulate_posterior(region, params, dates, initial, N = 1000, weekly = False,
         # transition
         latent = transition(POP, initial, params, random_params=random_params)
         latent[latent.I < 0]['I'] = 0
-        #latent[latent.dR < 0]['dR'] = 0
-        #latent[latent.dD < 0]['dD'] = 0
         xx = x.merge(latent, how='left', on=['date'])
         xx.tests = xx['tests'].apply(lambda t: t if t >= 0 else 1)
         sim_lat[:,i,:] = xx[['S','E','I','R','D']].to_numpy().T
@@ -135,18 +121,10 @@ def simulate_posterior(region, params, dates, initial, N = 1000, weekly = False,
     # spare last
     last_values = sim_lat[:,:,-1].mean(axis = 1)
     # denormalize probability
-    #sim_lat[1:5,:,:] = sim_lat[1:5,:,:] * POP
-    #sim_obs[1:5,:,:] = sim_obs[1:5,:,:] * POP
-    
-    #sim_lat[0,:,:] = POP - sim_lat[1:5,:,:].sum(axis = 0)
     sim_lat[1:3,:,:] = sim_lat[1:3,:,:] * x.tests.to_numpy()
-    sim_lat[3:5,:,:] = sim_lat[3:5,:,:] * x.cumtests.to_numpy()#x.tests.to_numpy()#
-    #sim_lat[3:5,:,:] = np.diff(sim_lat[3:5,:,:], axis=2, prepend=sim_lat[3:5,:,0:1])
-    
-    #sim_obs[0,:,:] = POP - sim_obs[1:5,:,:].sum(axis = 0)
+    sim_lat[3:5,:,:] = sim_lat[3:5,:,:] * x.cumtests.to_numpy()
     sim_obs[1:3,:,:] = sim_obs[1:3,:,:] * x.tests.to_numpy()
-    sim_obs[3:5,:,:] = sim_obs[3:5,:,:] * x.cumtests.to_numpy()#x.tests.to_numpy()#
-    #sim_obs[3:5,:,:] = np.diff(sim_obs[3:5,:,:], axis=2, prepend=sim_obs[3:5,:,0:1])
+    sim_obs[3:5,:,:] = sim_obs[3:5,:,:] * x.cumtests.to_numpy()
     return (sim_lat, sim_obs), last_values
 
 def plot_posterior(region, params, dates, initial, N = 1000,
@@ -268,27 +246,3 @@ def run_covid_characteristics():
 
 if __name__ == '__main__':
     run_covid_characteristics()
-
-#POP = 1e7
-#run_country('CZE', N = 300, params = params, dates = (datetime(2020,3,15),datetime(2020,6,30)), POP = 1e7,
-#            initial_values = (820/1000,80/1000,100/1000,0,0), alpha = 2, beta = 10000)
-#run_country('CZE', N = 300, params = params, dates = (datetime(2020,2,28),datetime(2020,7,30)), POP = 1e7,
-#            initial_values = (700/1000,300/1000,0/1000,0,0), parI=(2,5e4), parR=(2,5e4), parD=(2,1e8))
-#run_country('CZE', N = 300, params = params, dates = (datetime(2020,3,1),datetime(2020,4,12)), POP = 1e7,
-#            initial_values = (700/1000,300/1000,0/1000,0,0), parI=(2,1e5), parR=(2,1e4), parD=(2,1e4))
-
-#run_country('CZE', dates = (datetime(2020,9,1),datetime(2020,11,30)), alpha = 1000, beta = 300)
-
-
-
-
-# plot
-#fig1, ax1 = plt.subplots()
-#ax1.plot(x.date, x.E, color='orange', label='Expected')
-#ax1.plot(x.date, x.I, color='red', label='Infected')
-#ax1.plot(x.date, x.R, color='blue', label='Recovered')
-#ax1.plot(x.date, x.D, color='black', label='Deaths')
-#ax1.set_xlabel('Date')
-#ax1.set_ylabel('Infected')
-#plt.legend()
-#plt.show()

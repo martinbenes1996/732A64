@@ -159,21 +159,6 @@ def plot_poland_0_4(save = False, name = 'img/demographic/mortality_pl_05.png'):
     sns.lineplot(x = 'week', y = 'deaths', hue = 'year', data = x, ax = ax)
     if save: fig.savefig(name)
 
-#def plot_mortality_population(years = [2020]):
-#    """
-#    
-#    Args:
-#        years ():
-#    """
-#    # fetch data
-#    df = data()
-#    # filter year
-#    df = df[df.year.isin(years)]
-#    # join population
-#    df = df\
-#        .merge(pops, on=['region','sex','age_start','age_end','age'], suffixes=('','_2'))
-#    df.deaths = df.deaths / df.population
-
 # cache pops
 pops = population._populations_data()
 pops.population = pops.population / 1000
