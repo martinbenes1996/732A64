@@ -1,4 +1,16 @@
+# -*- coding: utf-8 -*-
+"""Population mortality internal module.
 
+Module containing operations with population.
+Population comes from Eurostat database.
+
+Example:
+    Fetch mortality data with
+    
+        data = mortality.data()
+        
+    
+"""
 import math
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -7,12 +19,15 @@ from scipy.stats import multinomial, t, f
 import seaborn as sns
 import eurostat_deaths
 
-def _get_populations(agg = True):
-    x = eurostat_deaths.populations()
-    return x
+def _get_populations():
+    """Fetches population from Eurostat."""
+    return eurostat_deaths.populations()
 
 def _filter_country(regional = False):
+    """Returns function to filter the regions."""
     def _filter_f(s):
+        """Filters region."""
+        # regions
         if regional:
             res = False
             res = res or (s[:2] == 'CZ' and len(s) == 5)
@@ -21,12 +36,15 @@ def _filter_country(regional = False):
             res = res or (s[:2] == 'PL' and len(s) == 3)
             res = res or (s[:2] == 'IT' and s in {'ITH10','ITH20'})
             res = res or (s[:2] == 'IT' and len(s) == 4 and s not in {'ITH1','ITH2'})
+        # countries
         else:
             res = s in ['CZ','IT','PL','SE']
+        # result
         return res
     return _filter_f
 
 def _populations_data():
+    """Fetches and parses the populations' data."""
     # get data
     x = _get_populations()
     # filter everything but countries 2020
@@ -35,8 +53,10 @@ def _populations_data():
     x = x[['sex','age','geo\\time','2020']]\
         .reset_index(drop = True)\
         .rename({'geo\\time': 'region', '2020': 'population'}, axis = 1)
+    # parse age group start
     x['age'] = x.age.apply(str)
     def get_age_start(i):
+        """Parses age start from the age group `i`."""
         x = re.match(r'(90)|(85)|(\d+)_\d+', i)
         for i in range(1,4):
             if x[i] is not None:
@@ -44,7 +64,9 @@ def _populations_data():
         else:
             raise RuntimeError(f'invalid format of age: {i}')
     x['age_start'] = x.age.apply(get_age_start)
+    # parse age group end
     def get_age_end(i):
+        """Parses age end from the age group `i`."""
         x = re.match(r'(90)|(85)|\d+_(\d+)', i)
         for i in range(1,4):
             if x[i] is not None:
@@ -54,9 +76,11 @@ def _populations_data():
         else:
             raise RuntimeError(f'invalid format of age: {i}')
     x['age_end'] = x.age.apply(get_age_end)
+    # return
     return x
 
 def countries():
+    """Fetches country populations data."""
     # get data
     x = _get_populations()
     # filter everything but countries 2020
@@ -69,6 +93,7 @@ def countries():
     return x
 
 def regions():
+    """Fetches regions' populations data."""
     # get data
     x = _get_populations()
     # filter everything but regions 2020

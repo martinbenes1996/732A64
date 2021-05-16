@@ -5,10 +5,34 @@ Module containing operations with population.
 Population comes from Eurostat database.
 
 Example:
-    List distributions with its parameters by
-
-        distr = incubation.continuous()
+    Fetch mortality data with
+    
+        data = mortality.data()
         
+    Produce mortality violinplot with
+    
+        mortality.plot_violin()
+        
+    Produce plot of Polish mortality over years with
+    
+        mortality.plot_poland_years(range(2010,2021))
+        
+    Produce plot of Polish mortality in age group 0-4y over years with
+
+        mortality.plot_poland_0_4()
+    
+    Test that countries are equal in mortality with
+    
+        mortality.test_countries_equal('CZ','PL')
+    
+    Test that mortality of genders per country is equal with
+    
+        mortality.test_country_gender_equal('CZ')
+        
+    Test that Poland is greater in age group 0-4 years and the rest are equal with
+    
+        mortality.test_0_4_greater()
+    
 """
 from datetime import datetime
 import eurostat_deaths as eurostat
@@ -79,53 +103,49 @@ def _upsample_mortality(years = None, regions = None):
     # return
     return cases
 
-def plot_mortality_violin(save = False, name = 'img/demographic/mortality.png'):
-    """
+def plot_violin(save = False, name = 'img/demographic/mortality.png'):
+    """Constructs violin plot of mortality in 2020.
     
     Args:
-        save ():
-        name ():
+        save (bool, optional): Whether to save the figure, defaultly not.
+        name (str, optional): Path to save the plot to.
     """
     # fetch
     cases = _upsample_mortality(years = [2020])
     # plot
+    fig, ax = plt.subplots()
     plt.rcParams.update({'font.size': 10})
-    sns.violinplot("country", "age", hue="sex", data = cases)
-    plt.legend()
-    if save: plt.savefig(name)
+    sns.violinplot("country", "age", hue="sex", data = cases, ax=ax)
+    ax.legend()
+    if save: fig.savefig(name)
 
-def plot_poland_years(years = None, save = False, name = 'img/demographic/mortality.png'):
-    """
+def plot_poland_years(years = None, save = False, name = 'img/demographic/mortality_pl.png'):
+    """Constructs violin plot of mortality in Poland over years.
     
     Args:
-        years ():
-        save ():
-        name ():
+        years (list,optional): Years to construct the plot for.
+        save (bool, optional): Whether to save the figure, defaultly not.
+        name (str, optional): Path to save the plot to.
     """
     # fetch
-    cases = _upsample_mortality(regions = ['PL'])
+    cases = _upsample_mortality(years = years, regions = ['PL'])
     # plot
     plt.rcParams.update({'font.size': 10})
     g = sns.FacetGrid(cases, row="sex", hue="sex")
-    print(g.axes[0])
-    #g.axes[0].axhline(y=70, ls='--', c='black')
-    #g.axes[0][1].axhline(y=80, ls='--', c='black')
     g.map(sns.violinplot, "year", "age")
-    #g.axes[0][0].text(70,2010,"70 years")
-    #g.axes[0][1].text(80,2010,"80 years")
     if save: plt.savefig(name)
 
-def plot_poland_0_5(save = False, name = 'img/demographic/mortality.png'):
-    """
+def plot_poland_0_4(save = False, name = 'img/demographic/mortality_pl_05.png'):
+    """Constructs trace plot of mortality in Poland in age group 0-4y.
     
     Args:
-        save ():
-        name ():
+        save (bool, optional): Whether to save the figure, defaultly not.
+        name (str, optional): Path to save the plot to.
     """
     # get data
     x = data()
     # filter poland
-    x = x[(x.region == 'SE') & (x.age.isin(['5_9'])) &
+    x = x[(x.region == 'PL') & (x.age.isin(['0_4'])) &
           (x.year < 2021) & (x.week < 54)]\
         .reset_index(drop = True)
     # aggregate
@@ -133,42 +153,36 @@ def plot_poland_0_5(save = False, name = 'img/demographic/mortality.png'):
         .groupby(['week','year'])\
         .aggregate({'deaths': 'sum'})\
         .reset_index(drop = False)
-    # normalize
-    #for year in x.year.unique():
-    #    denorm = x[x.year == year].deaths.sum()
-    #    x.loc[x.year == year,'deaths'] = x[x.year == year].deaths / denorm
     # plot
+    fig, ax = plt.subplots()
     plt.rcParams.update({'font.size': 10})
-    sns.lineplot(x = 'week', y = 'deaths', hue = 'year', data = x)
-    #g = sns.FacetGrid(cases, row="sex", hue="sex")
-    #g.map(sns.violinplot, "year", "age")
-    if save: plt.savefig(name)
+    sns.lineplot(x = 'week', y = 'deaths', hue = 'year', data = x, ax = ax)
+    if save: fig.savefig(name)
 
-def plot_mortality_population(years = [2020]):
-    """
-    
-    Args:
-        years ():
-    """
-    # fetch data
-    df = data()
-    # filter year
-    df = df[df.year.isin(years)]
-    # join population
-    df = df\
-        .merge(pops, on=['region','sex','age_start','age_end','age'], suffixes=('','_2'))
-    df.deaths = df.deaths / df.population
+#def plot_mortality_population(years = [2020]):
+#    """
+#    
+#    Args:
+#        years ():
+#    """
+#    # fetch data
+#    df = data()
+#    # filter year
+#    df = df[df.year.isin(years)]
+#    # join population
+#    df = df\
+#        .merge(pops, on=['region','sex','age_start','age_end','age'], suffixes=('','_2'))
+#    df.deaths = df.deaths / df.population
 
 # cache pops
 pops = population._populations_data()
 pops.population = pops.population / 1000
 def test_countries_equal(c1, c2, years = [2020]):
-    """
+    """Hypothesis test of similarity of countries' mortality.
     
     Args:
-        c1 ():
-        c2 ():
-        years ():
+        c1,c2 (str): Countries' iso2 codes to compare, codes are {'CZ','IT','PL','SE'}.
+        years (list): List of years.
     """
     # fetch data, filter by year
     df = data()
@@ -214,16 +228,13 @@ def test_countries_equal(c1, c2, years = [2020]):
         't_pi': tpi,
         't_accept': 'Y' if tpi > .05 else 'N'
     }
-    #print("Countries %s - %s" % (c1, c2))
-    #print("* F-test %.5f [%s]" % (fpi, 'Y' if fpi > .05 else 'N'))
-    #print("* T-test %.5f [%s]" % (tpi, 'Y' if tpi > .05 else 'N'))
 
-def test_country_age_equal(c1, years = [2020]):
-    """
+def test_country_gender_equal(c1, years = [2020]):
+    """Hypothesis test of similarity of gender countries' mortality.
     
     Args:
-        c1 ():
-        years ():
+        c1 (str): Country to test gender equality, from {'CZ','IT','PL','SE'}.
+        years (list): List of years.
     """
     # fetch data
     df = data()
@@ -269,33 +280,41 @@ def test_country_age_equal(c1, years = [2020]):
         't_pi': tpi,
         't_accept': 'Y' if tpi > .05 else 'N'
     }
-    #print("Country %s" % (c1))
-    #print("* F-test %.5f [%s]" % (fpi, 'Y' if fpi > .05 else 'N'))
-    #print("* T-test %.5f [%s]" % (tpi, 'Y' if tpi > .05 else 'N'))
 
-def CZ_mortality():
-    """"""
+def plot_CZ(save = False, name = 'img/demographic/mortality_cz.png'):
+    """Plot Czech mortality.
+    
+    Args:
+        save (bool, optional): Whether to save the figure, defaultly not.
+        name (str, optional): Path to save the plot to.
+    """
+    # load data
     x = data()
-    print(x)
     x = x[x.region == 'CZ']\
         .groupby(['year','week'])\
         .aggregate({'deaths':'sum'})\
         .reset_index()
-    x = x[x.week <= 53]
+    x = x[(x.week <= 53) & (x.year >= 2005)]
     x['date'] = x.apply(lambda r: datetime.strptime(f'{r.year}-{r.week}-1','%Y-%W-%w'), axis=1)
-    
-    print(x)
-    x.plot(x = 'date', y = 'deaths')
-    plt.show()
+    # plot
+    fig, ax = plt.subplots()
+    x.plot(x = 'date', y = 'deaths', ax=ax)
+    if save: fig.savefig(name)
 
-def plot_0_4(country):
-    """"""
+def plot_children(country, save = False, name = 'img/discussion/age_%s.png'):
+    """Constructs trace plot of mortality for age groups 0-4, 5-9, 10-14, 15-19.
+    
+    Args:
+        country (str): Country to construct the plot for, from {'CZ','IT','PL','SE'}.
+        save (bool, optional): Whether to save the figure, defaultly not.
+        name (str, optional): Path to save the plot to.
+    """
     # get data
-    print(country)
     x = data()
+    name = name % country
     # filter poland
     age_groups = ['0_4','5_9','10_14','15_19']
-    x = x[x.region.apply(lambda r: r[:2] == country) &#x.region.apply(lambda r: len(r) == 2) &
+    x = x[x.region.apply(lambda r: r[:2] == country) &
           (x.age.isin(age_groups)) &
           (x.year >= 2014) & (x.year < 2021) &
           (x.week < 54)]\
@@ -324,11 +343,13 @@ def plot_0_4(country):
     g.map(sns.lineplot, 'week', 'Deaths per 100K', 'year')
     plt.ylim(0,3)
     plt.legend()
-    plt.savefig(f'img/discussion/age_{country}.png')
-    plt.show()
+    if save: plt.savefig(name)
 
-def test_PL_0_4_greater():
-    """"""
+def test_0_4_greater():
+    """Test Poland greater in 0-4 years against other countries.
+    
+    The rest of the countries is tested for equality.
+    """
     # get data
     x = data()
     # filter poland
@@ -376,38 +397,37 @@ def test_PL_0_4_greater():
                         x_se.deaths100K[x_se.age == '0_4'], alternative='two-sided')
     t_it_se = ttest_ind(x_it.deaths100K[x_it.age == '0_4'],
                         x_se.deaths100K[x_se.age == '0_4'], alternative='two-sided')
-    print('PL-CZ', t_pl_cz)
-    print('PL-IT', t_pl_it)
-    print('PL-SE', t_pl_se)
-    print('CZ-IT', t_cz_it)
-    print('CZ-SE', t_cz_se)
-    print('IT-SE', t_it_se)
-
-
-if __name__ == '__main__':
-    #test_PL_0_4_greater()
-    plot_0_4('PL')
-    plot_0_4('CZ')
-    plot_0_4('IT')
-    plot_0_4('SE')
-    #plot_0_4('FR')
-    #plot_0_4('DE')
-    
-#plot_mortality_violin()
-#plt.show()
-
-#test_countries_equal('IT','SE')
-#test_countries_equal('IT','PL')
-#test_countries_equal('IT','CZ')
-#test_countries_equal('SE','PL')
-#test_countries_equal('SE','CZ')
-#test_countries_equal('PL','CZ')
-
-#CZ_mortality()
-
-#test_country_age_equal('IT')
-#test_country_age_equal('SE')
-#test_country_age_equal('PL')
-#test_country_age_equal('CZ')
-
-#plot_mortality_population
+    def decide(pvalue, thres = .05):
+        return 'Y' if pvalue > thres else 'N'
+    return [
+        {
+            'country1': 'PL', 'country2': 'CZ',
+            't_pi': t_pl_cz.pvalue,
+            't_accept': decide(t_pl_cz.pvalue)
+        },
+        {
+            'country1': 'PL', 'country2': 'IT',
+            't_pi': t_pl_it.pvalue,
+            't_accept': decide(t_pl_it.pvalue)
+        },
+        {
+            'country1': 'PL', 'country2': 'SE',
+            't_pi': t_pl_se.pvalue,
+            't_accept': decide(t_pl_se.pvalue)      
+        },
+        {
+            'country1': 'CZ', 'country2': 'IT',
+            't_pi': t_cz_it.pvalue,
+            't_accept': decide(t_cz_it.pvalue, .025)
+        },
+        {
+            'country1': 'CZ', 'country2': 'SE',
+            't_pi': t_cz_se.pvalue,
+            't_accept': decide(t_cz_se.pvalue, .025)
+        },
+        {
+            'country1': 'IT', 'country2': 'SE',
+            't_pi': t_it_se.pvalue,
+            't_accept': decide(t_it_se.pvalue, .025)
+        }
+    ]

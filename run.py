@@ -56,7 +56,7 @@ tests = covid19.tests.get()
 print(tests)
 #if show_plots or save_plots:
 #    print("- Plot of positive tests' ratio.")
-#    covid19.tests.plot_positive_test_ratio()
+#    covid19.tests.plot_positive_test_ratio(save=save_plots)
 #    if show_plots: plt.show()
 
 # === demographics ===
@@ -66,7 +66,47 @@ print("Mortality.")
 print("- Fetching mortality data.")
 mortality = demographic.mortality.data()
 print(mortality)
+#if show_plots or save_plots:
+#    print("- Violinplot of mortality.")
+#    demographic.mortality.plot_violin(save=save_plots)
+#    if show_plots: plt.show()
+#if show_plots or save_plots:
+#    print("- Plot Poland mortality over years.")
+#    demographic.mortality.plot_poland_years(range(2010,2021), save=save_plots)
+#    if show_plots: plt.show()
+#if show_plots or save_plots:
+#    print("- Plot Poland mortality (age 0-4y) over years.")
+#    demographic.mortality.plot_poland_0_4(save=save_plots)
+#    if show_plots: plt.show()
+#if show_plots or save_plots:
+#    print("- Plot mortality normalized by population.")
+print("- Test of equal countries' mortalities.")
+countries = ['CZ','IT','PL','SE']
+for i in range(4):
+    for j in range(i+1,4):
+        c1,c2 = countries[i],countries[j]
+        countries_equal = demographic.mortality.test_countries_equal(c1,c2)
+        print(countries_equal)
+print("- Test of equal mortalities of genders in country.")
+for i in range(4):
+    c1 = countries[i]
+    country_age_equal = demographic.mortality.test_country_gender_equal(c1)
+    print(country_age_equal)
+#if show_plots or save_plots:
+#    print("- Plot Czech mortality.")
+#    demographic.mortality.plot_CZ(save=save_plots)
+#    if show_plots: plt.show()
+#if show_plots or save_plots:
+#    for c1 in countries:
+#        print(f"- Plot 0-4y trace plot for {c1}.")
+#        demographic.mortality.plot_children(c1, save=save_plots)
+#        plt.show()
+print("- Test of Poland greater in age group 0-4 and other countries equal.")
+_0_4_greater = demographic.mortality.test_0_4_greater()
+print(_0_4_greater)
+
 exit()
+
 
 # # === prior ===
 # import prior
