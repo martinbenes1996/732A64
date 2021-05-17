@@ -1,13 +1,65 @@
 # -*- coding: utf-8 -*-
-"""Component performing regional comparison of simulation results.
+"""Component performing comparison of simulation results.
 
-Module containing operations to compare regional simulation results.
+Module containing operations to compare simulation results.
 
 Example:
-    Italian covid deaths can be fetched with
+    TODO
     
-        covid_deaths_it = deaths.covid19italy.covid_deaths()
+        compare.prediction_data_correlation
+        
+    TODO
     
+        compare.parameters
+        
+    TODO
+    
+        compare.get_country_R0
+        
+    TODO
+    
+        compare.plot_R0
+        
+    TODO
+    
+        compare.get_IFR
+
+    TODO
+    
+        compare.get_country_IFR
+        
+    TODO
+    
+        compare.plot_IFR
+        
+    TODO
+    
+        compare.get_symptoms
+        
+    TODO
+    
+        compare.get_country_symptoms
+        
+    TODO
+    
+        compare.plot_symptoms
+
+    TODO
+    
+        compare.plot_correlation_heatmap
+        
+    TODO
+    
+        compare.plot_correlation_distribution
+        
+    TODO
+    
+        compare.compare_60d
+        
+    TODO
+    
+        compare.compare_all
+        
 """
 from datetime import datetime,timedelta
 from matplotlib import pyplot as plt
@@ -30,21 +82,14 @@ PL_regions = ['PL71','PL72','PL21','PL22','PL81','PL82','PL84','PL41',
 SE_regions = ['SE','SE110','SE121','SE122','SE123','SE124','SE125','SE211',
               'SE212','SE213','SE214','SE221','SE224','SE231','SE232','SE311',
               'SE312','SE313','SE321','SE322','SE331','SE332']
-def get_path(region):
-    """
-    
-    Args:
-        region ():
-    """
-    return f'results/{region[:2]}w/{region}'
 
-def load_result(region):
-    """
+def _load_result(region):
+    """Load result of the region.
     
     Args:
-        region ():
+        region (str): Region to load result of.
     """
-    path = get_path(region)
+    path = f'results/{region[:2]}w/{region}'
     # load
     x = pd.read_csv(f'{path}/data.csv')
     x['date'] = x.date.apply(lambda dt: datetime.strptime(dt, '%Y-%m-%d'))
@@ -72,7 +117,7 @@ def prediction_data_correlation(regions, components, delta=None, weekly=False):
     # regions
     for region in regions:
         # load and crop
-        lat,dt,_ = load_result(region=region)
+        lat,dt,_ = _load_result(region=region)
         if delta is None:
             dates = [dt.min(), dt.max()]
         else:
@@ -104,7 +149,7 @@ def parameters(regions, delta=None, weekly=False):
     # regions
     for region in regions:
         # load and crop
-        _,dt,params = load_result(region=region)
+        _,dt,params = _load_result(region=region)
         if delta is None:
             dates = [dt.min(), dt.max()]
         else:
@@ -139,9 +184,8 @@ def get_country_R0(countries, log=True, save=False, name='TODO'):
     # get parameters
     x = None
     for country in countries:
-        print(country)
         pars = parameters([country])
-        susc = pd.DataFrame({country: load_result(country)[0][0,:]})
+        susc = pd.DataFrame({country: _load_result(country)[0][0,:]})
         susc = pd.melt(susc,var_name='region',value_name='S')
         pars = pd.concat([pars, susc[['S']]], axis=1)
         pars['Country'] = country
@@ -157,7 +201,6 @@ def get_country_R0(countries, log=True, save=False, name='TODO'):
         res['Year'].append(y)
         res['Month'].append(m)
         res['Date'].append(dt)
-        #print(df)
         res['Mean'].append(df.R0.mean())
         res['Low'].append(df.R0.quantile(.05))
         res['High'].append(df.R0.quantile(.95))
@@ -190,7 +233,7 @@ def get_R0(countries, log=True, save=False, name='TODO'):
     if 'IT' in countries: regions.append(IT_regions)
     for country in regions: # TODO
         pars = parameters(country)
-        susc = pd.DataFrame({region: load_result(region)[0][0,:]
+        susc = pd.DataFrame({region: _load_result(region)[0][0,:]
                              for region in country})
         susc = pd.melt(susc,var_name='region',value_name='S')
         pars = pd.concat([pars, susc[['S']]], axis=1)
@@ -239,7 +282,7 @@ def plot_R0(countries, log=True, save=False, name='TODO'):
     if 'IT' in countries: regions.append(IT_regions)
     for country in regions: # TODO
         pars = parameters(country)
-        susc = pd.DataFrame({region: load_result(region)[0][0,:]
+        susc = pd.DataFrame({region: _load_result(region)[0][0,:]
                              for region in country})
         susc = pd.melt(susc,var_name='region',value_name='S')
         pars = pd.concat([pars, susc[['S']]], axis=1)
@@ -314,7 +357,7 @@ def get_country_IFR(countries, log=True, save=False, name='TODO'):
     x = None
     for country in countries:
         pars = parameters([country])
-        susc = pd.DataFrame({country: load_result(country)[0][0,:]})
+        susc = pd.DataFrame({country: _load_result(country)[0][0,:]})
         susc = pd.melt(susc,var_name='region',value_name='S')
         pars = pd.concat([pars, susc[['S']]], axis=1)
         pars['Country'] = country
@@ -330,7 +373,6 @@ def get_country_IFR(countries, log=True, save=False, name='TODO'):
         res['Year'].append(y)
         res['Month'].append(m)
         res['Date'].append(dt)
-        #print(df)
         res['Mean'].append(df.IFR.mean())
         res['Low'].append(df.IFR.quantile(.05))
         res['High'].append(df.IFR.quantile(.95))
@@ -430,9 +472,8 @@ def get_country_symptoms(countries, log=True, save=False, name='TODO'):
     # get parameters
     x = None
     for country in countries:
-        print(country)
         pars = parameters([country])
-        susc = pd.DataFrame({country: load_result(country)[0][0,:]})
+        susc = pd.DataFrame({country: _load_result(country)[0][0,:]})
         susc = pd.melt(susc,var_name='region',value_name='S')
         pars = pd.concat([pars, susc[['S']]], axis=1)
         pars['Country'] = country
@@ -448,7 +489,6 @@ def get_country_symptoms(countries, log=True, save=False, name='TODO'):
         res['Year'].append(y)
         res['Month'].append(m)
         res['Date'].append(dt)
-        #print(df)
         res['Mean'].append(df.symptoms.mean())
         res['Low'].append(df.symptoms.quantile(.05))
         res['High'].append(df.symptoms.quantile(.95))
@@ -508,7 +548,7 @@ def plot_correlation_heatmap(countries, delta=timedelta(days=60)):
     if 'IT' in countries: regions = [*regions, *IT_regions]
     for region in regions: # TODO
         # load and crop
-        lat,dt,_ = load_result(region=region)
+        lat,dt,_ = _load_result(region=region)
         dates = [dt.min(), dt.max() if delta is None else dt.min()+delta]
         lat = lat[:,(dates[0] <= dt) & (dates[1] >= dt)]
         dt = dt[(dates[0] <= dt) & (dates[1] >= dt)]
@@ -535,7 +575,6 @@ def plot_correlation_heatmap(countries, delta=timedelta(days=60)):
             corD = np.corrcoef(pars1.D, pars2.D)[1,0]
             i,j = reg_map[reg1],reg_map[reg2]
             corM[i,j] = (corS+corE+corI+corR+corD)/5
-    #print(corM)
 
 def plot_correlation_distribution(countries, delta=timedelta(days=60), weekly=True):
     """

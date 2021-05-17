@@ -24,7 +24,7 @@ Example:
     
         posterior.compute_sim_ci()
         
-    TODO
+    Run example pandemic with
     
         posterior.run_covid_characteristics()
 
@@ -42,11 +42,11 @@ from emission import emission,emission_objective
 from transition import transition
 
 def _parse_params(params, fixparams):
-    """
+    """Joins optimized parameters with the parameters set to be fixed.
     
     Args:
-        params ():
-        fixparams ():
+        params (list): Optimized parameters.
+        fixparams (list): Fixed parameters.
     """
     # no fixparams set
     if fixparams is None:
@@ -76,12 +76,12 @@ def _parse_params(params, fixparams):
 
 _data = {}
 def _posterior_data(region, dates, weekly=False):
-    """
+    """Load data for the model.
     
     Args:
-        region ():
-        dates ():
-        weekly (bool, optional):
+        region (str): Region for the data.
+        dates (tuple (2)): Date range of the data.
+        weekly (bool, optional): Weekly time step if True, otherwise daily.
     """
     global _data
     # get data
@@ -103,16 +103,16 @@ def posterior_objective(params, region, dates, initial, fixparams = None, weekly
     """
     
     Args:
-        params ():
-        region ():
-        dates ():
-        initial ():
-        fixparams ():
-        weekly ():
-        attributes ():
-        parI ():
-        parR ():
-        parD ():
+        params (list): Optimized parameters.
+        region (str): Region for the data.
+        dates (tuple (2)): Date range of the data.
+        initial (dict): Initial values in dict with keys S,E,I,R,D.
+        fixparams (list): Fixed parameters.
+        weekly (bool, optional): Weekly time step if True, otherwise daily.
+        attributes (str, optional): Attributes used for optimization, 'I', 'R' or 'D'.
+        parI (tuple (2)):
+        parR (tuple (2)):
+        parD (tuple (2)):
     """
     x = _posterior_data(region, dates, weekly=weekly)
     POP = population.get_population(region)
@@ -347,7 +347,7 @@ def _plot_posterior(sim=None, region=None, dates=None, sim_mean=None):
     plt.show()
 
 def run_covid_characteristics():
-    """"""
+    """Run example Covid-19 pandemic."""
     params = pd.DataFrame({
         'start': [datetime(2020,3,1)],
         'end': [datetime(2020,9,30)],

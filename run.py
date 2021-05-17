@@ -442,17 +442,16 @@ print("Prior.")
 #    prior.plot_test_ratio_all(save=save_plots)
 #    if show_plots: plt.show()
 
+# === Regional ===
+import regional
+print("Regional.")
+
+print("- Plot confirmed.")
+
+
+
+
 exit()
-
-
-
-# # === infected ===
-# import infected
-# # plot ratio of confirmed tests
-# infected.plot_test_ratio_all()
-# # export tests
-# infected.export_tests()
-
 
 
 

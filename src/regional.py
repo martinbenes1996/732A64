@@ -1,9 +1,21 @@
-"""TODO
+# -*- coding: utf-8 -*-
+"""Component performing comparison of simulation results.
+
+Module containing operations to compare simulation results.
 
 Example:
-    TODO
-
-        TODO
+    Plot cluster plot of confirmed with
+    
+        regional.plot_confirmed()
+    
+    Plot cluster plot of deaths with
+    
+        regional.plot_deaths()
+    
+    Plot cluster plot of recovered with
+    
+        regional.plot_recovered()
+        
 """
 from datetime import datetime
 import json
@@ -18,10 +30,10 @@ import posterior
 
 _cache = None
 def _load_data(dates):
-    """
+    """Load Covid-19 statistics in the appropriate format.
     
     Args:
-        dates ():
+        dates (tuple (2)): Date range of the data.
     """
     global _cache
     if _cache is not None:
@@ -56,14 +68,16 @@ def _load_data(dates):
     _cache = (data_c,data_d,data_r),dateaxis,(regions,regions,regions_r)
     return _cache
 
-def _plot_clusters(data, dates, regions):
-    """
+def _plot_clusters(data, dates, regions, save=False, name=None):
+    """Plot clusters with data.
     
     Args:
-        data ():
-        dates ():
-        regions ():
+        data (np.array): Data matrix to plot.
+        dates (pd.Series): Date axis.
+        regions (list): List of region, used for labels in the plot.
     """
+    # plot
+    fig,ax = plt.subplots()
     sns.clustermap(
         data,
         metric="cosine",
@@ -71,21 +85,39 @@ def _plot_clusters(data, dates, regions):
         cbar_pos=None,
         yticklabels=regions,
         xticklabels=dates.apply(lambda dt: datetime.strftime(dt,'%Y-w%W')),
-        figsize=(12,10))
-    plt.xticks(fontsize=7)
-    plt.yticks(fontsize=7)
+        figsize=(12,10),
+        ax=ax
+    )
+    ax.xticks(fontsize=7)
+    ax.yticks(fontsize=7)
+    if save and name is not None: fig.savefig(name)
 
-def plot_confirmed():
-    """"""
+def plot_confirmed(save=False, name='img/results/clust_I.png'):
+    """Plot clusters of regions using confirmed cases.
+    
+    Args:
+        save (bool, optional): Whether to save the figure, defaultly not.
+        name (str, optional): Path to save the plot to.
+    """
     data,dates,cols = _load_data((datetime(2020,8,1),datetime(2021,3,15)))
     _plot_clusters(data[0], dates, cols[0])
     
-def plot_deaths():
-    """"""
+def plot_deaths(save=False, name='img/results/clust_D.png'):
+    """Plot clusters of regions using deaths.
+    
+    Args:
+        save (bool, optional): Whether to save the figure, defaultly not.
+        name (str, optional): Path to save the plot to.
+    """
     data,dates,cols = _load_data((datetime(2020,8,1),datetime(2021,3,15)))
     _plot_clusters(data[1], dates, cols[1])
     
 def plot_recovered():
-    """"""
+    """Plot clusters of regions using recovered cases.
+    
+    Args:
+        save (bool, optional): Whether to save the figure, defaultly not.
+        name (str, optional): Path to save the plot to.
+    """
     data,dates,cols = _load_data((datetime(2020,8,1),datetime(2021,3,15)))
     _plot_clusters(data[2], dates, cols[2])
