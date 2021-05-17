@@ -77,20 +77,17 @@ def _plot_clusters(data, dates, regions, save=False, name=None):
         regions (list): List of region, used for labels in the plot.
     """
     # plot
-    fig,ax = plt.subplots()
     sns.clustermap(
         data,
         metric="cosine",
         col_cluster=False,
         cbar_pos=None,
         yticklabels=regions,
-        xticklabels=dates.apply(lambda dt: datetime.strftime(dt,'%Y-w%W')),
-        figsize=(12,10),
-        ax=ax
+        xticklabels=dates.apply(lambda dt: datetime.strftime(dt,'%Y-w%W'))
     )
-    ax.xticks(fontsize=7)
-    ax.yticks(fontsize=7)
-    if save and name is not None: fig.savefig(name)
+    plt.xticks(fontsize=7)
+    plt.yticks(fontsize=7)
+    if save and name is not None: plt.savefig(name)
 
 def plot_confirmed(save=False, name='img/results/clust_I.png'):
     """Plot clusters of regions using confirmed cases.

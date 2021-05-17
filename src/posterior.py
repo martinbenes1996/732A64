@@ -100,7 +100,7 @@ def _posterior_data(region, dates, weekly=False):
 
 def posterior_objective(params, region, dates, initial, fixparams = None, weekly=False,
                         attributes = 'IRD', parI = (1,1), parR = (1,1), parD = (1,1)):
-    """
+    """Objective function of the HMM model for optimization.
     
     Args:
         params (list): Optimized parameters.
@@ -110,9 +110,9 @@ def posterior_objective(params, region, dates, initial, fixparams = None, weekly
         fixparams (list): Fixed parameters.
         weekly (bool, optional): Weekly time step if True, otherwise daily.
         attributes (str, optional): Attributes used for optimization, 'I', 'R' or 'D'.
-        parI (tuple (2)):
-        parR (tuple (2)):
-        parD (tuple (2)):
+        parI (tuple (2)): Prior parameters for emission model I.
+        parR (tuple (2)): Prior parameters for emission model R.
+        parD (tuple (2)): Prior parameters for emission model D.
     """
     x = _posterior_data(region, dates, weekly=weekly)
     POP = population.get_population(region)
@@ -139,19 +139,19 @@ def posterior_objective(params, region, dates, initial, fixparams = None, weekly
 
 def simulate_posterior(region, params, dates, initial, N = 1000, weekly = False,
                        parI = (1,1), parR = (1,1),parD = (1,1), random_params = False):
-    """
+    """Simulate from the HMM model.
     
     Args:
-        region ():
-        params ():
-        dates ():
-        initial ():
-        N ():
-        weekly ():
-        parI ():
-        parR ():
-        parD ():
-        random_params ():
+        region (str): Region for the data.
+        params (list): Optimized parameters.
+        dates (tuple (2)): Date range of the data.
+        initial (dict): Initial values in dict with keys S,E,I,R,D.
+        N (int): Number of samples.
+        weekly (bool, optional): Weekly time step if True, otherwise daily.
+        parI (tuple (2)): Prior parameters for emission model I. By default (1,1).
+        parR (tuple (2)): Prior parameters for emission model R. By default (1,1).
+        parD (tuple (2)): Prior parameters for emission model D. By default (1,1).
+        random_params (bool, optional): Bayesian parameters if True, otherwise single point.
     """
     x = _posterior_data(region, dates, weekly=weekly)\
         .reset_index(drop = True)
@@ -198,15 +198,15 @@ def plot_posterior(region, params, dates, initial, N = 1000,
     """
     
     Args:
-        region ():
-        params ():
-        dates ():
-        initial ():
-        N ():
-        parI ():
-        parR ():
-        parD ():
-        random_params ():
+        region (str): Region for the data.
+        params (list): Optimized parameters.
+        dates (tuple (2)): Date range of the data.
+        initial (dict): Initial values in dict with keys S,E,I,R,D.
+        N (int): Number of samples.
+        parI (tuple (2)): Prior parameters for emission model I. By default (1,1).
+        parR (tuple (2)): Prior parameters for emission model R. By default (1,1).
+        parD (tuple (2)): Prior parameters for emission model D. By default (1,1).
+        random_params (bool, optional): Bayesian parameters if True, otherwise single point.
     """
     # run simulation
     (sim_lat,sim_obs),_ = simulate_posterior(
@@ -219,9 +219,9 @@ def _plot_confirmed(mean, ci, x):
     """
     
     Args:
-        mean ():
-        ci ():
-        x ():
+        mean (np.array):
+        ci (np.array):
+        x (np.array):
     """
     # data
     sim_mean,sim_obs_mean = mean
@@ -297,10 +297,10 @@ def _plot_deaths(mean, ci, x):
     plt.legend()
 
 def compute_sim_mean(sim):
-    """
+    """Compute mean for latent and observed.
     
     Args:
-        sim ():
+        sim (tuple (2) of np.array): Matrix with samples (latent, observed).
     """
     sim_lat,sim_obs = sim
     sim_mean = sim_lat.mean(axis=1)
@@ -308,10 +308,10 @@ def compute_sim_mean(sim):
     return sim_mean,sim_obs_mean
 
 def compute_sim_ci(sim):
-    """
+    """Compute 95% CI for latent and observed.
     
     Args:
-        sim ():
+        sim (tuple (2) of np.array): Matrix with samples (latent, observed).
     """
     sim_lat,sim_obs = sim
     sim_ci = np.quantile(sim_lat, [.025,.975], axis = 1)
@@ -322,7 +322,7 @@ def _plot_posterior(sim=None, region=None, dates=None, sim_mean=None):
     """
     
     Args:
-        sim ():
+        sim (tuple (2) of np.array): Matrix with samples (latent, observed).v
         region ():
         dates ():
         sim_mean ():

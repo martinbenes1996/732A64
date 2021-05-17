@@ -369,7 +369,7 @@ print("\nResults.")
 
 # === Prior ===
 import prior
-print("Prior.")
+print("\nPrior.")
 
 #print("- Fit EI.")
 #fit_EI = prior.EI()
@@ -444,11 +444,12 @@ print("Prior.")
 
 # === Regional ===
 import regional
-print("Regional.")
+print("\nRegional.")
 
-print("- Plot confirmed.")
-
-
+if show_plots or save_plots:
+    print("- Plot confirmed.")
+    regional.plot_confirmed()
+    plt.show()
 
 
 exit()

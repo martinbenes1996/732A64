@@ -178,8 +178,8 @@ def get_country_R0(countries, log=True, save=False, name='TODO'):
     Args:
         countries ():
         log ():
-        save ():
-        name ():
+        save (bool, optional): Whether to save the figure, defaultly not.
+        name (str, optional): Path to save the plot to.
     """
     # get parameters
     x = None
@@ -221,8 +221,8 @@ def get_R0(countries, log=True, save=False, name='TODO'):
     Args:
         countries ():
         log ():
-        save ():
-        name ():
+        save (bool, optional): Whether to save the figure, defaultly not.
+        name (str, optional): Path to save the plot to.
     """
     # get parameters
     x = None
@@ -270,8 +270,8 @@ def plot_R0(countries, log=True, save=False, name='TODO'):
     Args:
         countries ():
         log ():
-        save ():
-        name ():
+        save (bool, optional): Whether to save the figure, defaultly not.
+        name (str, optional): Path to save the plot to.
     """
     # get parameters
     x = None
@@ -306,8 +306,8 @@ def get_IFR(countries, log=True, save=False, name='TODO'):
     Args:
         countries ():
         log ():
-        save ():
-        name ():
+        save (bool, optional): Whether to save the figure, defaultly not.
+        name (str, optional): Path to save the plot to.
     """
     # get parameters
     x = None
@@ -350,8 +350,8 @@ def get_country_IFR(countries, log=True, save=False, name='TODO'):
     Args:
         countries ():
         log ():
-        save ():
-        name ():
+        save (bool, optional): Whether to save the figure, defaultly not.
+        name (str, optional): Path to save the plot to.
     """
     # get parameters
     x = None
@@ -393,8 +393,8 @@ def plot_IFR(countries, log=True, save=False, name='TODO'):
     Args:
         countries ():
         log ():
-        save ():
-        name ():
+        save (bool, optional): Whether to save the figure, defaultly not.
+        name (str, optional): Path to save the plot to.
     """
     # get parameters
     x = None
@@ -422,8 +422,8 @@ def get_symptoms(countries, log=True, save=False, name='TODO'):
     Args:
         countries ():
         log ():
-        save ():
-        name ():
+        save (bool, optional): Whether to save the figure, defaultly not.
+        name (str, optional): Path to save the plot to.
     """
     # get parameters
     x = None
@@ -466,8 +466,8 @@ def get_country_symptoms(countries, log=True, save=False, name='TODO'):
     Args:
         countries ():
         log ():
-        save ():
-        name ():
+        save (bool, optional): Whether to save the figure, defaultly not.
+        name (str, optional): Path to save the plot to.
     """
     # get parameters
     x = None
@@ -509,8 +509,8 @@ def plot_symptoms(countries, log=True, save=False, name='TODO'):
     Args:
         countries ():
         log ():
-        save ():
-        name ():
+        save (bool, optional): Whether to save the figure, defaultly not.
+        name (str, optional): Path to save the plot to.
     """
     # get parameters
     x = None
