@@ -327,6 +327,57 @@ plot_trace_R0_box <- function(country = c('CZ','IT','SE','PL'),
     theme(text = element_text(size=15))
 }
 
+get_R0_estimates <- function(country = c('CZ','IT','SE','PL'), 
+                             split=data.frame(low='2020-03-15',high='2021-01-31')) {
+  # parse params
+  split <- split %>% mutate(low = as.Date(low), high = as.Date(high))
+  date.min <- min(split$low)
+  date.max <- max(split$high)
+  split$Segment <- 1:nrow(split)
+  # daily incidence
+  covid_data <- covid19(country, level = 1)
+  covid_stats <- covid_data %>%
+    dplyr::ungroup() %>%
+    dplyr::transmute(Country = iso_alpha_2, dates = date, I = c(0,diff(confirmed))) %>%
+    dplyr::mutate(I = ifelse(is.na(I), 0, I)) %>%
+    dplyr::mutate(I = as.integer(I)) %>%
+    dplyr::mutate(I = ifelse(I < 0, 0, I)) %>% # remove corrections
+    dplyr::filter(dates <= as.Date(date.max))
+  
+  get_segments <- function(estimates, split) {
+    segments <- c()
+    for(i in 1:nrow(estimates)) {
+      seg <- which((estimates[i,'Date'] >= split$low) & (estimates[i,'Date'] <= split$high))
+      segments <- c(segments, seg)
+    }
+    return(segments)
+  }
+  # tests
+  #tests <- get_tests(covid_data, country, date.min)
+  Rs <- NA
+  Rs.empty <- T
+  for(country in unique(covid_stats$Country)) {
+    country_stats <- covid_stats[covid_stats$Country == country,] %>%
+      dplyr::transmute(dates,I)
+    R <- estimate_reproduction(country_stats, date.min)
+    R$Segment <- get_segments(R, split)
+    R <- R %>%
+      transmute(Segment, R0) %>%
+      group_by(Segment) %>%
+      summarise(R0 = mean(R0), .groups='drop')
+    R$Country = country
+    if(Rs.empty) {
+      Rs <- R
+      Rs.empty <- F
+    }
+    else Rs <- rbind(Rs,R)
+  }
+  Rs <- Rs %>%
+    dplyr::left_join(split, how='left', by='Segment')
+  return(Rs)
+}
+
+
 test_R0_above1 <- function(country = c('CZ','IT','SE','PL'),
                            date.min = '2020-03-15', date.max = '2021-01-31') {
   # daily incidence
@@ -410,6 +461,11 @@ plot_trace_test_R0_box <- function(countries = c('CZE','ITA','SWE','POL'),
 # R0 from incidence
 plot_trace_R0_box()
 test_R0_above1()
+get_R0_estimates()
 # R0 from tests
 plot_trace_test_R0_box()
-
+# R0 estimates
+regR0 <- get_R0_estimates(split = data.frame(
+  low  = c('2020-02-25','2020-03-07','2020-03-12','2020-03-16','2020-04-01','2020-05-01'),
+  high = c('2020-03-06','2020-03-11','2020-03-15','2020-03-31','2020-04-30','2020-05-31')
+))

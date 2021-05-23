@@ -65,7 +65,7 @@ def _se_tests(level = 1):
 def _dead_gender():
     """"""
     # read data
-    x = pd.read_csv('data/dead_gender.csv')
+    x = pd.read_csv('data/gender/dead_gender.csv')
     x.columns = ['date','deaths_m','deaths_f']
     # parse
     x['date'] = x.date.apply(lambda i: datetime.strptime(i, "%Y-%m-%d"))

@@ -118,7 +118,7 @@ class plot:
         y_gamma = gamma.pdf(xgrid, *fit['gamma'])
         # plot
         fig1, ax1 = plt.subplots()
-        ax1.hist(fit['x'], bins = 40, alpha = .6, density=True)
+        ax1.hist(fit['x'], bins = 15, alpha = .6, density=True)
         ax1.plot(xgrid, y_norm,
                  label=f"N({_pars(*fit['norm'][:2])})")
         ax1.plot(xgrid, y_lognorm,
@@ -127,8 +127,8 @@ class plot:
         ax1.plot(xgrid, y_gamma,
                  label=f"Gamma({_pars(fit['gamma'][0],fit['gamma'][2])})")
                  #label = 'Gamma(%.3f,%.3f)' % (fit['gamma'][0],fit['gamma'][2]))
-        ax1.xlabel('Days from symptom onset')
-        ax1.ylabel('Density')
+        ax1.set_xlabel('Days from symptom onset')
+        ax1.set_ylabel('Density')
         ax1.legend()
         if save: fig1.savefig(name)
         
@@ -156,9 +156,10 @@ class plot:
         grid_probs = pd.Series(xgrid).apply(find_X)
         # plot
         fig1, ax1 = plt.subplots()
+        ax1.hist(fit['x'], bins = 15, alpha = .6, density=True)
         ax1.plot(xgrid, grid_probs,
                  label=f"Discretized Gamma({_pars(fit['gamma'][0],fit['gamma'][2])}")
-        ax1.xlabel('Days from symptom onset')
-        ax1.ylabel('Density')
+        ax1.set_xlabel('Days from symptom onset')
+        ax1.set_ylabel('Density')
         ax1.legend()
         if save: fig1.savefig(name)

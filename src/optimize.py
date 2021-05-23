@@ -157,10 +157,11 @@ def run(region, N = 1000):
 
 if __name__ == '__main__':
     # countries
-    #run('CZ')
-    #run('SE')
-    #run('IT')
-    #run('PL')
+    run('CZ')
+    run('SE')
+    exit()
+    run('IT')
+    run('PL')
     # CZ regions
     #run('CZ010')
     #run('CZ020')

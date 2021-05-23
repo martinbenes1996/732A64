@@ -66,28 +66,29 @@ print("\nCovid-19 incubation period.")
 # Symptoms duration
 print("\nCovid-19 symptoms' duration")
 
-#print("- Distributions.")
-#distr = covid19.symptoms.continuous()
-#print(distr)
+print("- Distributions.")
+distr = covid19.symptoms.continuous()
+print(distr)
 
-#print("- Data summary.")
-#data_summary = covid19.symptoms.data_summary()
-#print(data_summary)
+print("- Data summary.")
+data_summary = covid19.symptoms.data_summary()
+print(data_summary)
 
-#print("- AIC.")
-#aic = covid19.symptoms.aic()
-#print(aic)
+print("- AIC.")
+aic = covid19.symptoms.aic()
+print(aic)
 
-#if show_plots or save_plots:
-#    print("- Plot of continuous distributions.")
-#    covid19.symptoms.plot.continuous(save=save_plots)
-#    if show_plots: plt.show()
+if show_plots or save_plots:
+    print("- Plot of continuous distributions.")
+    covid19.symptoms.plot.continuous(save=save_plots)
+    if show_plots: plt.show()
 
-#if show_plots or save_plots:
-#    print("- Plot of discrete Gamma.")
-#    covid19.symptoms.plot.discrete(save=save_plots)
-#    if show_plots: plt.show()
+if show_plots or save_plots:
+    print("- Plot of discrete Gamma.")
+    covid19.symptoms.plot.discrete(save=save_plots)
+    if show_plots: plt.show()
 
+exit()
 # Tests
 print("\nCovid-19 tests.")
 
