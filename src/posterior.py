@@ -364,4 +364,3 @@ def run_covid_characteristics():
         initial=(700/1000,150/1000,150/1000,0,0),
         parI=(1,1e3), parR=(1,1e3), parD=(1,1), random_params=True
     )
-
