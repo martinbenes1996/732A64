@@ -4,23 +4,23 @@
 Module containing main model functionality.
 
 Example:
-    Load calendar of events with
+    Compute the negative log likelihood of data with given parameters with
 
         posterior.posterior_objective()
         
-    TODO
+    Simulate from the HMM model with
     
         posterior.simulate_posterior()
-    
-    TODO
+
+    Simulates the posterior with the given parameters, saves and plots it with
     
         posterior.plot_posterior()
         
-    TODO
+    Compute simulation mean from simulated samples with
     
         posterior.compute_sim_mean()
     
-    TODO
+    Compute simulation CI from simulated samples with
     
         posterior.compute_sim_ci()
         
@@ -195,7 +195,7 @@ def simulate_posterior(region, params, dates, initial, N = 1000, weekly = False,
 
 def plot_posterior(region, params, dates, initial, N = 1000,
                    parI = (1,1), parR = (1,1), parD = (1,1), random_params=False):
-    """
+    """Simulates the posterior with the given parameters, saves and plots it.
     
     Args:
         region (str): Region for the data.
@@ -216,12 +216,12 @@ def plot_posterior(region, params, dates, initial, N = 1000,
     _plot_posterior(sim=(sim_lat,sim_obs), region=region, dates=dates)
 
 def _plot_confirmed(mean, ci, x):
-    """
-    
+    """Plots the predicted (latent, observed) confirmed vs. data.
+
     Args:
-        mean (np.array):
-        ci (np.array):
-        x (np.array):
+        mean (tuple (2) of np.array): Mean of simulations.
+        ci (tuple (2) of np.array): CI of simulation mean.
+        x (pandas.DataFrame): Data
     """
     # data
     sim_mean,sim_obs_mean = mean
@@ -243,12 +243,12 @@ def _plot_confirmed(mean, ci, x):
     ax1.legend()
 
 def _plot_recovered(mean, ci, x):
-    """
-    
+    """Plots the predicted (latent, observed) recovered vs. data.
+
     Args:
-        mean ():
-        ci ():
-        x ():
+        mean (tuple (2) of np.array): Mean of simulations.
+        ci (tuple (2) of np.array): CI of simulation mean.
+        x (pandas.DataFrame): Data
     """
     # data
     sim_mean,sim_obs_mean = mean
@@ -270,12 +270,12 @@ def _plot_recovered(mean, ci, x):
     plt.legend()
 
 def _plot_deaths(mean, ci, x):
-    """
-    
+    """Plots the predicted (latent, observed) deaths vs. data.
+
     Args:
-        mean ():
-        ci ():
-        x ():
+        mean (tuple (2) of np.array): Mean of simulations.
+        ci (tuple (2) of np.array): CI of simulation mean.
+        x (pandas.DataFrame): Data
     """
     # data
     sim_mean,sim_obs_mean = mean
@@ -319,13 +319,16 @@ def compute_sim_ci(sim):
     return sim_ci,sim_obs_ci 
 
 def _plot_posterior(sim=None, region=None, dates=None, sim_mean=None):
-    """
+    """Plots the posterior simulations.
+    
+    If samples `sim` is given, plots it with CI. If not, only `sim_mean` mean
+    is plotted without the CI.
     
     Args:
         sim (tuple (2) of np.array): Matrix with samples (latent, observed).v
-        region ():
-        dates ():
-        sim_mean ():
+        region (str): Region for the data.
+        dates (tuple (2)): Date range of the data.
+        sim_mean (tuple (2) of np.array): Mean of simulations, if sim not given.
     """
     assert(region is not None)
     assert(dates is not None)
